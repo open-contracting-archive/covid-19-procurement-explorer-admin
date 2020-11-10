@@ -1,0 +1,10 @@
+[main]
+host = https://www.transifex.com
+
+[test-project-328.list-json]
+file_filter = <lang>/words.json
+minimum_perc = 0
+source_file = en/words.json
+source_lang = en
+type = KEYVALUEJSON
+

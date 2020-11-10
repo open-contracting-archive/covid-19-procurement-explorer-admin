@@ -10,3 +10,10 @@ ENV/
 
 .DS_Store
 *.sqlite3
+
+# settings
+.env
+
+# static
+static/admin/
+static/rest_framework/
