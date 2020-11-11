@@ -4,13 +4,15 @@ from django.utils.translation import ugettext_lazy as _
 
 class Country(models.Model):
     name = models.CharField(verbose_name=_('Name'), max_length=50)
-    population = models.IntegerField(verbose_name=_('Population'),null=True)
+    population = models.BigIntegerField(verbose_name=_('Population'),null=True)
     gdp = models.FloatField(verbose_name=_('GDP'), null=True)
-    currency = models.CharField(verbose_name=_('Currency'), max_length=5, null=True)
+    country_code = models.CharField(verbose_name=_('Country code'), max_length=10, null=True)
+    currency = models.CharField(verbose_name=_('Currency'), max_length=50, null=True)
     healthcare_budget = models.FloatField(verbose_name=_('Healthcare budget'),null=True)
     healthcare_gdp_pc = models.FloatField(verbose_name=_('% of GDP to healthcare'), null=True)
     covid_cases_total = models.IntegerField(verbose_name=_('Total COVID-19 cases'), null=True)
     covid_deaths_total = models.IntegerField(verbose_name=_('Total deaths by Covid-19'), null=True)
+    covid_data_last_updated = models.DateTimeField(null=True)
     equity_unemployment_rate = models.FloatField(verbose_name=_('Unemployment rate'), null=True)
     equity_income_avg = models.FloatField(verbose_name=_('Average income'), null=True)
     equity_gender_dist_male = models.FloatField(verbose_name=_('Gender distribution male'), null=True)
@@ -65,3 +67,12 @@ class Tender(models.Model):
 
     def __str__(self):
         return self.project_title
+
+
+# contract_id
+# contract_date
+# goods_services
+# tender_value
+# award_value
+# contract_value
+

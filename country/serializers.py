@@ -8,6 +8,11 @@ class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
         fields = '__all__'
+        read_only_fields = (
+            'covid_cases_total',
+            'covid_deaths_total',
+            'covid_data_last_updated',
+            )
 
 
 class LanguageSerializer(serializers.ModelSerializer):
