@@ -20,6 +20,7 @@ env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, []),
     CORS_ORIGIN_WHITELIST=(list, []),
+    FETCH_COVID_DATA_INTERVAL=(int, 10800),
 )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -142,4 +143,26 @@ CORS_ORIGIN_WHITELIST = env('CORS_ORIGIN_WHITELIST')
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticatedOrReadOnly',),
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+}
+
+
+CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+CELERY_TIMEZONE = env('CELERY_TIMEZONE')
+CELERY_TASK_ROUTES = {
+    'country.tasks.fetch_covid_data': {
+        'queue': 'covid19',
+        'exchange': 'covid19',
+        'routing_key': 'covid19'
+        },
+}
+CELERY_BEAT_SCHEDULE = {
+    'fetch_covid_data_job': {
+        'task': 'fetch_covid_data',  # the same goes in the task name
+        'schedule': env('FETCH_COVID_DATA_INTERVAL'),  # 3*60*60,  # in seconds
+        'options': {
+            'queue': 'covid19',
+            'exchange': 'covid19',
+            'routing_key': 'covid19'
+            },
+    },
 }

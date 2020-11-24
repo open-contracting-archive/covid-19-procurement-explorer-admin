@@ -17,3 +17,8 @@ ENV/
 # static
 static/admin/
 static/rest_framework/
+
+# celery
+celerybeat-schedule
+
+
