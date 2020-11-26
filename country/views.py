@@ -4,6 +4,9 @@ from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Country, Language, Tender
 from .serializers import CountrySerializer, LanguageSerializer, TenderSerializer
@@ -32,7 +35,23 @@ class LanguageView(viewsets.ModelViewSet):
     serializer_class = LanguageSerializer
 
 
+class TenderPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
+
 class TenderView(viewsets.ModelViewSet):
+    pagination_class = TenderPagination
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering = ['-id']
     queryset = Tender.objects.all()
     serializer_class = TenderSerializer
-    filterset_fields = ('country','country__name')
+    ordering_fields = ('contract_title','procurement_procedure','supplier','status','contract_value_usd')
+    filterset_fields = {
+        'country': ['exact'],
+        'country__name': ['exact'],
+        'status': ['exact'],
+        'procurement_procedure': ['exact'],
+        'supplier__supplier_id': ['exact'],
+    }

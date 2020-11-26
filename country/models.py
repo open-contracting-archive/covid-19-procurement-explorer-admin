@@ -44,6 +44,21 @@ class Language(models.Model):
         return self.name
 
 
+class CurrencyConversionCache(models.Model):
+    source_currency = models.CharField(verbose_name=_('Source currency'), max_length=50, null=True)
+    dst_currency = models.CharField(verbose_name=_('Dst currency'), max_length=50, null=True)
+    conversion_date = models.DateField(verbose_name=_('Conversion date'), null=True)
+    conversion_rate = models.FloatField(verbose_name=_('Conversion rate'), null=True)
+
+
+class Supplier(models.Model):
+    supplier_id = models.CharField(verbose_name=_('Supplier ID'), max_length=50, null=True, unique=True)
+    supplier_name = models.CharField(verbose_name=_('Supplier name'), max_length=250)
+
+    def __str__(self):
+        return self.supplier_name
+
+
 class Tender(models.Model):
     PROCUREMENT_METHOD_CHOICES = [
         ('open', 'open'),
@@ -59,20 +74,23 @@ class Tender(models.Model):
     ]
 
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='tenders')
-    project_title = models.CharField(max_length=250)
-    procurement_method = models.CharField(max_length=25, choices=PROCUREMENT_METHOD_CHOICES)
-    supplier_name = models.CharField(max_length=250)
-    status = models.CharField(max_length=25, choices=TENDER_STATUS_CHOICES)
-    value_usd = models.FloatField()
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='suppliers')
+    contract_id = models.CharField(verbose_name=_('Contract ID'), max_length=50, null=True)
+    contract_date = models.DateField(verbose_name=_('Contract date'), null=True)
+    contract_title = models.TextField(verbose_name=_('Contract title'), null=True)
+    contract_value_local = models.FloatField(verbose_name=_('Contract value local'), null=True)
+    contract_value_usd = models.FloatField(verbose_name=_('Contract value USD'),null=True)
+    contract_desc = models.TextField(verbose_name=_('Contract description'), null=True)
+    procurement_procedure = models.CharField(verbose_name=_('Procurement procedure'), max_length=25, choices=PROCUREMENT_METHOD_CHOICES, null=True)
+    status = models.CharField(verbose_name=_('Contract status'), max_length=25, choices=TENDER_STATUS_CHOICES, null=True)
+    link_to_contract = models.CharField(verbose_name=_('Link to contract'), max_length=250, null=True)
+    link_to_tender = models.CharField(verbose_name=_('Link to tender'), max_length=250, null=True)
+    data_source = models.CharField(verbose_name=_('Data source'), max_length=250, null=True)
 
     def __str__(self):
-        return self.project_title
+        return self.contract_title
 
 
-# contract_id
-# contract_date
-# goods_services
-# tender_value
-# award_value
-# contract_value
+
+
 

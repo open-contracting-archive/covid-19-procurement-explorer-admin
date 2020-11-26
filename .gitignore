@@ -19,6 +19,6 @@ static/admin/
 static/rest_framework/
 
 # celery
-celerybeat-schedule
+celerybeat-schedule*
 
 
