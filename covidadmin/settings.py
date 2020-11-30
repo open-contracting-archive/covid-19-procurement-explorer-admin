@@ -154,6 +154,16 @@ CELERY_TASK_ROUTES = {
         'exchange': 'covid19',
         'routing_key': 'covid19'
         },
+    'country.tasks.import_tender_data': {
+        'queue': 'covid19',
+        'exchange': 'covid19',
+        'routing_key': 'covid19'
+        },
+    'country.tasks.local_currency_to_usd': {
+        'queue': 'covid19',
+        'exchange': 'covid19',
+        'routing_key': 'covid19'
+        },
 }
 CELERY_BEAT_SCHEDULE = {
     'fetch_covid_data_job': {
@@ -166,3 +176,6 @@ CELERY_BEAT_SCHEDULE = {
             },
     },
 }
+
+GOOGLE_SHEET_CREDENTIALS_JSON = env('GOOGLE_SHEET_CREDENTIALS_JSON')
+FIXER_IO_API_KEY = env('FIXER_IO_API_KEY')
