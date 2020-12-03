@@ -15,6 +15,7 @@ from .serializers import CountrySerializer, LanguageSerializer, TenderSerializer
 class CountryView(viewsets.ModelViewSet):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
+    lookup_field = 'slug'
 
     def get_queryset(self):
         queryset = Country.objects.all()
