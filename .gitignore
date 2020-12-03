@@ -22,3 +22,17 @@ static/rest_framework/
 celerybeat-schedule*
 
 
+static/wagtailadmin/
+static/wagtaildocs/
+static/wagtailembeds/
+static/wagtailimages/
+static/wagtailmodeladmin/
+static/wagtailredirects/
+static/wagtailsearch/
+static/wagtailsnippets/
+static/wagtailusers/
+static/wagtailvideos/
+
+#media
+#public folders
+media/

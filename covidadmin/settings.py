@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
-import environ
+import environ,os
 
 
 environ.Env.read_env()
@@ -51,6 +51,25 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'country',
+
+    'wagtail.contrib.forms',
+    'wagtail.contrib.redirects',
+    'wagtail.contrib.modeladmin',
+    'wagtail.embeds',
+    'wagtail.sites',
+    'wagtail.users',
+    'wagtail.snippets',
+    'wagtail.documents',
+    'wagtail.images',
+    'wagtail.search',
+    'wagtail.admin',
+    'wagtail.core',
+    'wagtailvideos',
+    'modelcluster',
+    'taggit',
+    'wagtail.api.v2',
+    'content'
+    # 'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -62,6 +81,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
 ]
 
 ROOT_URLCONF = 'covidadmin.urls'
@@ -135,8 +157,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 STATICFILES_DIRS = []
-STATIC_ROOT = env('STATIC_ROOT')
-STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = env('STATIC_URL')
+FORCE_SCRIPT_NAME = env('FORCE_SCRIPT_NAME')
 
 CORS_ORIGIN_WHITELIST = env('CORS_ORIGIN_WHITELIST')
 
@@ -179,3 +202,9 @@ CELERY_BEAT_SCHEDULE = {
 
 GOOGLE_SHEET_CREDENTIALS_JSON = env('GOOGLE_SHEET_CREDENTIALS_JSON')
 FIXER_IO_API_KEY = env('FIXER_IO_API_KEY')
+
+WAGTAIL_SITE_NAME = 'Covid procurement admin'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = env('MEDIA_URL')
+MAX_UPLOAD_SIZE = "104857600"  # 100 MB
