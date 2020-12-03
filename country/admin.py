@@ -11,6 +11,7 @@ class CountryAdmin(admin.ModelAdmin):
         'covid_cases_total',
         'covid_deaths_total',
         'covid_data_last_updated',
+        'slug',
         )
 
 

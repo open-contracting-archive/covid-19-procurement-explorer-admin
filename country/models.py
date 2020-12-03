@@ -1,39 +1,49 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.template.defaultfilters import slugify
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 
 
 class Country(models.Model):
-    name = models.CharField(verbose_name=_('Name'), max_length=50)
-    population = models.BigIntegerField(verbose_name=_('Population'),null=True)
-    gdp = models.FloatField(verbose_name=_('GDP'), null=True)
-    country_code = models.CharField(verbose_name=_('Country code'), max_length=10, null=True)
-    currency = models.CharField(verbose_name=_('Currency'), max_length=50, null=True)
-    healthcare_budget = models.FloatField(verbose_name=_('Healthcare budget'),null=True)
-    healthcare_gdp_pc = models.FloatField(verbose_name=_('% of GDP to healthcare'), null=True)
-    covid_cases_total = models.IntegerField(verbose_name=_('Total COVID-19 cases'), null=True)
-    covid_deaths_total = models.IntegerField(verbose_name=_('Total deaths by Covid-19'), null=True)
-    covid_data_last_updated = models.DateTimeField(null=True)
-    equity_unemployment_rate = models.FloatField(verbose_name=_('Unemployment rate'), null=True)
-    equity_income_avg = models.FloatField(verbose_name=_('Average income'), null=True)
-    equity_gender_dist_male = models.FloatField(verbose_name=_('Gender distribution male'), null=True)
-    equity_gender_dist_female = models.FloatField(verbose_name=_('Gender distribution female'), null=True)
-    equity_age_dist_0_14 = models.FloatField(verbose_name=_('Age distribution 0-14 years'), null=True)
-    equity_age_dist_15_24 = models.FloatField(verbose_name=_('Age distribution 15-24 years'), null=True)
-    equity_age_dist_25_54 = models.FloatField(verbose_name=_('Age distribution 25-54 years'), null=True)
-    equity_age_dist_55_64 = models.FloatField(verbose_name=_('Age distribution 55-64 years'), null=True)
-    equity_age_dist_65_above = models.FloatField(verbose_name=_('Age distribution 55-above years'), null=True)
-    procurement_annual_public_spending = models.FloatField(verbose_name=_('Annual public procurement spending'), null=True)
-    procurement_gdp_pc = models.FloatField(verbose_name=_('% of Procurement to GDP'), null=True)
-    procurement_covid_spending = models.FloatField(verbose_name=_('COVID-19 spending'), null=True)
-    procurement_total_market_pc = models.FloatField(verbose_name=_('% from total procurement market'), null=True)
-    covid19_procurement_policy = models.TextField(verbose_name=_('COVID-19 Procurement Policy'), null=True)
-    covid19_preparedness = models.TextField(verbose_name=_('COVID-19 Preparedness'), null=True)
+    alphaSpaces = RegexValidator(r'^[a-zA-Z ]+$', 'Only letters and spaces are allowed in the Country Name')
+
+    slug = models.SlugField(null=True, unique=True)
+    name = models.CharField(verbose_name=_('Name'), null=False, unique=True, max_length=50, validators=[alphaSpaces])
+    population = models.BigIntegerField(verbose_name=_('Population'),null=True, blank=True, validators=[MinValueValidator(0)])
+    gdp = models.FloatField(verbose_name=_('GDP'), null=True, blank=True, validators=[MinValueValidator(0)])
+    country_code = models.CharField(verbose_name=_('Country code'), max_length=10, null=False)
+    country_code_alpha_2 = models.CharField(verbose_name=_('Country code alpha-2'), max_length=2, null=False)
+    currency = models.CharField(verbose_name=_('Currency'), max_length=50, null=False)
+    healthcare_budget = models.FloatField(verbose_name=_('Healthcare budget'),null=True, blank=True, validators=[MinValueValidator(0)])
+    healthcare_gdp_pc = models.FloatField(verbose_name=_('% of GDP to healthcare'), null=True, blank=True, validators=[MinValueValidator(0),MaxValueValidator(100)])
+    covid_cases_total = models.BigIntegerField(verbose_name=_('Total COVID-19 cases'), null=True, blank=True, validators=[MinValueValidator(0)])
+    covid_deaths_total = models.BigIntegerField(verbose_name=_('Total deaths by Covid-19'), null=True, blank=True, validators=[MinValueValidator(0)])
+    covid_data_last_updated = models.DateTimeField(null=True, blank=True)
+    equity_unemployment_rate = models.FloatField(verbose_name=_('Unemployment rate'), null=True, blank=True, validators=[MinValueValidator(0),MaxValueValidator(100)])
+    equity_income_avg = models.FloatField(verbose_name=_('Average income'), null=True, blank=True, validators=[MinValueValidator(0)])
+    equity_gender_dist_male = models.FloatField(verbose_name=_('Gender distribution male'), null=True, blank=True, validators=[MinValueValidator(0),MaxValueValidator(100)])
+    equity_gender_dist_female = models.FloatField(verbose_name=_('Gender distribution female'), null=True, blank=True, validators=[MinValueValidator(0),MaxValueValidator(100)])
+    equity_age_dist_0_14 = models.BigIntegerField(verbose_name=_('Age distribution 0-14 years'), null=True, blank=True, validators=[MinValueValidator(0)])
+    equity_age_dist_15_24 = models.BigIntegerField(verbose_name=_('Age distribution 15-24 years'), null=True, blank=True, validators=[MinValueValidator(0)])
+    equity_age_dist_25_54 = models.BigIntegerField(verbose_name=_('Age distribution 25-54 years'), null=True, blank=True, validators=[MinValueValidator(0)])
+    equity_age_dist_55_64 = models.BigIntegerField(verbose_name=_('Age distribution 55-64 years'), null=True, blank=True, validators=[MinValueValidator(0)])
+    equity_age_dist_65_above = models.BigIntegerField(verbose_name=_('Age distribution 65-above years'), null=True, blank=True, validators=[MinValueValidator(0)])
+    procurement_annual_public_spending = models.FloatField(verbose_name=_('Annual public procurement spending'), null=True, blank=True, validators=[MinValueValidator(0)])
+    procurement_gdp_pc = models.FloatField(verbose_name=_('% of Procurement to GDP'), null=True, blank=True, validators=[MinValueValidator(0),MaxValueValidator(100)])
+    procurement_covid_spending = models.FloatField(verbose_name=_('COVID-19 spending'), null=True, blank=True, validators=[MinValueValidator(0)])
+    procurement_total_market_pc = models.FloatField(verbose_name=_('% from total procurement market'), null=True, blank=True, validators=[MinValueValidator(0),MaxValueValidator(100)])
+    covid19_procurement_policy = models.TextField(verbose_name=_('COVID-19 Procurement Policy'), null=True, blank=True)
+    covid19_preparedness = models.TextField(verbose_name=_('COVID-19 Preparedness'), null=True, blank=True)
 
     class Meta:
         verbose_name_plural = _('Countries')
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(Country, self).save(*args, **kwargs)
 
 
 class Language(models.Model):

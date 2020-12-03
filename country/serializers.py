@@ -4,14 +4,23 @@ from rest_framework.fields import SerializerMethodField
 from .models import Country, Language, Tender, Supplier
 
 
-class CountrySerializer(serializers.ModelSerializer):
+class CountrySerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Country
         fields = '__all__'
+        lookup_field = 'slug'
+
+        extra_kwargs = {
+            'url': {'lookup_field': 'slug'}
+        }
+
         read_only_fields = (
             'covid_cases_total',
             'covid_deaths_total',
             'covid_data_last_updated',
+            'slug',
             )
 
 
