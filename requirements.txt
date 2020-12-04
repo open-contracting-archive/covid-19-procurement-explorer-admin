@@ -2,6 +2,7 @@ amqp==5.0.2
 anyascii==0.1.7
 appnope==0.1.0
 asgiref==3.2.10
+astroid==2.4.2
 autopep8==1.5.4
 backcall==0.2.0
 beautifulsoup4==4.8.2
@@ -38,10 +39,12 @@ idna==2.10
 importlib-metadata==2.0.0
 ipython==7.16.1
 ipython-genutils==0.2.0
+isort==5.6.4
 jdcal==1.4.1
 jedi==0.17.2
 kombu==5.0.2
 l18n==2020.6.1
+lazy-object-proxy==1.4.3
 mccabe==0.6.1
 oauthlib==3.1.0
 openpyxl==3.0.5
@@ -58,6 +61,8 @@ pyasn1-modules==0.2.8
 pycodestyle==2.6.0
 pyflakes==2.2.0
 Pygments==2.7.2
+pylint==2.6.0
+python-dateutil==2.8.1
 python-slugify==4.0.1
 pytz==2020.1
 requests==2.24.0
@@ -81,6 +86,7 @@ wagtailvideos==2.8.2
 wcwidth==0.2.5
 webencodings==0.5.1
 Willow==1.4
+wrapt==1.12.1
 xlrd==1.2.0
 XlsxWriter==1.3.7
 xlwt==1.3.0

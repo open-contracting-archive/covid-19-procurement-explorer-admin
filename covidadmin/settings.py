@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'country',
+    'vizualization',
 
     'wagtail.contrib.forms',
     'wagtail.contrib.redirects',
