@@ -12,7 +12,7 @@ class InsightsPageAdmin(ModelAdmin):
     menu_order = 300 
     add_to_settings_menu = False  
     exclude_from_explorer = False 
-    list_display = ('contents_type','country','body')
+    list_display = ('contents_type','title','body')
     list_filter = ('contents_type','country','author')
     search_fields = ('contents_type', 'body')
 

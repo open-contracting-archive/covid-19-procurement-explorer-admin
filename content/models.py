@@ -1,7 +1,9 @@
 from django.db import models
 from country.models import Country
 from django.utils.timezone import now
+
 from modelcluster.fields import ParentalKey
+from modelcluster.tags import ClusterTaggableManager
 
 from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.images.edit_handlers import ImageChooserPanel
@@ -12,6 +14,7 @@ from wagtail.core.fields import RichTextField
 from wagtail.core.models import Page
 from wagtail.documents.models import Document
 from wagtail.core.models import Orderable
+from taggit.models import TaggedItemBase, Tag as TaggitTag
 
 class InsightsPage(Page):
     contents_choice = [
@@ -37,6 +40,7 @@ class InsightsPage(Page):
         related_name='+'
     )
     author = models.CharField(blank=True, max_length=250)
+    tags = ClusterTaggableManager(through='content.InsightPageTag', blank=True)
 
     parent_page_type = [
         'wagtailcore.Page'  # appname.ModelName
@@ -48,6 +52,7 @@ class InsightsPage(Page):
         FieldPanel('body', classname="full"),
         ImageChooserPanel('content_image'),
         FieldPanel('author', classname="full"),
+        FieldPanel('tags'),
     ]
 
     api_fields = [
@@ -56,7 +61,8 @@ class InsightsPage(Page):
         APIField('published_date'),
         APIField('body'),
         APIField('content_image'),
-        APIField('author')
+        APIField('author'),
+        APIField('tags'),
     ]
 
     class Meta:  # noqa
@@ -167,3 +173,11 @@ class ResourcesPage(Page):
     class Meta:  # noqa
         verbose_name = "Resource"
         verbose_name_plural = "Resources"
+
+class InsightPageTag(TaggedItemBase):
+    content_object = ParentalKey('InsightsPage', related_name='post_tags')
+
+# @register_snippet
+class Tag(TaggitTag):
+    class Meta:
+        proxy = True
