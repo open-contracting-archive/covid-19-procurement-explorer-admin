@@ -27,6 +27,7 @@ admin.site.site_header = 'COVID-19 Procurement Explorer'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/v1/vizualization/', include('vizualization.urls')),
     path('', include('country.urls')),
     path('api-auth/', include('rest_framework.urls')),
     path('cms/', include(wagtailadmin_urls)),
