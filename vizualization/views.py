@@ -25,21 +25,32 @@ class TotalSpendingsView(APIView):
 
         if country == None:
             total_tender_amount = Tender.objects.aggregate(Sum('contract_value_usd'))
+            total_tender_local_amount = Tender.objects.aggregate(Sum('contract_value_local'))
             this_month = Tender.objects.filter(contract_date__year=today.year,
                             contract_date__month=today.month).aggregate(Sum('contract_value_usd'))
+            this_month_local = Tender.objects.filter(contract_date__year=today.year,
+                            contract_date__month=today.month).aggregate(Sum('contract_value_local'))
             earlier_month = Tender.objects.filter(contract_date__year=earlier.year,
                             contract_date__month=earlier.month).aggregate(Sum('contract_value_usd'))
+            earlier_month_local = Tender.objects.filter(contract_date__year=earlier.year,
+                            contract_date__month=earlier.month).aggregate(Sum('contract_value_local'))
+                
+
             try:
                 increment = ((this_month['contract_value_usd__sum'] - earlier_month['contract_value_usd__sum'])/earlier_month['contract_value_usd__sum'])*100
-            
+                increment_local = ((this_month_local['contract_value_local__sum'] - earlier_month_local['contract_value_local__sum'])/earlier_month_local['contract_value_usd__sum'])*100
             except Exception:
                 increment =0
+                increment_local =0
             except ZeroDivisionError:
                 increment = 0
+                increment_local = 0
             bar_chart = Tender.objects.values('procurement_procedure').annotate(sum=Sum('contract_value_usd'))
+            bar_chart_local = Tender.objects.values('procurement_procedure').annotate(sum=Sum('contract_value_local'))
 
             for i in bar_chart:
                 if i['procurement_procedure']=='selective':
+
                     selective_sum = i['sum']
                 elif i['procurement_procedure']=='limited':
                     limited_sum = i['sum']
@@ -47,40 +58,94 @@ class TotalSpendingsView(APIView):
                     open_sum = i['sum']
                 elif i['procurement_procedure']=='direct':
                     direct_sum = i['sum']
+            for i in bar_chart_local:
+                if i['procurement_procedure']=='selective':
+                    selective_sum_local = i['sum']
+                elif i['procurement_procedure']=='limited':
+                    limited_sum_local = i['sum']
+                elif i['procurement_procedure']=='open':
+                    open_sum_local = i['sum']
+                elif i['procurement_procedure']=='direct':
+                    direct_sum_local = i['sum']
             line_chart = Tender.objects.annotate(month=TruncMonth('contract_date')).values('month').annotate(total=Sum('contract_value_usd')).order_by("-month")
+            line_chart_local = Tender.objects.annotate(month=TruncMonth('contract_date')).values('month').annotate(total=Sum('contract_value_local')).order_by("-month")
             line_chart_list = []
+            line_chart_local_list = []
             for i in line_chart:
                 a= {}
                 a['date']= i['month']
                 a['value'] = i['total']
                 line_chart_list.append(a)
+            for i in line_chart_local:
+                a= {}
+                a['date']= i['month']
+                a['value'] = i['total']
+                line_chart_local_list.append(a)
             result = {
                 'usd':{'total':total_tender_amount['contract_value_usd__sum'],
                         'increment':increment,
                         "line_chart" : line_chart_list,
-                        'bar_chart':{
-                            'open':open_sum,
-                            'limited':limited_sum,
-                            'selective':selective_sum,
-                            'direct':direct_sum,
-                            }
-                        }
+                        'bar_chart':[{
+                                "method":"open",
+                                "value":open_sum
+                                },
+                            {
+                                "method":"limited",
+                                "value":limited_sum
+                                },
+                            {
+                                "method":"selective",
+                                "value":selective_sum
+                                },
+                            {
+                                "method":"direct",
+                                "value":direct_sum
+                            }]
+                        },
+                'local':{
+                    'total':total_tender_local_amount['contract_value_local__sum'],
+                        'increment':increment_local,
+                        "line_chart" : line_chart_local_list,
+                        'bar_chart':[{
+                                "method":"open",
+                                "value":open_sum_local
+                                },
+                            {
+                                "method":"limited",
+                                "value":limited_sum_local
+                                },
+                            {
+                                "method":"selective",
+                                "value":selective_sum_local
+                                },
+                            {
+                                "method":"direct",
+                                "value":direct_sum_local
+                            }]
+                }
             }
         else:
             total_country_tender_amount = Tender.objects.filter(country__name=country).aggregate(Sum('contract_value_usd'))
+            total__country_tender_local_amount = Tender.objects.filter(country__name=country).aggregate(Sum('contract_value_local'))
             this_month = Tender.objects.filter(country__name=country,contract_date__year=today.year,
                             contract_date__month=today.month).aggregate(Sum('contract_value_usd'))
+            this_month_local = Tender.objects.filter(country__name=country,contract_date__year=today.year,
+                            contract_date__month=today.month).aggregate(Sum('contract_value_local'))
             earlier_month = Tender.objects.filter(country__name=country,contract_date__year=earlier.year,
                             contract_date__month=earlier.month).aggregate(Sum('contract_value_usd'))
+            earlier_month_local = Tender.objects.filter(country__name=country,contract_date__year=earlier.year,
+                            contract_date__month=earlier.month).aggregate(Sum('contract_value_local'))
             try:
                 increment = ((this_month['contract_value_usd__sum'] - earlier_month['contract_value_usd__sum'])/earlier_month['contract_value_usd__sum'])*100
-            
+                increment_local = ((this_month_local['contract_value_local__sum'] - earlier_month_local['contract_value_local__sum'])/earlier_month_local['contract_value_usd__sum'])*100
             except Exception:
                 increment =0
-                
+                increment_local = 0
             except ZeroDivisionError:
                 increment = 0
+                increment_local = 0
             bar_chart =Tender.objects.filter(country__name=country).values('procurement_procedure').annotate(sum=Sum('contract_value_usd'))
+            bar_chart_local = Tender.objects.filter(country__name=country).values('procurement_procedure').annotate(sum=Sum('contract_value_local'))
             for i in bar_chart:
                 if i['procurement_procedure']=='selective':
                     selective_total = i['sum']
@@ -90,23 +155,73 @@ class TotalSpendingsView(APIView):
                     open_total = i['sum']
                 elif i['procurement_procedure']=='direct':
                     direct_total = i['sum']
+            for i in bar_chart_local:
+                if i['procurement_procedure']=='selective':
+                    selective_sum_local = i['sum']
+                elif i['procurement_procedure']=='limited':
+                    limited_sum_local = i['sum']
+                elif i['procurement_procedure']=='open':
+                    open_sum_local = i['sum']
+                elif i['procurement_procedure']=='direct':
+                    direct_sum_local = i['sum']
             line_chart = Tender.objects.filter(country__name=country).annotate(month=TruncMonth('contract_date')).values('month').annotate(total=Sum('contract_value_usd')).order_by("-month")
+            line_chart_local = Tender.objects.filter(country__name=country).annotate(month=TruncMonth('contract_date')).values('month').annotate(total=Sum('contract_value_local')).order_by("-month")
+
+            line_chart_local_list = []
             line_chart_list = []
             for i in line_chart:
                 a= {}
                 a['date']= i['month']
                 a['value'] = i['total']
                 line_chart_list.append(a)
+            for i in line_chart_local:
+                a= {}
+                a['date']= i['month']
+                a['value'] = i['total']
+                line_chart_local_list.append(a)
             result = {'usd':{'total':total_country_tender_amount['contract_value_usd__sum'],
                         'increment':increment,
                         "line_chart" : line_chart_list,
-                        'bar_chart':{
-                            'open':open_total,
-                            'limited':limited_total,
-                            'selective':selective_total,
-                            'direct':direct_total,}
-                        }
+                        'bar_chart':[{
+                                "method":"open",
+                                "value":open_total
+                                },
+                            {
+                                "method":"limited",
+                                "value":limited_total
+                                },
+                            {
+                                "method":"selective",
+                                "value":selective_total
+                                },
+                            {
+                                "method":"direct",
+                                "value":direct_total
+                            }],
+                    'local':{
+                    'total':total__country_tender_local_amount['contract_value_local__sum'],
+                        'increment':increment_local,
+                        "line_chart" : line_chart_local_list,
+                        'bar_chart':[{
+                                "method":"open",
+                                "value":open_sum_local
+                                },
+                            {
+                                "method":"limited",
+                                "value":limited_sum_local
+                                },
+                            {
+                                "method":"selective",
+                                "value":selective_sum_local
+                                },
+                            {
+                                "method":"direct",
+                                "value":direct_sum_local
+                            }]
+                }
             }
+        }
+            
         return JsonResponse(result)
 
 
@@ -154,11 +269,22 @@ class TotalContractsView(APIView):
             result = {'total':total_tender,
                         'difference':difference,
                         "line_chart" : line_chart_list,
-                        'bar_chart':{
-                            'open':open_count,
-                            'limited':limited_count,
-                            'selective':selective_count,
-                            'direct':direct_count,}
+                        'bar_chart':[{
+                                "method":"open",
+                                "value":open_count
+                                },
+                            {
+                                "method":"limited",
+                                "value":limited_count
+                                },
+                            {
+                                "method":"selective",
+                                "value":selective_count
+                                },
+                            {
+                                "method":"direct",
+                                "value":direct_count
+                            }]
                         }
         else:
             total_country_tender = Tender.objects.filter(country__name=country).count()
@@ -190,10 +316,21 @@ class TotalContractsView(APIView):
             result = {'total':total_country_tender,
                         'difference':difference,
                         "line_chart" : line_chart_list,
-                        'bar_chart':{
-                            'open':open_count,
-                            'limited':limited_count,
-                            'selective':selective_count,
-                            'direct':direct_count,}
+                        'bar_chart':[{
+                                "method":"open",
+                                "value":open_count
+                                },
+                            {
+                                "method":"limited",
+                                "value":limited_count
+                                },
+                            {
+                                "method":"selective",
+                                "value":selective_count
+                                },
+                            {
+                                "method":"direct",
+                                "value":direct_count
+                            }]
                         }
         return JsonResponse(result)
