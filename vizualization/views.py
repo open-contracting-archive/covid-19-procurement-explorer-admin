@@ -4,11 +4,12 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from .serializers import TenderSerializer
-from country.models import Tender
-
+from country.models import Tender,Country
+import operator
+from functools import reduce
 import datetime 
 import dateutil.relativedelta
-from django.db.models import Avg, Count, Min, Sum, Count
+from django.db.models import Avg, Count, Min, Sum, Count,Window
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 import math
@@ -198,7 +199,7 @@ class TotalSpendingsView(APIView):
                             {
                                 "method":"direct",
                                 "value":direct_total
-                            }],
+                            }],},
                     'local':{
                     'total':total__country_tender_local_amount['contract_value_local__sum'],
                         'increment':increment_local,
@@ -220,8 +221,8 @@ class TotalSpendingsView(APIView):
                                 "value":direct_sum_local
                             }]
                 }
+            
             }
-        }
             
         return JsonResponse(result)
 
@@ -360,6 +361,7 @@ class AverageBidsView(APIView):
         
         # Month wise average of number of bids for contracts
         monthwise_data = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month').annotate(Avg("no_of_bidders")).order_by("-month")
+        print(monthwise_data)
         final_line_chart_data = [{'date': i['month'],'value': round(i['no_of_bidders__avg'])} for i in monthwise_data]
         
         # Overall average number of bids for contracts
@@ -371,3 +373,50 @@ class AverageBidsView(APIView):
             'line_chart' : final_line_chart_data
         }
         return JsonResponse(result)
+class GlobalOverView(APIView):
+    def get(self,request):
+        temp={}
+        tender_temp ={}
+        data=[]
+        count = Tender.objects.annotate(month=TruncMonth('contract_date')).values('month').annotate(total_contract=Count('id'),total_amount=Sum('contract_value_usd')).order_by("month")
+        countries = Country.objects.all()
+        for i in count:
+            result={}
+            end_date = i['month'] + dateutil.relativedelta.relativedelta(months=1)
+            start_date=i['month']
+            result["details"]=[]
+            result["month"]=str(start_date.year)+'-'+str(start_date.month)
+            for j in countries:
+                b={}
+                tender_count =Tender.objects.filter(country__name=j,contract_date__gte=start_date,contract_date__lte=end_date).count()
+                tender =  Tender.objects.filter(country__name=j,contract_date__gte=start_date,contract_date__lte=end_date).aggregate(Sum('contract_value_usd'))
+                b['country']=j.name
+                b['country_code']=j.country_code
+                if tender['contract_value_usd__sum']==None:
+                    tender_val = 0
+                else:
+                    tender_val = tender['contract_value_usd__sum']
+                if tender_count==None:
+                    contract_val = 0
+                else:
+                    contract_val = tender_count
+                if bool(temp) and j.name in temp.keys():
+                    current_val = temp[j.name]
+                    cum_value =current_val+tender_val
+                    temp[j.name]=cum_value
+                    b['amount_usd'] = cum_value
+                else:
+                    temp[j.name] = tender_val
+                    b['amount_usd'] = tender_val
+                if bool(tender_temp) and j.name in tender_temp.keys():
+                    current_val = tender_temp[j.name]
+                    cum_value =current_val+contract_val
+                    tender_temp[j.name]=cum_value
+                    b['tender_count'] = cum_value
+                else:
+                    tender_temp[j.name] = contract_val
+                    b['tender_count'] = contract_val
+                result["details"].append(b)
+            data.append(result)
+        final={"result":data}
+        return JsonResponse(final)
