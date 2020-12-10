@@ -96,6 +96,7 @@ class Tender(models.Model):
     link_to_contract = models.CharField(verbose_name=_('Link to contract'), max_length=250, null=True)
     link_to_tender = models.CharField(verbose_name=_('Link to tender'), max_length=250, null=True)
     data_source = models.CharField(verbose_name=_('Data source'), max_length=250, null=True)
+    no_of_bidders = models.BigIntegerField(verbose_name=_('Number of Bidders'), null=True, blank=True)
 
     def __str__(self):
         return self.contract_title

@@ -8,9 +8,10 @@ from country.models import Tender
 
 import datetime 
 import dateutil.relativedelta
-from django.db.models import Count,Sum
+from django.db.models import Avg, Count, Min, Sum, Count
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
+import math
 
 class TotalSpendingsView(APIView):
     def get(self,request):
@@ -333,4 +334,40 @@ class TotalContractsView(APIView):
                                 "value":direct_count
                             }]
                         }
+        return JsonResponse(result)
+
+class AverageBidsView(APIView):
+    def get(self,request):
+        """
+        Returns average bids for contracts
+        """
+        country =  self.request.GET.get('country',None)
+        current_time = datetime.datetime.now()
+        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=1)
+        previous_month = previous_month_date.replace(day=1).date()
+
+        # Difference percentage calculation 
+        filter_args = {}
+        if country: filter_args['country__name'] = country
+        current_month_avg = Tender.objects.filter(**filter_args,contract_date__year=current_time.year,contract_date__month=current_time.month).aggregate(average=Avg('no_of_bidders'))
+        previous_month_avg = Tender.objects.filter(**filter_args,contract_date__year=previous_month.year,contract_date__month=previous_month.month).aggregate(average=Avg('no_of_bidders'))
+        final_current_month_avg = current_month_avg['average'] if current_month_avg['average'] else 0
+        final_previous_month_avg = previous_month_avg['average'] if previous_month_avg['average'] else 0
+        try:
+            difference = round((( final_current_month_avg - final_previous_month_avg)/final_previous_month_avg)*100)
+        except:
+            difference = 0
+        
+        # Month wise average of number of bids for contracts
+        monthwise_data = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month').annotate(Avg("no_of_bidders")).order_by("-month")
+        final_line_chart_data = [{'date': i['month'],'value': round(i['no_of_bidders__avg'])} for i in monthwise_data]
+        
+        # Overall average number of bids for contracts
+        overall_avg = Tender.objects.filter(**filter_args).aggregate(average=Avg('no_of_bidders'))
+
+        result ={
+            'average' : round(overall_avg['average']),
+            'difference' : difference,
+            'line_chart' : final_line_chart_data
+        }
         return JsonResponse(result)
