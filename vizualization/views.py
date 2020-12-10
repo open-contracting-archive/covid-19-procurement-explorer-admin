@@ -420,3 +420,41 @@ class GlobalOverView(APIView):
             data.append(result)
         final={"result":data}
         return JsonResponse(final)
+
+
+class TopSuppliers(APIView):
+    def get(self,request):
+        country =  self.request.GET.get('country',None)
+        if country:
+            for_value = Tender.objects.filter(country__name=country).values('supplier__supplier_id','supplier__supplier_name','country__currency')\
+                        .annotate(count=Count('id'),usd=Sum('contract_value_usd'),local=Sum('contract_value_local')).order_by('-usd')[:10]
+            for_number = Tender.objects.filter(country__name=country).values('supplier__supplier_id','supplier__supplier_name','country__currency')\
+                        .annotate(count=Count('id'),usd=Sum('contract_value_usd'),local=Sum('contract_value_local')).order_by('-count')[:10]
+        else:
+            for_value = Tender.objects.values('supplier__supplier_id','supplier__supplier_name','country__currency')\
+                .annotate(count=Count('id'),usd=Sum('contract_value_usd'),local=Sum('contract_value_local')).order_by('-usd')[:10]
+            for_number = Tender.objects.values('supplier__supplier_id','supplier__supplier_name','country__currency')\
+                .annotate(count=Count('id'),usd=Sum('contract_value_usd'),local=Sum('contract_value_local')).order_by('-count')[:10]
+        by_number= []
+        by_value = []
+        for value in for_value:
+            a= {}
+            a["amount_local"] = value['local']
+            a["amount_usd"] = value['usd']
+            a["local_currency_code"] = value['country__currency']
+            a['supplier_id'] = value['supplier__supplier_id']
+            a['supplier_name'] = value['supplier__supplier_name']
+            a['tender_count'] = value['count']
+            by_value.append(a)
+        for value in for_number:
+            a= {}
+            a["amount_local"] = value['local']
+            a["amount_usd"] = value['usd']
+            a["local_currency_code"] = value['country__currency']
+            a['supplier_id'] = value['supplier__supplier_id']
+            a['supplier_name'] = value['supplier__supplier_name']
+            a['tender_count'] = value['count']
+            by_number.append(a)
+        result={"by_number": by_number,
+                "by_value": by_value}
+        return JsonResponse(result)
