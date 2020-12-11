@@ -8,4 +8,5 @@ urlpatterns = [
     path('average_bids/', views.AverageBidsView.as_view()),
     path('global_overview/',views.GlobalOverView.as_view()),
     path('top_suppliers/',views.TopSuppliers.as_view()),
+    path('top_buyers/',views.TopBuyers.as_view()),
 ]
