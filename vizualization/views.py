@@ -4,7 +4,7 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from .serializers import TenderSerializer
-from country.models import Tender,Country
+from country.models import Tender,Country,CovidMonthlyActiveCases
 import operator
 from functools import reduce
 import datetime 
@@ -591,17 +591,30 @@ class ContractStatusView(APIView):
 
         return JsonResponse(result,safe=False)
 class QuantityCorrelation(APIView):
+    today = datetime.datetime.now()
     def get(self,request):
         country =  self.request.GET.get('country',None)
         if country:
-            contracts_quantity = Tender.objects.filter(country__name=country).annotate(month=TruncMonth('contract_date')).values('month','country__currency').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'), active_case = Sum('covidmonthlyactivecases__active_cases_count')).order_by('month')
+            contracts_quantity = Tender.objects.filter(country__name=country).annotate(month=TruncMonth('contract_date')).values('month','country__currency').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local')).order_by('-month')
+        else:
+            contracts_quantity = Tender.objects.annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local')).order_by('-month')
         
         contracts_quantity_list = []
         
         for i in contracts_quantity:
+            if country:
+                active_case = CovidMonthlyActiveCases.objects.filter(country__name = country, covid_data_date__year=i['month'].year, covid_data_date__month=i['month'].month).values('active_cases_count')
+            else :
+                active_case = CovidMonthlyActiveCases.objects.filter(covid_data_date__year=i['month'].year, covid_data_date__month=i['month'].month).values('active_cases_count')
+            active_case_count = 0
+            try:
+                for j in active_case:
+                    active_case_count += j['active_cases_count']
+            except Exception:
+                active_case_count = 0
             a = {}
+            a["active_cases"] = active_case_count
             a["amount_local"] = i['local']
-            a["active_cases"] = i['active_case']
             a["amount_usd"] = i['usd']
             a["local_currency_code"] = i['country__currency'] if 'country__currency' in i else None
             a["month"] = i['month']
