@@ -1,10 +1,7 @@
 from django.shortcuts import render
-
-# Create your views here.
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from .serializers import TenderSerializer
-from country.models import Tender,Country
 import operator
 from functools import reduce
 import datetime 
@@ -13,6 +10,9 @@ from django.db.models import Avg, Count, Min, Sum, Count,Window
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 import math
+
+from country.models import Tender,Country,CovidMonthlyActiveCases
+
 
 class TotalSpendingsView(APIView):
     def get(self,request):
@@ -240,6 +240,7 @@ class TotalSpendingsView(APIView):
             
         return JsonResponse(result)
 
+
 class TotalContractsView(APIView):
     def get(self,request):
         """
@@ -350,6 +351,7 @@ class TotalContractsView(APIView):
                         }
         return JsonResponse(result)
 
+
 class AverageBidsView(APIView):
     def get(self,request):
         """
@@ -386,6 +388,7 @@ class AverageBidsView(APIView):
         }
         return JsonResponse(result)
         
+
 class GlobalOverView(APIView):
     def get(self,request):
         temp={}
@@ -510,6 +513,8 @@ class TopBuyers(APIView):
         result={"by_number": by_number,
                 "by_value": by_value}
         return JsonResponse(result)
+
+
 class DirectOpen(APIView):
     def get(self,request):
         country =  self.request.GET.get('country',None)
@@ -539,6 +544,7 @@ class DirectOpen(APIView):
         result = [result_direct,result_open]
 
         return JsonResponse(result,safe=False)
+
 
 class ContractStatusView(APIView):
     """
@@ -590,3 +596,38 @@ class ContractStatusView(APIView):
                     )
 
         return JsonResponse(result,safe=False)
+
+
+class QuantityCorrelation(APIView):
+    today = datetime.datetime.now()
+    def get(self,request):
+        country =  self.request.GET.get('country',None)
+        if country:
+            contracts_quantity = Tender.objects.filter(country__name=country).annotate(month=TruncMonth('contract_date')).values('month','country__currency').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local')).order_by('-month')
+        else:
+            contracts_quantity = Tender.objects.annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local')).order_by('-month')
+        
+        contracts_quantity_list = []
+        
+        for i in contracts_quantity:
+            if country:
+                active_case = CovidMonthlyActiveCases.objects.filter(country__name = country, covid_data_date__year=i['month'].year, covid_data_date__month=i['month'].month).values('active_cases_count')
+            else :
+                active_case = CovidMonthlyActiveCases.objects.filter(covid_data_date__year=i['month'].year, covid_data_date__month=i['month'].month).values('active_cases_count')
+            active_case_count = 0
+            try:
+                for j in active_case:
+                    if j['active_cases_count']:
+                        active_case_count += j['active_cases_count']
+            except Exception:
+                active_case_count = 0
+            a = {}
+            a["active_cases"] = active_case_count
+            a["amount_local"] = i['local']
+            a["amount_usd"] = i['usd']
+            a["local_currency_code"] = i['country__currency'] if 'country__currency' in i else ''
+            a["month"] = i['month']
+            a["tender_count"] = i['count']
+            contracts_quantity_list.append(a)
+
+        return JsonResponse(contracts_quantity_list, safe= False) 
