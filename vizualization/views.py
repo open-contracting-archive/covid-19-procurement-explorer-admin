@@ -590,3 +590,25 @@ class ContractStatusView(APIView):
                     )
 
         return JsonResponse(result,safe=False)
+class QuantityCorrelation(APIView):
+    def get(self,request):
+        country =  self.request.GET.get('country',None)
+        if country:
+            contracts_quantity = Tender.objects.filter(country__name=country).annotate(month=TruncMonth('contract_date')).values('month','country__currency').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'), active_case = Sum('covidmonthlyactivecases__active_cases_count')).order_by('month')
+        
+        contracts_quantity_list = []
+        
+        for i in contracts_quantity:
+            a = {}
+            a["amount_local"] = i['local']
+            a["active_cases"] = i['active_case']
+            a["amount_usd"] = i['usd']
+            a["local_currency_code"] = i['country__currency'] if 'country__currency' in i else None
+            a["month"] = i['month']
+            a["tender_count"] = i['count']
+            contracts_quantity_list.append(a)
+
+        result = {
+            "data": contracts_quantity_list
+        }
+        return JsonResponse(contracts_quantity_list, safe= False) 
