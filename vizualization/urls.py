@@ -10,4 +10,5 @@ urlpatterns = [
     path('top_suppliers/',views.TopSuppliers.as_view()),
     path('top_buyers/',views.TopBuyers.as_view()),
     path('direct_open/',views.DirectOpen.as_view()),
+    path('contract_status/',views.ContractStatusView.as_view())
 ]

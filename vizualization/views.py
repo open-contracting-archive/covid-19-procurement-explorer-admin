@@ -386,6 +386,7 @@ class AverageBidsView(APIView):
             'line_chart' : final_line_chart_data
         }
         return JsonResponse(result)
+        
 class GlobalOverView(APIView):
     def get(self,request):
         temp={}
@@ -537,5 +538,56 @@ class DirectOpen(APIView):
                 }
 
         result = [result_direct,result_open]
+
+        return JsonResponse(result,safe=False)
+
+class ContractStatusView(APIView):
+    """
+       Returns status wise grouped info about contracts 
+    """
+    def get(self,request):
+        filter_args = {}
+        result = list()
+        currency_code = ''
+        status = ['active','completed','cancelled']
+        country =  self.request.GET.get('country',None)
+        if country: filter_args['country__name'] = country
+
+        # Status code wise grouped sum of contract value
+        contract_value_local_sum = Tender.objects.filter(**filter_args).values('status').annotate(sum=Sum('goods_services__contract_value_local'))
+        contract_value_usd_sum = Tender.objects.filter(**filter_args).values('status').annotate(sum=Sum('goods_services__contract_value_usd'))
+
+        # Status code wise grouped total number of contracts
+        grouped_contract_no = Tender.objects.filter(**filter_args).values('status').annotate(count=Count('id'))
+
+        if country: 
+            try:
+                country_res = Country.objects.get(name=country)
+                currency_code = country_res.currency
+            except Exception as e:
+                print(e)
+                
+        status_in_result = [i['status'] for i in contract_value_local_sum]
+        for i in range(len(status)):
+            if status[i] in status_in_result:
+                result.append(
+                    {
+                        "amount_local": [each['sum'] if each['sum'] else 0 for each in contract_value_local_sum if status[i] == each['status']][0],
+                        "amount_usd": [each['sum'] if each['sum'] else 0 for each in contract_value_usd_sum if status[i] == each['status']][0],
+                        "tender_count": [each['count'] if each['count'] else 0 for each in grouped_contract_no if status[i] == each['status']][0],
+                        "local_currency_code": currency_code ,
+                        "status": status[i]
+                    }
+                    )
+            else:
+                result.append(
+                    {
+                        "amount_local": 0,
+                        "amount_usd": 0,
+                        "tender_count": 0,
+                        "local_currency_code": currency_code,
+                        "status": status[i]
+                    }
+                    )
 
         return JsonResponse(result,safe=False)
