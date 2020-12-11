@@ -144,3 +144,7 @@ class GoodsServices(models.Model):
         return f'{self.goods_services_category} - {self.contract_title}'
 
 
+class CovidMonthlyActiveCases(models.Model):
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='covid_monthly_active_cases')
+    covid_data_date = models.DateField()
+    active_cases_count = models.BigIntegerField(verbose_name=_('Active cases count'), null=True, blank=True)
