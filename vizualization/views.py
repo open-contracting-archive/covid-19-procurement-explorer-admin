@@ -392,6 +392,7 @@ class GlobalOverView(APIView):
                 tender =  Tender.objects.filter(country__name=j,contract_date__gte=start_date,contract_date__lte=end_date).aggregate(Sum('contract_value_usd'))
                 b['country']=j.name
                 b['country_code']=j.country_code
+                b['aplha2_code'] = j.country_code_alpha_2
                 if tender['contract_value_usd__sum']==None:
                     tender_val = 0
                 else:
