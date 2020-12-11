@@ -49,10 +49,16 @@ class TotalSpendingsView(APIView):
                 increment_local = 0
             bar_chart = Tender.objects.values('procurement_procedure').annotate(sum=Sum('contract_value_usd'))
             bar_chart_local = Tender.objects.values('procurement_procedure').annotate(sum=Sum('contract_value_local'))
-
+            selective_sum=0
+            limited_sum=0
+            open_sum=0
+            directsuml=0
+            selective_sum_local=0
+            limited_sum_local=0
+            open_sum_local=0
+            direct_sum_local=0
             for i in bar_chart:
                 if i['procurement_procedure']=='selective':
-
                     selective_sum = i['sum']
                 elif i['procurement_procedure']=='limited':
                     limited_sum = i['sum']
@@ -148,6 +154,14 @@ class TotalSpendingsView(APIView):
                 increment_local = 0
             bar_chart =Tender.objects.filter(country__name=country).values('procurement_procedure').annotate(sum=Sum('contract_value_usd'))
             bar_chart_local = Tender.objects.filter(country__name=country).values('procurement_procedure').annotate(sum=Sum('contract_value_local'))
+            selective_total=0
+            limited_total=0
+            open_total=0
+            direct_total=0
+            selective_total_local=0
+            limited_total_local=0
+            open_total_local=0
+            direct_total_local=0
             for i in bar_chart:
                 if i['procurement_procedure']=='selective':
                     selective_total = i['sum']
@@ -454,6 +468,44 @@ class TopSuppliers(APIView):
             a["local_currency_code"] = value['country__currency']
             a['supplier_id'] = value['supplier__supplier_id']
             a['supplier_name'] = value['supplier__supplier_name']
+            a['tender_count'] = value['count']
+            by_number.append(a)
+        result={"by_number": by_number,
+                "by_value": by_value}
+        return JsonResponse(result)
+
+
+class TopBuyers(APIView):
+    def get(self,request):
+        country =  self.request.GET.get('country',None)
+        if country:
+            for_value = Tender.objects.filter(country__name=country,buyer__isnull=False).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
+                        .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('contract_value_local')).order_by('-usd')[:10]
+            for_number = Tender.objects.filter(country__name=country,buyer__isnull=False).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
+                        .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('contract_value_local')).order_by('-count')[:10]
+        else:
+            for_value = Tender.objects.filter(buyer__isnull=False).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
+                .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('contract_value_local')).order_by('-usd')[:10]
+            for_number = Tender.objects.filter(buyer__isnull=False).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
+                .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('contract_value_local')).order_by('-count')[:10]
+        by_number= []
+        by_value = []
+        for value in for_value:
+            a= {}
+            a["amount_local"] = value['local']
+            a["amount_usd"] = value['usd']
+            a["local_currency_code"] = value['country__currency']
+            a['buyer_id'] = value['buyer__buyer_id']
+            a['buyer_name'] = value['buyer__buyer_name']
+            a['tender_count'] = value['count']
+            by_value.append(a)
+        for value in for_number:
+            a= {}
+            a["amount_local"] = value['local']
+            a["amount_usd"] = value['usd']
+            a["local_currency_code"] = value['country__currency']
+            a['buyer_id'] = value['buyer__buyer_id']
+            a['buyer_name'] = value['buyer__buyer_name']
             a['tender_count'] = value['count']
             by_number.append(a)
         result={"by_number": by_number,
