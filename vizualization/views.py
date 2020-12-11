@@ -240,7 +240,6 @@ class TotalSpendingsView(APIView):
             
         return JsonResponse(result)
 
-
 class TotalContractsView(APIView):
     def get(self,request):
         """
@@ -511,3 +510,32 @@ class TopBuyers(APIView):
         result={"by_number": by_number,
                 "by_value": by_value}
         return JsonResponse(result)
+class DirectOpen(APIView):
+    def get(self,request):
+        country =  self.request.GET.get('country',None)
+        if country:
+            amount_direct = Tender.objects.filter(country__name=country, procurement_procedure='direct').values('country__currency').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
+            amount_open = Tender.objects.filter(country__name=country, procurement_procedure='open').values('country__currency').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
+        else:
+            amount_direct = Tender.objects.filter( procurement_procedure='direct').values('procurement_procedure').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
+            amount_open = Tender.objects.filter( procurement_procedure='open').values('procurement_procedure').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
+
+        for i in amount_direct:
+            result_direct ={ "amount_local" : i['local'],
+                "amount_usd": i['usd'],
+                "tender_count": i['count'],
+                "local_currency_code":i['country__currency'] if 'country__currency' in i else [],
+                "procedure": "direct"
+                }
+
+        for i in amount_open:
+            result_open ={ "amount_local" : i['local'],
+                "amount_usd": i['usd'],
+                "tender_count": i['count'],
+                "local_currency_code":i['country__currency'] if 'country__currency' in i else [],
+                "procedure": "open"
+                }
+
+        result = [result_direct,result_open]
+
+        return JsonResponse(result,safe=False)
