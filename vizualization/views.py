@@ -365,24 +365,33 @@ class AverageBidsView(APIView):
         # Difference percentage calculation 
         filter_args = {}
         if country: filter_args['country__name'] = country
-        current_month_sum = Tender.objects.filter(**filter_args,contract_date__year=current_time.year,contract_date__month=current_time.month).aggregate(sum=Sum('goods_services__no_of_bidders'),count=Count('id'))
-        previous_month_sum = Tender.objects.filter(**filter_args,contract_date__year=previous_month.year,contract_date__month=previous_month.month).aggregate(sum=Sum('goods_services__no_of_bidders'),count=Count('id'))
+
+        current_month_queryset = Tender.objects.filter(**filter_args,contract_date__year=current_time.year,contract_date__month=current_time.month)
+        current_month_sum = current_month_queryset.aggregate(sum=Sum('goods_services__no_of_bidders'))
+        current_month_count = current_month_queryset.count()
+
+        previous_month_queryset = Tender.objects.filter(**filter_args,contract_date__year=previous_month.year,contract_date__month=previous_month.month)
+        previous_month_sum = previous_month_queryset.aggregate(sum=Sum('goods_services__no_of_bidders'))
+        previous_month_count = previous_month_queryset.count()
         try:
-            final_current_month_avg = current_month_sum['sum']/current_month_sum['count'] if current_month_sum['sum'] else 0
-            final_previous_month_avg = previous_month_sum['sum']/previous_month_sum['count'] if previous_month_sum['sum'] else 0
+            final_current_month_avg = current_month_sum['sum']/current_month_count if current_month_sum['sum'] else 0
+            final_previous_month_avg = previous_month_sum['sum']/previous_month_count if previous_month_sum['sum'] else 0
             difference = round((( final_current_month_avg - final_previous_month_avg)/final_previous_month_avg)*100)
         except:
             difference = 0
         
         # Month wise average of number of bids for contracts
-        monthwise_data = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month').annotate(sum=Sum("goods_services__no_of_bidders"),count=Count('id')).order_by("-month")
-        final_line_chart_data = [{'date': i['month'],'value': round(i['sum']/i['count']) if i['sum'] else 0} for i in monthwise_data]
+        monthwise_data_queryset = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month')
+        monthwise_data_count = monthwise_data_queryset.annotate(count=Count('id')).order_by("-month")
+        monthwise_data_sum = monthwise_data_queryset.annotate(sum=Sum("goods_services__no_of_bidders")).order_by("-month")
+        final_line_chart_data = [{'date': monthwise_data_sum[i]['month'],'value': round(monthwise_data_sum[i]['sum']/monthwise_data_count[i]['count']) if monthwise_data_sum[i]['sum'] else 0} for i in range(len(monthwise_data_sum))]
         
         # Overall average number of bids for contracts
-        overall_avg = Tender.objects.filter(**filter_args).aggregate(sum=Sum('goods_services__no_of_bidders'),count=Count('id'))
-
+        overall_avg_queryset = Tender.objects.filter(**filter_args)
+        overall_avg = overall_avg_queryset.aggregate(sum=Sum('goods_services__no_of_bidders'))
+        overall_avg_count = overall_avg_queryset.count()
         result ={
-            'average' : round(overall_avg['sum']/overall_avg['count']) if overall_avg['sum'] else 0,
+            'average' : round(overall_avg['sum']/overall_avg_count) if overall_avg['sum'] else 0,
             'difference' : difference,
             'line_chart' : final_line_chart_data
         }
