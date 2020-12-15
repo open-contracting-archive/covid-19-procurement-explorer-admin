@@ -7,7 +7,6 @@ from modelcluster.tags import ClusterTaggableManager
 
 from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.images.edit_handlers import ImageChooserPanel
-from wagtailvideos.edit_handlers import VideoChooserPanel
 from wagtail.documents.edit_handlers import DocumentChooserPanel
 from wagtail.api import APIField
 from wagtail.core.fields import RichTextField

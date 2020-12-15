@@ -52,7 +52,6 @@ class TotalSpendingsView(APIView):
             selective_sum=0
             limited_sum=0
             open_sum=0
-            directsuml=0
             selective_sum_local=0
             limited_sum_local=0
             open_sum_local=0
@@ -133,15 +132,15 @@ class TotalSpendingsView(APIView):
                 }
             }
         else:
-            total_country_tender_amount = Tender.objects.filter(country__name=country).aggregate(Sum('contract_value_usd'))
-            total__country_tender_local_amount = Tender.objects.filter(country__name=country).aggregate(Sum('contract_value_local'))
-            this_month = Tender.objects.filter(country__name=country,contract_date__year=today.year,
+            total_country_tender_amount = Tender.objects.filter(country__country_code_alpha_2=country).aggregate(Sum('contract_value_usd'))
+            total__country_tender_local_amount = Tender.objects.filter(country__country_code_alpha_2=country).aggregate(Sum('contract_value_local'))
+            this_month = Tender.objects.filter(country__country_code_alpha_2=country,contract_date__year=today.year,
                             contract_date__month=today.month).aggregate(Sum('contract_value_usd'))
-            this_month_local = Tender.objects.filter(country__name=country,contract_date__year=today.year,
+            this_month_local = Tender.objects.filter(country__country_code_alpha_2=country,contract_date__year=today.year,
                             contract_date__month=today.month).aggregate(Sum('contract_value_local'))
-            earlier_month = Tender.objects.filter(country__name=country,contract_date__year=earlier.year,
+            earlier_month = Tender.objects.filter(country__country_code_alpha_2=country,contract_date__year=earlier.year,
                             contract_date__month=earlier.month).aggregate(Sum('contract_value_usd'))
-            earlier_month_local = Tender.objects.filter(country__name=country,contract_date__year=earlier.year,
+            earlier_month_local = Tender.objects.filter(country__country_code_alpha_2=country,contract_date__year=earlier.year,
                             contract_date__month=earlier.month).aggregate(Sum('contract_value_local'))
             try:
                 increment = ((this_month['contract_value_usd__sum'] - earlier_month['contract_value_usd__sum'])/earlier_month['contract_value_usd__sum'])*100
@@ -152,16 +151,13 @@ class TotalSpendingsView(APIView):
             except ZeroDivisionError:
                 increment = 0
                 increment_local = 0
-            bar_chart =Tender.objects.filter(country__name=country).values('procurement_procedure').annotate(sum=Sum('contract_value_usd'))
-            bar_chart_local = Tender.objects.filter(country__name=country).values('procurement_procedure').annotate(sum=Sum('contract_value_local'))
+            bar_chart =Tender.objects.filter(country__country_code_alpha_2=country).values('procurement_procedure').annotate(sum=Sum('contract_value_usd'))
+            bar_chart_local = Tender.objects.filter(country__country_code_alpha_2=country).values('procurement_procedure').annotate(sum=Sum('contract_value_local'))
             selective_total=0
             limited_total=0
             open_total=0
             direct_total=0
-            selective_total_local=0
-            limited_total_local=0
-            open_total_local=0
-            direct_total_local=0
+            
             for i in bar_chart:
                 if i['procurement_procedure']=='selective':
                     selective_total = i['sum']
@@ -180,8 +176,8 @@ class TotalSpendingsView(APIView):
                     open_sum_local = i['sum']
                 elif i['procurement_procedure']=='direct':
                     direct_sum_local = i['sum']
-            line_chart = Tender.objects.filter(country__name=country).annotate(month=TruncMonth('contract_date')).values('month').annotate(total=Sum('contract_value_usd')).order_by("-month")
-            line_chart_local = Tender.objects.filter(country__name=country).annotate(month=TruncMonth('contract_date')).values('month').annotate(total=Sum('contract_value_local')).order_by("-month")
+            line_chart = Tender.objects.filter(country__country_code_alpha_2=country).annotate(month=TruncMonth('contract_date')).values('month').annotate(total=Sum('contract_value_usd')).order_by("-month")
+            line_chart_local = Tender.objects.filter(country__country_code_alpha_2=country).annotate(month=TruncMonth('contract_date')).values('month').annotate(total=Sum('contract_value_local')).order_by("-month")
 
             line_chart_local_list = []
             line_chart_list = []
@@ -303,16 +299,16 @@ class TotalContractsView(APIView):
                             }]
                         }
         else:
-            total_country_tender = Tender.objects.filter(country__name=country).count()
-            this_month = Tender.objects.filter(country__name=country,contract_date__year=today.year,
+            total_country_tender = Tender.objects.filter(country__country_code_alpha_2=country).count()
+            this_month = Tender.objects.filter(country__country_code_alpha_2=country,contract_date__year=today.year,
                             contract_date__month=today.month).count()
-            earlier_month = Tender.objects.filter(country__name=country,contract_date__year=earlier.year,
+            earlier_month = Tender.objects.filter(country__country_code_alpha_2=country,contract_date__year=earlier.year,
                             contract_date__month=earlier.month).count()
             try:
                 difference = ((this_month-earlier_month)/earlier_month)*100
             except ZeroDivisionError:
                 difference = 0
-            bar_chart =Tender.objects.filter(country__name=country).values('procurement_procedure').annotate(count=Count('procurement_procedure'))
+            bar_chart =Tender.objects.filter(country__country_code_alpha_2=country).values('procurement_procedure').annotate(count=Count('procurement_procedure'))
             for i in bar_chart:
                 if i['procurement_procedure']=='selective':
                     selective_count = i['count']
@@ -322,7 +318,7 @@ class TotalContractsView(APIView):
                     open_count = i['count']
                 elif i['procurement_procedure']=='direct':
                     direct_count = i['count']
-            line_chart = Tender.objects.filter(country__name=country).annotate(month=TruncMonth('contract_date')).values('month').annotate(total=Count('id')).order_by("-month")
+            line_chart = Tender.objects.filter(country__country_code_alpha_2=country).annotate(month=TruncMonth('contract_date')).values('month').annotate(total=Count('id')).order_by("-month")
             line_chart_list = []
             for i in line_chart:
                 a= {}
@@ -364,7 +360,7 @@ class AverageBidsView(APIView):
 
         # Difference percentage calculation 
         filter_args = {}
-        if country: filter_args['country__name'] = country
+        if country: filter_args['country__country_code_alpha_2'] = country
 
         current_month_queryset = Tender.objects.filter(**filter_args,contract_date__year=current_time.year,contract_date__month=current_time.month)
         current_month_sum = current_month_queryset.aggregate(sum=Sum('goods_services__no_of_bidders'))
@@ -413,8 +409,8 @@ class GlobalOverView(APIView):
             result["month"]=str(start_date.year)+'-'+str(start_date.month)
             for j in countries:
                 b={}
-                tender_count =Tender.objects.filter(country__name=j,contract_date__gte=start_date,contract_date__lte=end_date).count()
-                tender =  Tender.objects.filter(country__name=j,contract_date__gte=start_date,contract_date__lte=end_date).aggregate(Sum('contract_value_usd'))
+                tender_count =Tender.objects.filter(country__country_code_alpha_2=j,contract_date__gte=start_date,contract_date__lte=end_date).count()
+                tender =  Tender.objects.filter(country__country_code_alpha_2=j,contract_date__gte=start_date,contract_date__lte=end_date).aggregate(Sum('contract_value_usd'))
                 b['country']=j.name
                 b['country_code']=j.country_code
                 b['aplha2_code'] = j.country_code_alpha_2
@@ -452,20 +448,20 @@ class TopSuppliers(APIView):
     def get(self,request):
         country =  self.request.GET.get('country',None)
         if country:
-            for_value = Tender.objects.filter(country__name=country).values('supplier__supplier_id','supplier__supplier_name','country__currency')\
+            for_value = Tender.objects.filter(country__country_code_alpha_2=country).values('supplier__supplier_id','supplier__supplier_name','country__currency')\
                         .annotate(count=Count('id'),usd=Sum('contract_value_usd'),local=Sum('contract_value_local')).order_by('-usd')[:10]
-            for_number = Tender.objects.filter(country__name=country).values('supplier__supplier_id','supplier__supplier_name','country__currency')\
+            for_number = Tender.objects.filter(country__country_code_alpha_2=country).values('supplier__supplier_id','supplier__supplier_name','country__currency')\
                         .annotate(count=Count('id'),usd=Sum('contract_value_usd'),local=Sum('contract_value_local')).order_by('-count')[:10]
         else:
             for_value = Tender.objects.values('supplier__supplier_id','supplier__supplier_name','country__currency')\
-                .annotate(count=Count('id'),usd=Sum('contract_value_usd'),local=Sum('contract_value_local')).order_by('-usd')[:10]
+                .annotate(count=Count('id'),usd=Sum('contract_value_usd')).order_by('-usd')[:10]
             for_number = Tender.objects.values('supplier__supplier_id','supplier__supplier_name','country__currency')\
-                .annotate(count=Count('id'),usd=Sum('contract_value_usd'),local=Sum('contract_value_local')).order_by('-count')[:10]
+                .annotate(count=Count('id'),usd=Sum('contract_value_usd')).order_by('-count')[:10]
         by_number= []
         by_value = []
         for value in for_value:
             a= {}
-            a["amount_local"] = value['local']
+            a["amount_local"] = value['local'] if 'local' in value else ''
             a["amount_usd"] = value['usd']
             a["local_currency_code"] = value['country__currency']
             a['supplier_id'] = value['supplier__supplier_id']
@@ -474,7 +470,7 @@ class TopSuppliers(APIView):
             by_value.append(a)
         for value in for_number:
             a= {}
-            a["amount_local"] = value['local']
+            a["amount_local"] = value['local'] if 'local' in value else ''
             a["amount_usd"] = value['usd']
             a["local_currency_code"] = value['country__currency']
             a['supplier_id'] = value['supplier__supplier_id']
@@ -490,20 +486,20 @@ class TopBuyers(APIView):
     def get(self,request):
         country =  self.request.GET.get('country',None)
         if country:
-            for_value = Tender.objects.filter(country__name=country,buyer__isnull=False).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
+            for_value = Tender.objects.filter(country__country_code_alpha_2=country,buyer__isnull=False).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
                         .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('contract_value_local')).order_by('-usd')[:10]
-            for_number = Tender.objects.filter(country__name=country,buyer__isnull=False).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
+            for_number = Tender.objects.filter(country__country_code_alpha_2=country,buyer__isnull=False).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
                         .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('contract_value_local')).order_by('-count')[:10]
         else:
             for_value = Tender.objects.filter(buyer__isnull=False).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
-                .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('contract_value_local')).order_by('-usd')[:10]
+                .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd')).order_by('-usd')[:10]
             for_number = Tender.objects.filter(buyer__isnull=False).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
-                .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('contract_value_local')).order_by('-count')[:10]
+                .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd')).order_by('-count')[:10]
         by_number= []
         by_value = []
         for value in for_value:
             a= {}
-            a["amount_local"] = value['local']
+            a["amount_local"] = value['local'] if 'local' in value else ''
             a["amount_usd"] = value['usd']
             a["local_currency_code"] = value['country__currency']
             a['buyer_id'] = value['buyer__buyer_id']
@@ -512,7 +508,7 @@ class TopBuyers(APIView):
             by_value.append(a)
         for value in for_number:
             a= {}
-            a["amount_local"] = value['local']
+            a["amount_local"] = value['local'] if 'local' in value else ''
             a["amount_usd"] = value['usd']
             a["local_currency_code"] = value['country__currency']
             a['buyer_id'] = value['buyer__buyer_id']
@@ -528,14 +524,14 @@ class DirectOpen(APIView):
     def get(self,request):
         country =  self.request.GET.get('country',None)
         if country:
-            amount_direct = Tender.objects.filter(country__name=country, procurement_procedure='direct').values('country__currency').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
-            amount_open = Tender.objects.filter(country__name=country, procurement_procedure='open').values('country__currency').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
+            amount_direct = Tender.objects.filter(country__country_code_alpha_2=country, procurement_procedure='direct').values('country__currency').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
+            amount_open = Tender.objects.filter(country__country_code_alpha_2=country, procurement_procedure='open').values('country__currency').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
         else:
-            amount_direct = Tender.objects.filter( procurement_procedure='direct').values('procurement_procedure').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
-            amount_open = Tender.objects.filter( procurement_procedure='open').values('procurement_procedure').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
+            amount_direct = Tender.objects.filter( procurement_procedure='direct').values('procurement_procedure').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'))
+            amount_open = Tender.objects.filter( procurement_procedure='open').values('procurement_procedure').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'))
 
         for i in amount_direct:
-            result_direct ={ "amount_local" : i['local'],
+            result_direct ={ "amount_local" : i['local'] if 'local' in i else '',
                 "amount_usd": i['usd'],
                 "tender_count": i['count'],
                 "local_currency_code":i['country__currency'] if 'country__currency' in i else [],
@@ -543,7 +539,7 @@ class DirectOpen(APIView):
                 }
 
         for i in amount_open:
-            result_open ={ "amount_local" : i['local'],
+            result_open ={ "amount_local" : i['local'] if 'local' in i else '',
                 "amount_usd": i['usd'],
                 "tender_count": i['count'],
                 "local_currency_code":i['country__currency'] if 'country__currency' in i else [],
@@ -565,7 +561,7 @@ class ContractStatusView(APIView):
         currency_code = ''
         status = ['active','completed','cancelled']
         country =  self.request.GET.get('country',None)
-        if country: filter_args['country__name'] = country
+        if country: filter_args['country__country_code_alpha_2'] = country
 
         # Status code wise grouped sum of contract value
         contract_value_local_sum = Tender.objects.filter(**filter_args).values('status').annotate(sum=Sum('goods_services__contract_value_local'))
@@ -612,15 +608,15 @@ class QuantityCorrelation(APIView):
     def get(self,request):
         country =  self.request.GET.get('country',None)
         if country:
-            contracts_quantity = Tender.objects.filter(country__name=country).annotate(month=TruncMonth('contract_date')).values('month','country__currency').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local')).order_by('-month')
+            contracts_quantity = Tender.objects.filter(country__country_code_alpha_2=country).annotate(month=TruncMonth('contract_date')).values('month','country__currency').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local')).order_by('-month')
         else:
-            contracts_quantity = Tender.objects.annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local')).order_by('-month')
+            contracts_quantity = Tender.objects.annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd')).order_by('-month')
         
         contracts_quantity_list = []
         
         for i in contracts_quantity:
             if country:
-                active_case = CovidMonthlyActiveCases.objects.filter(country__name = country, covid_data_date__year=i['month'].year, covid_data_date__month=i['month'].month).values('active_cases_count')
+                active_case = CovidMonthlyActiveCases.objects.filter(country__country_code_alpha_2 = country, covid_data_date__year=i['month'].year, covid_data_date__month=i['month'].month).values('active_cases_count')
             else :
                 active_case = CovidMonthlyActiveCases.objects.filter(covid_data_date__year=i['month'].year, covid_data_date__month=i['month'].month).values('active_cases_count')
             active_case_count = 0
@@ -632,7 +628,7 @@ class QuantityCorrelation(APIView):
                 active_case_count = 0
             a = {}
             a["active_cases"] = active_case_count
-            a["amount_local"] = i['local']
+            a["amount_local"] = i['local'] if 'local' in i else ''
             a["amount_usd"] = i['usd']
             a["local_currency_code"] = i['country__currency'] if 'country__currency' in i else ''
             a["month"] = i['month']
