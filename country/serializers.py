@@ -79,6 +79,7 @@ from django.db.models import Avg, Count, Min, Sum, Count,Window
 
 class TenderSerializer(serializers.ModelSerializer):
     country_name = serializers.CharField(source='country.name', read_only=True)
+    country_alpha_code = serializers.CharField(source='country.country_code_alpha_2', read_only=True)
     contract_currency_local = serializers.CharField(source='country.currency', read_only=True)
     contract_value_usd = serializers.SerializerMethodField()
     contract_value_local = serializers.SerializerMethodField()
@@ -91,6 +92,7 @@ class TenderSerializer(serializers.ModelSerializer):
             'id',
             'country',
             'country_name',
+            'country_alpha_code',
             'contract_date',
             'contract_id',
             'contract_title',
