@@ -361,9 +361,8 @@ class AverageBidsView(APIView):
         if country: filter_args['country__country_code_alpha_2'] = country
 
         # Month wise average of number of bids for contracts
-        monthwise_data_queryset = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month')
-        monthwise_data_count = monthwise_data_queryset.annotate(count=Count('id')).order_by("-month")
-        monthwise_data_sum = monthwise_data_queryset.annotate(sum=Sum("goods_services__no_of_bidders")).order_by("-month")
+        monthwise_data_count = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('id')).order_by("-month")
+        monthwise_data_sum = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month').annotate(sum=Sum("goods_services__no_of_bidders")).order_by("-month")
         final_line_chart_data = [{'date': monthwise_data_sum[i]['month'],'value': round(monthwise_data_sum[i]['sum']/monthwise_data_count[i]['count']) if monthwise_data_sum[i]['sum'] else 0} for i in range(len(monthwise_data_sum))]
         
         # Difference percentage calculation
@@ -376,9 +375,8 @@ class AverageBidsView(APIView):
             difference = 0
         
         # Overall average number of bids for contracts
-        overall_avg_queryset = Tender.objects.filter(**filter_args)
-        overall_avg = overall_avg_queryset.aggregate(sum=Sum('goods_services__no_of_bidders'))
-        overall_avg_count = overall_avg_queryset.count()
+        overall_avg = Tender.objects.filter(**filter_args).aggregate(sum=Sum('goods_services__no_of_bidders'))
+        overall_avg_count = Tender.objects.filter(**filter_args).count()
         result ={
             'average' : round(overall_avg['sum']/overall_avg_count) if overall_avg['sum'] else 0,
             'difference' : difference,
@@ -641,9 +639,8 @@ class MonopolizationView(APIView):
         previous_month = previous_month_date.replace(day=1).date()
 
         # Month wise average of number of bids for contracts
-        monthwise_data_queryset = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date'))
-        monthwise_data_contracts = monthwise_data_queryset.values('month').annotate(count=Count('id')).order_by("-month")
-        monthwise_data_suppliers = monthwise_data_queryset.values('month').annotate(count=Count('supplier__id',distinct=True)).order_by("-month")
+        monthwise_data_contracts = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('id')).order_by("-month")
+        monthwise_data_suppliers = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('supplier__supplier_id',distinct=True)).order_by("-month")
         final_line_chart_data = [{'date': monthwise_data_contracts[i]['month'],'value': round(monthwise_data_contracts[i]['count']/monthwise_data_suppliers[i]['count']) if monthwise_data_contracts[i]['count'] and monthwise_data_suppliers[i]['count']  else 0} for i in range(len(monthwise_data_contracts))]
 
         # Difference percentage calculation
@@ -656,13 +653,49 @@ class MonopolizationView(APIView):
             difference = 0
 
         # Overall average number of bids for contracts
-        overall_queryset = Tender.objects.filter(**filter_args)
-        overall_contracts = overall_queryset.aggregate(count=Count('id'))
-        overall_suppliers = overall_queryset.aggregate(count=Count('supplier__id',distinct=True))
+        overall_contracts = Tender.objects.filter(**filter_args).aggregate(count=Count('id'))
+        overall_suppliers = Tender.objects.filter(**filter_args).aggregate(count=Count('supplier__supplier_id',distinct=True))
 
         result ={
             'average' : round(overall_contracts['count']/overall_suppliers['count']) if overall_contracts['count'] and overall_suppliers['count'] else 0,
             'difference' : difference,
             'line_chart' : final_line_chart_data
         }
+        return JsonResponse(result)
+
+class CountrySuppliersView(APIView):
+    def get(self,request):
+        filter_args = {}
+        country =  self.request.GET.get('country',None)
+        if country: filter_args['country__country_code_alpha_2'] = country
+        tender_amounts_buyer = Tender.objects.filter(**filter_args,buyer__isnull=False,goods_services__goods_services_category__isnull=False).values('goods_services__goods_services_category__id','goods_services__goods_services_category__category_name','buyer__buyer_id','buyer__buyer_name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
+
+        tender_amounts_supplier = Tender.objects.filter(**filter_args,supplier__isnull=False,goods_services__goods_services_category__isnull=False).values('supplier__supplier_id','supplier__supplier_name','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
+        result = {
+            'product_buyer' : [
+                {
+                "amount_local": tender_amounts_buyer[i]['local'],
+                "amount_usd": tender_amounts_buyer[i]['usd'],
+                "buyer_id": tender_amounts_buyer[i]['buyer__buyer_id'],
+                "buyer_name": tender_amounts_buyer[i]['buyer__buyer_name'],
+                "product_id": tender_amounts_buyer[i]['goods_services__goods_services_category__id'],
+                "product_name": tender_amounts_buyer[i]['goods_services__goods_services_category__category_name'],
+                "tender_count": tender_amounts_buyer[i]['count']
+                }
+                for i in range(len(tender_amounts_buyer))
+            ],
+            'supplier_product' : [
+                {  
+                "amount_local": tender_amounts_supplier[i]['local'],
+                "amount_usd": tender_amounts_supplier[i]['usd'],
+                "product_id": tender_amounts_supplier[i]['goods_services__goods_services_category__id'],
+                "product_name": tender_amounts_supplier[i]['goods_services__goods_services_category__category_name'],
+                "supplier_id": tender_amounts_supplier[i]['supplier__supplier_id'],
+                "supplier_name": tender_amounts_supplier[i]['supplier__supplier_name'],
+                "tender_count": tender_amounts_supplier[i]['count']
+                }
+                for i in range(len(tender_amounts_supplier))
+            ]
+        }
+        
         return JsonResponse(result)

@@ -12,5 +12,6 @@ urlpatterns = [
     path('direct-open/',views.DirectOpen.as_view()),
     path('contract-status/',views.ContractStatusView.as_view()),
     path('quantity-correlation/',views.QuantityCorrelation.as_view()),
-    path('monopolization/',views.MonopolizationView.as_view())
+    path('monopolization/',views.MonopolizationView.as_view()),
+    path('country-suppliers/',views.CountrySuppliersView.as_view())
 ]
