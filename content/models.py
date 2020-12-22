@@ -15,7 +15,17 @@ from wagtail.documents.models import Document
 from wagtail.core.models import Orderable
 from taggit.models import TaggedItemBase, Tag as TaggitTag
 
+class Contents(Page):
+    parent_page_types = ['wagtailcore.Page']
+    subpage_types = [
+        'content.InsightsPage',
+        'content.EventsPage',
+        'content.ResourcesPage',
+    ]
 class InsightsPage(Page):
+    parent_page_types = ['content.Contents']
+    
+    subpage_types = []
     contents_choice = [
         ('News', 'News'),
         ('Blog', 'Blog'),
@@ -41,9 +51,6 @@ class InsightsPage(Page):
     author = models.CharField(blank=True, max_length=250)
     tags = ClusterTaggableManager(through='content.InsightPageTag', blank=True)
 
-    parent_page_type = [
-        'wagtailcore.Page'  # appname.ModelName
-    ]
 
     content_panels = Page.content_panels + [
         FieldPanel('contents_type'),
@@ -70,6 +77,10 @@ class InsightsPage(Page):
 
 
 class EventsPage(Page):
+    parent_page_types = ['content.Contents']
+    
+    subpage_types = []
+
     event_image = models.ForeignKey(
         'wagtailimages.Image',
         null=True,
@@ -86,10 +97,6 @@ class EventsPage(Page):
     location = models.CharField(
         max_length=100,
     )
-
-    parent_page_type = [
-        'wagtailcore.Page'  # appname.ModelName
-    ]
 
     content_panels = Page.content_panels + [
     ImageChooserPanel('event_image'),
@@ -114,6 +121,10 @@ class EventsPage(Page):
         verbose_name_plural = "Events"
 
 class ResourcesPage(Page):
+    parent_page_types = ['content.Contents']
+    
+    subpage_types = []
+
     resource_choice = [
         ('Report', 'Report'),
         ('Policy', 'Policy'),
@@ -146,9 +157,6 @@ class ResourcesPage(Page):
     published_date = models.DateField("Published date")
     author = models.CharField(blank=True, max_length=250)
     
-    parent_page_type = [
-        'wagtailcore.Page'  # appname.ModelName
-    ]
     content_panels = Page.content_panels + [
     FieldPanel('resource_type'),
     FieldPanel('description'),
