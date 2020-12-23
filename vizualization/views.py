@@ -10,9 +10,9 @@ from django.db.models import Avg, Count, Min, Sum, Count,Window
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 import math
-
+from collections import defaultdict
 from country.models import Tender,Country,CovidMonthlyActiveCases
-
+import itertools
 
 class TotalSpendingsView(APIView):
     def get(self,request):
@@ -742,3 +742,82 @@ class WorldMapView(APIView):
             result.append(data)
         final_result = {"result":result}
         return JsonResponse(final_result)
+        
+class GlobalSuppliersView(APIView):
+    def get(self,request):
+        usd_amountwise_sorted =  Tender.objects.filter(supplier__isnull=False,goods_services__goods_services_category__isnull=False).values('supplier__supplier_id','goods_services__goods_services_category__id').annotate(usd=Sum('goods_services__contract_value_usd')).exclude(usd__isnull=True).order_by('-usd')
+        countwise_sorted = Tender.objects.filter(supplier__isnull=False,goods_services__goods_services_category__isnull=False).values('supplier__supplier_id','goods_services__goods_services_category__id').annotate(count=Count('id')).exclude(count__isnull=True).order_by('-count')
+        suppliers_dict = defaultdict(lambda : {'countwise':[],'amountwise' : []}) 
+        
+        for i in usd_amountwise_sorted:
+            if len(suppliers_dict[i['goods_services__goods_services_category__id']]['amountwise']) <= 5:
+                suppliers_dict[i['goods_services__goods_services_category__id']]['amountwise'].append(i['supplier__supplier_id']) 
+        for i in countwise_sorted:
+            if len(suppliers_dict[i['goods_services__goods_services_category__id']]['countwise']) <= 5:
+                suppliers_dict[i['goods_services__goods_services_category__id']]['countwise'].append(i['supplier__supplier_id']) 
+        
+        final_suppliers_list_countwise = list(itertools.chain.from_iterable([i['countwise'] for i in suppliers_dict.values()]))
+        final_suppliers_list_amountwise = list(itertools.chain.from_iterable([i['amountwise'] for i in suppliers_dict.values()]))
+        
+        by_value_supplier_product = Tender.objects.filter(supplier__supplier_id__in=final_suppliers_list_amountwise).values('supplier__supplier_id','supplier__supplier_name','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
+        by_value_product_country = Tender.objects.filter(supplier__supplier_id__in=final_suppliers_list_amountwise).values('goods_services__goods_services_category__id','goods_services__goods_services_category__category_name','country__id','country__name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
+        
+        by_number_supplier_product = Tender.objects.filter(supplier__supplier_id__in=final_suppliers_list_countwise).values('supplier__supplier_id','supplier__supplier_name','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
+        by_number_product_country = Tender.objects.filter(supplier__supplier_id__in=final_suppliers_list_countwise).values('goods_services__goods_services_category__id','goods_services__goods_services_category__category_name','country__id','country__name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
+        results = {
+                    "by_number": {
+                        "product_country": [
+                        {
+                            "amount_local": i['local'],
+                            "amount_usd": i['usd'],
+                            "country_id": i['country__id'],
+                            "country_name": i['country__name'],
+                            "product_id": i['goods_services__goods_services_category__id'],
+                            "product_name": i['goods_services__goods_services_category__name'],
+                            "tender_count": i['count']
+                        }
+                        for i in by_number_product_country
+                        ],
+                        "supplier_product": [
+                        {
+                            "amount_local": i['local'],
+                            "amount_usd": i['usd'],
+                            "product_id": i['goods_services__goods_services_category__id'],
+                            "product_name": i['goods_services__goods_services_category__name'],
+                            "supplier_id": i['supplier__supplier_id'],
+                            "supplier_name": i['supplier__supplier_name'],
+                            "tender_count": i['count']
+                        }
+                        for i in by_number_supplier_product
+                        ]
+                    },
+                    "by_value": {
+                        "product_country": [
+                        {
+                            "amount_local": i['local'],
+                            "amount_usd": i['usd'],
+                            "country_id": i['country__id'],
+                            "country_name": i['country__name'],
+                            "product_id": i['goods_services__goods_services_category__id'],
+                            "product_name": i['goods_services__goods_services_category__name'],
+                            "tender_count": i['count']
+                        }
+                        for i in by_value_product_country
+                        ],
+                        "supplier_product": [
+                        {
+                            "amount_local": i['local'],
+                            "amount_usd": i['usd'],
+                            "product_id": i['goods_services__goods_services_category__id'],
+                            "product_name": i['goods_services__goods_services_category__name'],
+                            "supplier_id": i['supplier__supplier_id'],
+                            "supplier_name": i['supplier__supplier_name'],
+                            "tender_count": i['count']
+                        }
+                        for i in by_value_supplier_product
+                        ]
+                    }
+                }    
+        return JsonResponse(results)
+        
+        
