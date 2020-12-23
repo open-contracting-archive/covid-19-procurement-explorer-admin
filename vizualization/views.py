@@ -703,68 +703,42 @@ class CountrySuppliersView(APIView):
 class CountryMapView(APIView):
     def get(self,request):
         country =  self.request.GET.get('country',None)
-
-        if country != None:
-            temp={}
-            temp_local={}
-            tender_temp ={}
+        try:
+            country_instance = Country.objects.get(country_code_alpha_2=country)
+        except Exception as DoesNotExist:
+            final={"result":"Invalid Alpha Code"}
+            return JsonResponse(final)
+        if country != None and country_instance !=None:
             data=[]
-            count = Tender.objects.filter(country__country_code_alpha_2=country).annotate(month=TruncMonth('contract_date')).values('month').annotate(total_contract=Count('id'),total_amount=Sum('goods_services__contract_value_usd')).order_by("month")
-            for i in count:
-                result={}
-                end_date = i['month'] + dateutil.relativedelta.relativedelta(months=1)
-                start_date=i['month']
-                result["details"]=[]
-                result["month"]=str(start_date.year)+'-'+str(start_date.month)
-                b={}
-                tender_count =Tender.objects.filter(country__country_code_alpha_2=country,contract_date__gte=start_date,contract_date__lte=end_date).count()
-                tender =  Tender.objects.filter(country__country_code_alpha_2=country,contract_date__gte=start_date,contract_date__lte=end_date).aggregate(Sum('goods_services__contract_value_usd'))
-                tender_local = Tender.objects.filter(country__country_code_alpha_2=country,contract_date__gte=start_date,contract_date__lte=end_date).aggregate(Sum('goods_services__contract_value_local'))
-                country_instance = Country.objects.get(country_code_alpha_2=country)
-                b['country_code']=country_instance.country_code_alpha_2
-                b['country'] = country_instance.name
-                b['country_continent']=country_instance.continent
-                if tender['goods_services__contract_value_usd__sum']==None:
-                    tender_val = 0
-                else:
-                    tender_val = tender['goods_services__contract_value_usd__sum']
-
-                if tender_local['goods_services__contract_value_local__sum']==None:
-                    tender_local_val = 0
-                else:
-                    tender_local_val = tender_local['goods_services__contract_value_local__sum']
-                    
-                if tender_count==None:
-                    contract_val = 0
-                else:
-                    contract_val = tender_count
-                if bool(temp) and country_instance.name in temp.keys():
-                    current_val = temp[country_instance.name]
-                    cum_value =current_val+tender_val
-                    temp[country_instance.name]=cum_value
-                    b['amount_usd'] = cum_value
-                else:
-                    temp[country_instance.name] = tender_val
-                    b['amount_usd'] = tender_val
-                if bool(temp_local) and country_instance.name in temp_local.keys():
-                    current_val = temp_local[country_instance.name]
-                    cum_value =current_val+tender_local_val
-                    temp_local[country_instance.name]=cum_value
-                    b['amount_local'] = cum_value
-                else:
-                    temp_local[country_instance.name] = tender_local_val
-                    b['amount_local'] = tender_local_val
-                if bool(tender_temp) and country_instance.name in tender_temp.keys():
-                    current_val = tender_temp[country_instance.name]
-                    cum_value =current_val+contract_val
-                    tender_temp[country_instance.name]=cum_value
-                    b['tender_count'] = cum_value
-                else:
-                    tender_temp[country_instance.name] = contract_val
-                    b['tender_count'] = contract_val
-                result["details"].append(b)
-                data.append(result)
+            tender_instance = Tender.objects.filter(country__country_code_alpha_2=country).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+            count = Tender.objects.filter(country__country_code_alpha_2=country).count()
+            b={}
+            b['country_code']=country_instance.country_code_alpha_2
+            b['country'] = country_instance.name
+            b['country_continent']=country_instance.continent
+            b['amount_usd'] = tender_instance['total_usd']
+            b['amount_local'] = tender_instance['total_local']
+            b['tender_count'] = count
+            data.append(b)
             final={"result":data}
         else:
             final={"result":"Invalid Alpha Code"}
         return JsonResponse(final)
+
+
+class WorldMapView(APIView):
+    def get(self,request):
+        country_instance = Country.objects.all()
+        result = []
+        for country in country_instance:
+            data = {}
+            tender_instance = Tender.objects.filter(country=country).aggregate(total_usd=Sum('goods_services__contract_value_usd'))
+            tender_count = Tender.objects.filter(country=country).count()
+            data['country_code']=country.country_code_alpha_2
+            data['country'] = country.name
+            data['country_continent']=country.continent
+            data['amount_usd'] = tender_instance['total_usd']
+            data['tender_count'] = tender_count
+            result.append(data)
+        final_result = {"result":result}
+        return JsonResponse(final_result)

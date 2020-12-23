@@ -14,5 +14,6 @@ urlpatterns = [
     path('quantity-correlation/',views.QuantityCorrelation.as_view()),
     path('monopolization/',views.MonopolizationView.as_view()),
     path('country-suppliers/',views.CountrySuppliersView.as_view()),
-    path('country-map-api/',views.CountryMapView.as_view()),
+    path('country-map/',views.CountryMapView.as_view()),
+    path('world-map/',views.WorldMapView.as_view()),
 ]
