@@ -773,7 +773,7 @@ class GlobalSuppliersView(APIView):
                             "country_id": i['country__id'],
                             "country_name": i['country__name'],
                             "product_id": i['goods_services__goods_services_category__id'],
-                            "product_name": i['goods_services__goods_services_category__name'],
+                            "product_name": i['goods_services__goods_services_category__category_name'],
                             "tender_count": i['count']
                         }
                         for i in by_number_product_country
@@ -783,7 +783,7 @@ class GlobalSuppliersView(APIView):
                             "amount_local": i['local'],
                             "amount_usd": i['usd'],
                             "product_id": i['goods_services__goods_services_category__id'],
-                            "product_name": i['goods_services__goods_services_category__name'],
+                            "product_name": i['goods_services__goods_services_category__category_name'],
                             "supplier_id": i['supplier__supplier_id'],
                             "supplier_name": i['supplier__supplier_name'],
                             "tender_count": i['count']
@@ -799,7 +799,7 @@ class GlobalSuppliersView(APIView):
                             "country_id": i['country__id'],
                             "country_name": i['country__name'],
                             "product_id": i['goods_services__goods_services_category__id'],
-                            "product_name": i['goods_services__goods_services_category__name'],
+                            "product_name": i['goods_services__goods_services_category__category_name'],
                             "tender_count": i['count']
                         }
                         for i in by_value_product_country
@@ -809,7 +809,7 @@ class GlobalSuppliersView(APIView):
                             "amount_local": i['local'],
                             "amount_usd": i['usd'],
                             "product_id": i['goods_services__goods_services_category__id'],
-                            "product_name": i['goods_services__goods_services_category__name'],
+                            "product_name": i['goods_services__goods_services_category__category_name'],
                             "supplier_id": i['supplier__supplier_id'],
                             "supplier_name": i['supplier__supplier_name'],
                             "tender_count": i['count']
