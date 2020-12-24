@@ -6,6 +6,7 @@ from modelcluster.fields import ParentalKey
 from modelcluster.tags import ClusterTaggableManager
 
 from wagtail.admin.edit_handlers import FieldPanel
+from wagtail.admin.menu import MenuItem
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.documents.edit_handlers import DocumentChooserPanel
 from wagtail.api import APIField
@@ -34,6 +35,7 @@ class InsightsPage(Page):
         max_length=20,
         choices=contents_choice,
     )
+    # template = "news_template.html"
     
     country =  models.ForeignKey(Country,null=True,
         blank=True,
@@ -78,9 +80,7 @@ class InsightsPage(Page):
 
 class EventsPage(Page):
     parent_page_types = ['content.Contents']
-    
     subpage_types = []
-
     event_image = models.ForeignKey(
         'wagtailimages.Image',
         null=True,
