@@ -7,13 +7,13 @@ from .models import InsightsPage, EventsPage, ResourcesPage
 
 class InsightsPageAdmin(ModelAdmin):
     model = InsightsPage
-    menu_label = 'Insights'  
+    menu_label = 'News & Blog'  
     menu_icon = 'doc-full'  
     menu_order = 300 
     add_to_settings_menu = False  
     exclude_from_explorer = False 
-    list_display = ('contents_type','title','body')
-    list_filter = ('contents_type','country','author')
+    list_display = ('contents_type','title','author','tags','published_date')
+    list_filter = ('contents_type','country','author', 'tags')
     search_fields = ('contents_type', 'body')
 
 modeladmin_register(InsightsPageAdmin)
@@ -33,7 +33,7 @@ modeladmin_register(EventsPageAdmin)
 
 class ResourcesPageAdmin(ModelAdmin):
     model = ResourcesPage
-    menu_label = 'Resources'  
+    menu_label = 'Library'  
     menu_icon = 'folder-open-inverse'  
     menu_order = 300 
     add_to_settings_menu = False  
