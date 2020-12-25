@@ -7,6 +7,9 @@ from celery import Celery
 # from celery import shared_task
 import gspread
 import sys, traceback
+import pandas as pd
+import random
+import dateutil.parser
 
 
 from country.models import (
@@ -49,6 +52,9 @@ def fetch_covid_data():
 
 
 def convert_local_to_usd(conversion_date, source_currency, source_value, dst_currency='USD'):
+    if type(conversion_date)==str:
+        conversion_date = dateutil.parser.parse(conversion_date).date()
+
     if not source_value or not source_currency or not conversion_date:
     # Missing Date: "" value has an invalid date format. It must be in YYYY-MM-DD format.
         return 0
@@ -99,6 +105,187 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
         except Timeout:
             return None
 
+
+def save_tender_excel_to_db(excel_file_path):
+    total_rows_imported_count = 0
+    errors = []
+
+    try:
+        ws_settings = pd.read_excel(excel_file_path, sheet_name='settings', header=None)
+        ws_data = pd.read_excel(excel_file_path, sheet_name='data', header=0)
+
+        country = ws_settings[2][1]
+        currency = ws_settings[2][2]
+    except Exception:
+        traceback.print_exc(file=sys.stdout)
+        return True
+
+    for index, row in ws_data.iterrows():
+        try:
+            print(index,'...')
+            contract_id = row['Contract ID']
+            contract_date = row['Contract date (yyyy-mm-dd)'].date()
+
+            procurement_procedure = random.choice([
+                'open',
+                'limited',
+                'direct',
+                'selective',
+                ])    # row['Procurement procedure code']
+
+            classification_code = row['CPV code clear']
+
+            goods_services_category_name = row['Goods/Services'].strip()
+            goods_services_category_desc = ''
+
+            tender_value_local = row['Tender value'] or None
+            award_value_local = row['Award value'] or None
+            contract_value_local = row['Contract value'] or None
+
+            contract_title = row['Contract title']
+            contract_desc = row['Contract description']
+            no_of_bidders = row['Number of bidders'] or None
+
+            buyer_id = row['Buyer ID']
+            buyer_name = row['Buyer']
+            buyer_address = row['Buyer address (as an object)']
+
+            supplier_id = row['Supplier ID']
+            supplier_name = row['Supplier']
+            supplier_address = row['Supplier address']
+
+            status = random.choice([
+                'active',
+                'completed',
+                'canceled',
+                ])    # row['Contract Status Code']
+
+            link_to_contract = row['Link to the contract']
+            link_to_tender = ''    # row['Link to the tender']
+            data_source = ''    # row['Data source']
+
+
+            # Get Country
+            country_obj = Country.objects.filter(name=country).first()
+
+            # Get or Create Supplier
+            if supplier_id:
+                supplier_id = str(supplier_id).strip()
+                supplier_obj = Supplier.objects.filter(supplier_id=supplier_id).first()
+                if not supplier_obj:
+                    supplier_obj = Supplier(
+                        supplier_id = supplier_id,
+                        supplier_name = supplier_name,
+                        supplier_address = supplier_address,
+                    )
+                    supplier_obj.save()
+            else:
+                supplier_obj = None
+
+            # Get or Create Buyer
+            if buyer_id:
+                buyer_id = str(buyer_id).strip()
+                buyer_obj = Buyer.objects.filter(buyer_id=buyer_id).first()
+                if not buyer_obj:
+                    buyer_obj = Buyer(
+                        buyer_id = buyer_id,
+                        buyer_name = buyer_name,
+                        buyer_address = buyer_address,
+                    )
+                    buyer_obj.save()
+            else:
+                buyer_obj = None
+
+            # Get or Create Tender Contract
+            if contract_id:
+                contract_id = str(contract_id).strip()
+                tender_obj = Tender.objects.filter(contract_id=contract_id).first()
+                if not tender_obj:
+                    tender_obj = Tender(
+                        country=country_obj,
+                        supplier=supplier_obj,
+                        buyer=buyer_obj,
+
+                        contract_id=contract_id,
+                        contract_date=contract_date,
+                        procurement_procedure=procurement_procedure,
+                        status=status,
+                        link_to_contract=link_to_contract,
+                        link_to_tender=link_to_tender,
+                        data_source=data_source,
+
+                        # for viz api compatibility only; remove these later
+                        contract_title=contract_title,
+                        contract_value_local=contract_value_local or None,
+                        contract_desc=contract_desc,
+                        no_of_bidders=no_of_bidders or None,
+                    )
+                    tender_obj.save()
+            else:
+                tender_obj = None
+
+            # Get or Create GoodsServicesCategory
+            if goods_services_category_name:
+                goods_services_category_obj = GoodsServicesCategory.objects.filter(category_name=goods_services_category_name).first()
+                if not goods_services_category_obj:
+                    goods_services_category_obj = GoodsServicesCategory(
+                        category_name = goods_services_category_name,
+                        category_desc = goods_services_category_desc
+                    )
+                    goods_services_category_obj.save()
+            else:
+                goods_services_category_obj = None
+
+
+            # Create GoodsServices...
+
+            if tender_obj:
+            # ...only if there is a contract that it can be associated with
+                goods_services_obj = GoodsServices(
+                    country=country_obj,
+                    goods_services_category = goods_services_category_obj,
+                    contract = tender_obj,
+                    
+                    classification_code = classification_code,
+                    no_of_bidders = no_of_bidders or None,
+                    contract_title = contract_title,
+                    contract_desc = contract_desc,
+                    tender_value_local = tender_value_local or None,
+                    award_value_local = award_value_local or None,
+                    contract_value_local = contract_value_local or None,
+                )
+                goods_services_obj.save()
+
+                print(tender_obj.id, goods_services_obj.id)
+
+                # Execute local currency to USD conversion celery tasks
+                conversion_date = contract_date
+                source_currency = country_obj.currency
+                source_values = {
+                    'tender_value_local': tender_value_local or None,
+                    'award_value_local': award_value_local or None,
+                    'contract_value_local': contract_value_local or None,
+                }
+                goods_services_row_id = goods_services_obj.id
+                local_currency_to_usd.apply_async(args=(
+                    goods_services_row_id,
+                    conversion_date,
+                    source_currency,
+                    source_values
+                    ), queue='covid19')
+
+            total_rows_imported_count += 1
+        except Exception:
+            # transaction.rollback()
+
+            contract_id = row['Contract ID']
+            errors.append((index,contract_id))
+            print('------------------------------')
+            print(f'Error importing row {index}, contract id {contract_id}')
+            print(f'{row}\n')
+            traceback.print_exc(file=sys.stdout)
+            print('------------------------------')
+    
 
 def save_tender_data_to_db(gs_sheet_url):
     contract_ids = []
@@ -284,6 +471,12 @@ def import_tender_data(gs_sheet_url):
     save_tender_data_to_db(gs_sheet_url)
 
 
+@app.task(name='import_tender_data_excel')
+def import_tender_data_excel(excel_file_path):
+    print(f'import_tender_data from {excel_file_path}')
+    save_tender_excel_to_db(excel_file_path)
+
+
 @app.task(name='local_currency_to_usd')
 def local_currency_to_usd(goods_services_row_id, conversion_date, source_currency, source_values):
     # source_values = {
@@ -291,7 +484,7 @@ def local_currency_to_usd(goods_services_row_id, conversion_date, source_currenc
     #     'award_value_local': row['Award value'],
     #     'contract_value_local': row['Contract value']
     # }
-
+    
     dst_tender_value = convert_local_to_usd(conversion_date, source_currency, source_values['tender_value_local'], dst_currency='USD')
     dst_award_value = convert_local_to_usd(conversion_date, source_currency, source_values['award_value_local'], dst_currency='USD')
     dst_contract_value = convert_local_to_usd(conversion_date, source_currency, source_values['contract_value_local'], dst_currency='USD')

@@ -107,7 +107,7 @@ class Tender(models.Model):
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='tenders', null=True, blank=True)
     buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name='tenders', null=True, blank=True)
 
-    contract_id = models.CharField(verbose_name=_('Contract ID'), max_length=50, null=True)
+    contract_id = models.CharField(verbose_name=_('Contract ID'), max_length=150, null=True)
     contract_date = models.DateField(verbose_name=_('Contract date'), null=True)
     procurement_procedure = models.CharField(verbose_name=_('Procurement procedure'), max_length=25, choices=PROCUREMENT_METHOD_CHOICES, null=True)
     status = models.CharField(verbose_name=_('Contract status'), max_length=25, choices=TENDER_STATUS_CHOICES, null=True)
@@ -126,7 +126,7 @@ class Tender(models.Model):
 
 
 class GoodsServicesCategory(models.Model):
-    category_name = models.CharField(verbose_name=_('Category name'), max_length=50, null=False, unique=True)
+    category_name = models.CharField(verbose_name=_('Category name'), max_length=100, null=False, unique=True)
     category_desc = models.TextField(verbose_name=_('Category description'), null=True, blank=True)
 
     def __str__(self):
@@ -138,7 +138,7 @@ class GoodsServices(models.Model):
     goods_services_category = models.ForeignKey(GoodsServicesCategory, on_delete=models.CASCADE, related_name='goods_services', null=True)
     contract = models.ForeignKey(Tender, on_delete=models.CASCADE, related_name='goods_services', null=True)
 
-    classification_code = models.CharField(verbose_name=_('Classification code'), max_length=25, null=True, blank=True)
+    classification_code = models.CharField(verbose_name=_('Classification code'), max_length=100, null=True, blank=True)
     no_of_bidders = models.BigIntegerField(verbose_name=_('Number of bidders'), null=True, blank=True)
 
     contract_title = models.TextField(verbose_name=_('Contract title'), null=True, blank=True)

@@ -183,6 +183,11 @@ CELERY_TASK_ROUTES = {
         'exchange': 'covid19',
         'routing_key': 'covid19'
         },
+    'country.tasks.import_tender_data_excel': {
+        'queue': 'covid19',
+        'exchange': 'covid19',
+        'routing_key': 'covid19'
+        },
     'country.tasks.local_currency_to_usd': {
         'queue': 'covid19',
         'exchange': 'covid19',
