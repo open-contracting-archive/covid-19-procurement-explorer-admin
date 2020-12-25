@@ -1,8 +1,9 @@
+{% load dot_filter %}
 {% load wagtailimages_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Page Title</title>
+<title>{{ self.title }}</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
@@ -102,7 +103,7 @@ color: inherit;
 <section class="preview">
     <div class="container" style="max-width: 1170px; margin: 0 auto;">
         <h2>
-        Page Title: {{ self.title }}
+        {{ self.title }}
         </h2>
         <div class="img-wrapper">
                 {% image self.content_image width-400 as tmp_photo %}
@@ -112,7 +113,7 @@ color: inherit;
             <div class="content__metadata">
                 <div class="published">
                     <label>Published on</label>
-                    <p class="date"> {{ self.published_date.year}} - {{self.published_date.month}} - {{self.published_date.day }}</p>
+                    <p class="date">{{ self.published_date|dot}}</p>
                 </div>
                 <div class=tags>
                     <label>Tags</label>
