@@ -18,4 +18,5 @@ urlpatterns = [
     path('world-map/',views.WorldMapView.as_view()),
     path('country-map-api/',views.CountryMapView.as_view()),
     path('global-suppliers/',views.GlobalSuppliersView.as_view()),
+    path('product-distribution/',views.ProductDistributionView.as_view()),
 ]

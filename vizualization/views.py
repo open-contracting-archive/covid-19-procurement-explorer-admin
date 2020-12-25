@@ -11,7 +11,7 @@ from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 import math
 from collections import defaultdict
-from country.models import Tender,Country,CovidMonthlyActiveCases
+from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices
 import itertools
 
 class TotalSpendingsView(APIView):
@@ -821,3 +821,40 @@ class GlobalSuppliersView(APIView):
         return JsonResponse(results)
         
         
+
+class ProductDistributionView(APIView):
+    def get(self,request):
+        country =  self.request.GET.get('country',None)
+        result=[]
+        try:
+            country_instance = Country.objects.get(country_code_alpha_2=country)
+        except Exception as DoesNotExist:
+            goods_services = GoodsServices.objects.values('goods_services_category__category_name',
+                        'goods_services_category__id').annotate(tender=Count('goods_services_category'),
+                        local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
+            for goods in goods_services:
+                data={}
+                data['product_name'] = goods['goods_services_category__category_name']
+                data['product_id'] = goods['goods_services_category__id']
+                data['local_currency_code'] = 'USD'
+                data['tender_count'] = goods['tender']
+                data['amount_local'] = goods['local']
+                data['amount_usd'] = goods['usd']
+                result.append(data)
+            return JsonResponse(result,safe=False)
+        if country:
+            goods_services = GoodsServices.objects.filter(country__country_code_alpha_2=country).values('goods_services_category__category_name',
+                        'goods_services_category__id','country__currency').annotate(tender=Count('goods_services_category'),
+                        local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
+            for goods in goods_services:
+                data={}
+                data['product_name'] = goods['goods_services_category__category_name']
+                data['product_id'] = goods['goods_services_category__id']
+                data['local_currency_code'] = goods['country__currency']
+                data['tender_count'] = goods['tender']
+                data['amount_local'] = goods['local']
+                data['amount_usd'] = goods['usd']
+                result.append(data)
+            return JsonResponse(result,safe=False)
+
+            
