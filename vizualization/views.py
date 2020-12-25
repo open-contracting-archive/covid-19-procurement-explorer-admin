@@ -770,37 +770,48 @@ class EquityIndicatorView(APIView):
     def get(self,request):
         country =  self.request.GET.get('country',None)
         result=[]
-        try:
-            country_instance = Country.objects.get(country_code_alpha_2=country)
-        except Exception as DoesNotExist:
-            data={
-                "by_number": {
-	            "assigned": 64323,
-	            "total": 65106,
-	            "unassigned": 783
-                              },
-                "by_value": {
-	            "assigned": 804213213,
-	            "total": 704434525,
-	            "unassigned": 221312
-                            }
-            }
-
-            result.append(data)
-            return JsonResponse(result,safe=False)
         if country:
-            data={
-                "by_number": {
-	            "assigned": 44323,
-	            "total": 45106,
-	            "unassigned": 783
-                              },
-                "by_value": {
-	            "assigned": 504213213,
-	            "total": 504434525,
-	            "unassigned": 221312
-                            }
-            }
-
-            result.append(data)
-            return JsonResponse(result,safe=False)
+            try:
+                country_instance = Country.objects.get(country_code_alpha_2=country)
+                tenders_assigned = Tender.objects.filter(country=country_instance).exclude(equity_categories=[]).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+                assigned_count = Tender.objects.filter(country=country_instance).exclude(equity_categories=[]).count()
+                tenders_unassigned = Tender.objects.filter(country=country_instance,equity_categories=[]).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+                unassigned_count = Tender.objects.filter(country=country_instance,equity_categories=[]).count()
+                data=[{
+                    "amount_local": tenders_assigned['total_local'],
+                    "amount_usd": tenders_assigned['total_usd'],
+                    "tender_count": assigned_count,
+                    "local_currency_code": country_instance.currency,
+                    "type": "assigned"
+                },
+                {
+                    "amount_local": tenders_unassigned['total_local'],
+                    "amount_usd": tenders_unassigned['total_usd'],
+                    "tender_count": unassigned_count,
+                    "local_currency_code": country_instance.currency ,
+                    "type": "unassigned"
+                },]
+                return JsonResponse(data,safe=False)
+            except Exception as DoesNotExist:
+                results = [{"error":"Invalid country_code"}]
+                return JsonResponse(results,safe=False)
+        else:
+            tenders_assigned = Tender.objects.exclude(equity_categories=[]).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+            assigned_count = Tender.objects.exclude(equity_categories=[]).count()
+            tenders_unassigned = Tender.objects.filter(equity_categories=[]).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+            unassigned_count = Tender.objects.filter(equity_categories=[]).count()
+            data=[{
+                    "amount_local": tenders_assigned['total_local'],
+                    "amount_usd": tenders_assigned['total_usd'],
+                    "tender_count": assigned_count,
+                    "local_currency_code": "USD",
+                    "type": "assigned"
+                },
+                {
+                    "amount_local": tenders_unassigned['total_local'],
+                    "amount_usd": tenders_unassigned['total_usd'],
+                    "tender_count": unassigned_count,
+                    "local_currency_code": "USD" ,
+                    "type": "unassigned"
+                },]  
+            return JsonResponse(data,safe=False)

@@ -19,7 +19,8 @@ from country.models import (
     Buyer,
     Supplier, 
     Tender, 
-    CurrencyConversionCache
+    CurrencyConversionCache,
+    EquityKeywords
 )
 
 app = Celery()
@@ -495,3 +496,29 @@ def local_currency_to_usd(goods_services_row_id, conversion_date, source_currenc
         r.award_value_usd = dst_award_value or None
         r.contract_value_usd = dst_contract_value or None
         r.save()
+
+@app.task(name='fetch_equity_data')
+def fetch_equity_data(country):
+    country_instance = Country.objects.get(name=country)
+    tenders = Tender.objects.filter(country=country_instance)
+    keywords = EquityKeywords.objects.filter(country=country_instance)
+    for tender in tenders:
+        goodservices = tender.goods_services.filter(country=country_instance)
+        for good_service in goodservices:
+            print(good_service.id)
+            for keyword in keywords:
+                keyword_value = keyword.keyword
+                if keyword_value in good_service.contract_title.strip() or keyword_value in good_service.contract_desc.strip():
+                    category = keyword.equity_category.category_name
+                    if tender.equity_categories:
+                        if category not in tender.equity_categories: 
+                            print(">>>>>>>>>>>"+ str(tender.equity_categories))
+                            print(category)
+                            tender.equity_categories.append(category)
+                            tender.save()
+                    else:
+
+                        tender.equity_categories = [category]
+                        tender.save()
+
+
