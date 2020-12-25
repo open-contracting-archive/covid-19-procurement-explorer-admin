@@ -37,6 +37,7 @@ html5lib==1.1
 humanize==3.1.0
 idna==2.10
 importlib-metadata==2.0.0
+ipdb==0.13.4
 ipython==7.16.1
 ipython-genutils==0.2.0
 isort==5.6.4
@@ -46,8 +47,10 @@ kombu==5.0.2
 l18n==2020.6.1
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
+numpy==1.19.4
 oauthlib==3.1.0
 openpyxl==3.0.5
+pandas==1.1.5
 parso==0.7.1
 pexpect==4.8.0
 pickleshare==0.7.5
@@ -78,10 +81,12 @@ toml==0.10.2
 tornado==6.1
 traitlets==4.3.3
 transifex-client==0.14.1
+typed-ast==1.4.1
 Unidecode==1.1.1
 urllib3==1.25.11
 vine==5.0.0
 wagtail==2.11.1
+wagtailvideos==2.8.2
 wcwidth==0.2.5
 webencodings==0.5.1
 Willow==1.4
