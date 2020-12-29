@@ -25,7 +25,7 @@ class EventsPageAdmin(ModelAdmin):
     menu_order = 300 
     add_to_settings_menu = False  
     exclude_from_explorer = False 
-    list_display = ('description','event_date','time_from','location')
+    list_display = ('title','event_date','time_from','location')
     list_filter = ('event_date','location')
     search_fields = ('description')
 
@@ -38,7 +38,7 @@ class ResourcesPageAdmin(ModelAdmin):
     menu_order = 300 
     add_to_settings_menu = False  
     exclude_from_explorer = False 
-    list_display = ('resource_type','description','published_date','author')
+    list_display = ('resource_type','title','published_date','author')
     list_filter = ('author','country')
     search_fields = ('description')
 

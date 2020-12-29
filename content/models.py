@@ -14,6 +14,7 @@ from wagtail.core.fields import RichTextField
 from wagtail.core.models import Page
 from wagtail.documents.models import Document
 from wagtail.core.models import Orderable
+from wagtail.core.templatetags import wagtailcore_tags
 from taggit.models import TaggedItemBase, Tag as TaggitTag
 
 class Contents(Page):
@@ -43,6 +44,9 @@ class InsightsPage(Page):
         related_name='+')
     published_date = models.DateField("Published date",default=now, editable=False)
     body = RichTextField()
+    def rendered_body(self):
+        return wagtailcore_tags.richtext(self.body)
+
     content_image = models.ForeignKey(
         'wagtailimages.Image',
         null=True,
@@ -67,7 +71,7 @@ class InsightsPage(Page):
         APIField('contents_type'),
         APIField('country'),
         APIField('published_date'),
-        APIField('body'),
+        APIField('rendered_body'),
         APIField('content_image'),
         APIField('author'),
         APIField('tags'),
@@ -89,6 +93,10 @@ class EventsPage(Page):
         related_name='+'
     )
     description = RichTextField()
+
+    def rendered_description(self):
+        return wagtailcore_tags.richtext(self.description)
+
     event_date = models.DateField("Event date")
     time_from = models.TimeField("Start time")
     time_to = models.TimeField("End time", 
@@ -109,7 +117,7 @@ class EventsPage(Page):
 
     api_fields = [
         APIField('event_image'),
-        APIField('description'),
+        APIField('rendered_description'),
         APIField('event_date'),
         APIField('time_from'),
         APIField('time_to'),
@@ -138,6 +146,10 @@ class ResourcesPage(Page):
         choices=resource_choice,
     )
     description = RichTextField()
+
+    def rendered_description(self):
+        return wagtailcore_tags.richtext(self.description)
+
     country =  models.ForeignKey(Country, null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -169,7 +181,7 @@ class ResourcesPage(Page):
 
     api_fields = [
         APIField('resource_type'),
-        APIField('description'),
+        APIField('rendered_description'),
         APIField('country'),
         APIField('document'),
         APIField('link'),
