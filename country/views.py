@@ -48,11 +48,12 @@ class TenderView(viewsets.ModelViewSet):
     ordering = ['-id']
     queryset = Tender.objects.all()
     serializer_class = TenderSerializer
-    ordering_fields = ('contract_title','procurement_procedure','supplier','status','contract_value_usd')
+    ordering_fields = ('contract_title','procurement_procedure','supplier','status','contract_value_usd','buyer')
     filterset_fields = {
         'country': ['exact'],
         'country__name': ['exact'],
         'status': ['exact'],
         'procurement_procedure': ['exact'],
         'supplier__supplier_id': ['exact'],
+        'buyer': ['exact'],
     }
