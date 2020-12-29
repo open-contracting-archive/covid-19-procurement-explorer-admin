@@ -55,5 +55,5 @@ class TenderView(viewsets.ModelViewSet):
         'status': ['exact'],
         'procurement_procedure': ['exact'],
         'supplier__supplier_id': ['exact'],
-        'buyer': ['exact'],
+        'buyer__buyer_id': ['exact'],
     }

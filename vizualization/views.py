@@ -30,7 +30,7 @@ class TotalSpendingsView(APIView):
         if buyer:
             try:
                 if type(int(buyer)) is int:
-                    filter_args['buyer'] = buyer
+                    filter_args['buyer__buyer_id'] = buyer
             except:
                 filter_args['buyer__isnull'] = False
 
@@ -166,7 +166,7 @@ class TotalContractsView(APIView):
         if buyer:
             try:
                 if type(int(buyer)) is int:
-                    filter_args['buyer'] = buyer
+                    filter_args['buyer__buyer_id'] = buyer
             except:
                 filter_args['buyer__isnull'] = False
         total_country_tender = Tender.objects.filter(**filter_args).count()
@@ -233,7 +233,7 @@ class AverageBidsView(APIView):
         if buyer:
             try:
                 if type(int(buyer)) is int:
-                    filter_args['buyer'] = buyer
+                    filter_args['buyer__buyer_id'] = buyer
             except:
                 filter_args['buyer__isnull'] = False
         # Month wise average of number of bids for contracts
@@ -320,7 +320,7 @@ class TopSuppliers(APIView):
         if buyer:
             try:
                 if type(int(buyer)) is int:
-                    filter_args['buyer'] = buyer
+                    filter_args['buyer__buyer_id'] = buyer
             except:
                 filter_args['buyer__isnull'] = False
         for_value = Tender.objects.filter(**filter_args).values('supplier__supplier_id','supplier__supplier_name','country__currency')\
@@ -361,7 +361,7 @@ class TopBuyers(APIView):
         if buyer:
             try:
                 if type(int(buyer)) is int:
-                    filter_args['buyer'] = buyer
+                    filter_args['buyer__buyer_id'] = buyer
             except:
                 filter_args['buyer__isnull'] = False
         for_value = Tender.objects.filter(**filter_args).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
@@ -401,7 +401,7 @@ class DirectOpen(APIView):
         if buyer:
             try:
                 if type(int(buyer)) is int:
-                    filter_args['buyer'] = buyer
+                    filter_args['buyer__buyer_id'] = buyer
             except:
                 filter_args['buyer__isnull'] = False
        
@@ -452,7 +452,7 @@ class ContractStatusView(APIView):
         if buyer:
             try:
                 if type(int(buyer)) is int:
-                    filter_args['buyer'] = buyer
+                    filter_args['buyer__buyer_id'] = buyer
             except:
                 filter_args['buyer__isnull'] = False
 
