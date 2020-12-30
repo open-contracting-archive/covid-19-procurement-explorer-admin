@@ -274,8 +274,8 @@ class GlobalOverView(APIView):
             result["month"]=str(start_date.year)+'-'+str(start_date.month)
             for j in countries:
                 b={}
-                tender_count =Tender.objects.filter(country__country_code_alpha_2=j,contract_date__gte=start_date,contract_date__lte=end_date).count()
-                tender =  Tender.objects.filter(country__country_code_alpha_2=j,contract_date__gte=start_date,contract_date__lte=end_date).aggregate(Sum('goods_services__contract_value_usd'))
+                tender_count =Tender.objects.filter(country__country_code_alpha_2=j.country_code_alpha_2,contract_date__gte=start_date,contract_date__lte=end_date).count()
+                tender =  Tender.objects.filter(country__country_code_alpha_2=j.country_code_alpha_2,contract_date__gte=start_date,contract_date__lte=end_date).aggregate(Sum('goods_services__contract_value_usd'))
                 b['country']=j.name
                 b['country_code']=j.country_code_alpha_2
                 b['country_continent']=j.continent
