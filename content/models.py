@@ -36,6 +36,7 @@ class InsightsPage(Page):
         max_length=20,
         choices=contents_choice,
     )
+    featured = models.BooleanField(blank=True,null=True)
     # template = "news_template.html"
     
     country =  models.ForeignKey(Country,null=True,
@@ -60,6 +61,7 @@ class InsightsPage(Page):
 
     content_panels = Page.content_panels + [
         FieldPanel('contents_type'),
+        FieldPanel('featured'),
         FieldPanel('country'),
         FieldPanel('body', classname="full"),
         ImageChooserPanel('content_image'),
@@ -69,6 +71,7 @@ class InsightsPage(Page):
 
     api_fields = [
         APIField('contents_type'),
+        APIField('featured'),
         APIField('country'),
         APIField('published_date'),
         APIField('rendered_body'),
