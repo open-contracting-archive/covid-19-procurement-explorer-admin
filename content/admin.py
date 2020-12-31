@@ -3,7 +3,7 @@ from wagtail.contrib.modeladmin.options import (
     modeladmin_register,
 )
 
-from .models import InsightsPage, EventsPage, ResourcesPage
+from .models import InsightsPage, EventsPage, ResourcesPage, StaticPage
 
 class InsightsPageAdmin(ModelAdmin):
     model = InsightsPage
@@ -43,3 +43,16 @@ class ResourcesPageAdmin(ModelAdmin):
     search_fields = ('description')
 
 modeladmin_register(ResourcesPageAdmin)
+
+class StaticPageAdmin(ModelAdmin):
+    model = StaticPage
+    menu_label = 'Static Page'
+    menu_icon = 'doc-empty'
+    menu_order = 300
+    add_to_settings_menu = False  
+    exclude_from_explorer = False 
+    list_display = ('page_type','body')
+    search_fields = ('body')
+
+modeladmin_register(StaticPageAdmin)
+
