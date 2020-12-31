@@ -23,6 +23,7 @@ class Contents(Page):
         'content.InsightsPage',
         'content.EventsPage',
         'content.ResourcesPage',
+        'content.StaticPage',
     ]
 class InsightsPage(Page):
     parent_page_types = ['content.Contents']
@@ -203,3 +204,31 @@ class InsightPageTag(TaggedItemBase):
 class Tag(TaggitTag):
     class Meta:
         proxy = True
+
+class StaticPage(Page):
+    parent_page_types = ['content.Contents']
+    
+    subpage_types = []
+    page_choice = [
+        ('About us', 'About us'),
+        ('Privacy Policy', 'Privacy Policy'),
+        ('Terms of use', 'Terms of use'),
+    ]
+    page_type = models.CharField(
+        max_length=20,
+        choices=page_choice,
+    )
+    
+    body = RichTextField()
+    def rendered_body(self):
+        return wagtailcore_tags.richtext(self.body)
+
+    content_panels = Page.content_panels + [
+        FieldPanel('page_type'),
+        FieldPanel('body', classname="full"),
+    ]
+
+    api_fields = [
+        APIField('page_type'),
+        APIField('rendered_body'),
+    ]
