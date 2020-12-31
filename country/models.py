@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.template.defaultfilters import slugify
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
-
+from django.contrib.postgres.fields import ArrayField
 
 class Country(models.Model):
     CONTINENT_CHOICES = [
@@ -121,6 +121,8 @@ class Tender(models.Model):
     contract_value_usd = models.FloatField(verbose_name=_('Contract value USD'),null=True, blank=True)
     contract_desc = models.TextField(verbose_name=_('Contract description'), null=True, blank=True)
 
+    equity_categories = ArrayField(models.CharField(max_length=100,null=True, blank=True), default=list, null=True)
+
     def __str__(self):
         return self.contract_id
 
@@ -159,3 +161,16 @@ class CovidMonthlyActiveCases(models.Model):
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='covid_monthly_active_cases')
     covid_data_date = models.DateField()
     active_cases_count = models.BigIntegerField(verbose_name=_('Active cases count'), null=True, blank=True)
+
+
+class EquityCategory(models.Model):
+    category_name = models.CharField(verbose_name=_('Category name'), max_length=50, null=True, unique=True)
+
+    def __str__(self):
+        return self.category_name
+
+
+class EquityKeywords(models.Model):
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='equity_keywords', null=True)
+    equity_category = models.ForeignKey(EquityCategory, on_delete=models.CASCADE, related_name='equity_keywords', null=True)
+    keyword = models.CharField(verbose_name=_('Keyword'), max_length=100, null=False)
