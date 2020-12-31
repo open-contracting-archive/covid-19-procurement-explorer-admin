@@ -10,6 +10,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Country, Language, Tender
 from .serializers import CountrySerializer, LanguageSerializer, TenderSerializer
+from vizualization.views import add_filter_args
 
 
 class CountryView(viewsets.ModelViewSet):
@@ -46,14 +47,22 @@ class TenderView(viewsets.ModelViewSet):
     pagination_class = TenderPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering = ['-id']
-    queryset = Tender.objects.all()
     serializer_class = TenderSerializer
     ordering_fields = ('contract_title','procurement_procedure','supplier','status','contract_value_usd','buyer')
     filterset_fields = {
-        'country': ['exact'],
         'country__name': ['exact'],
         'status': ['exact'],
         'procurement_procedure': ['exact'],
-        'supplier__supplier_id': ['exact'],
-        'buyer__buyer_id': ['exact'],
     }
+
+    def get_queryset(self):
+        country =  self.request.GET.get('country',None)
+        buyer = self.request.GET.get('buyer')
+        supplier = self.request.GET.get('supplier')
+        filter_args = {}
+        if country: filter_args['country__country_code_alpha_2'] = country
+        if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
+        if supplier: filter_args = add_filter_args('supplier',supplier,filter_args)
+        queryset = Tender.objects.filter(**filter_args)
+        return queryset
+
