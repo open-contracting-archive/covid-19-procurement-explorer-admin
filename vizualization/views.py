@@ -617,18 +617,15 @@ class CountryMapView(APIView):
             final={"result":"Invalid Alpha Code"}
             return JsonResponse(final)
         if country != None and country_instance !=None:
-            data=[]
             tender_instance = Tender.objects.filter(country__country_code_alpha_2=country).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
             count = Tender.objects.filter(country__country_code_alpha_2=country).count()
-            b={}
-            b['country_code']=country_instance.country_code_alpha_2
-            b['country'] = country_instance.name
-            b['country_continent']=country_instance.continent
-            b['amount_usd'] = tender_instance['total_usd']
-            b['amount_local'] = tender_instance['total_local']
-            b['tender_count'] = count
-            data.append(b)
-            final={"result":data}
+            final={}
+            final['country_code']=country_instance.country_code_alpha_2
+            final['country'] = country_instance.name
+            final['country_continent']=country_instance.continent
+            final['amount_usd'] = tender_instance['total_usd']
+            final['amount_local'] = tender_instance['total_local']
+            final['tender_count'] = count    
         else:
             final={"result":"Invalid Alpha Code"}
         return JsonResponse(final)
