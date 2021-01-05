@@ -540,7 +540,9 @@ class MonopolizationView(APIView):
     def get(self,request):
         filter_args = {}
         country =  self.request.GET.get('country',None)
+        buyer = self.request.GET.get('buyer')
         if country: filter_args['country__country_code_alpha_2'] = country
+        if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
 
         current_time = datetime.datetime.now()
         previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=1)
@@ -729,51 +731,51 @@ class GlobalSuppliersView(APIView):
 
 class ProductDistributionView(APIView):
     def get(self,request):
+        filter_args = {}
         country =  self.request.GET.get('country',None)
+        buyer = self.request.GET.get('buyer',None)
+        if country: filter_args['country__country_code_alpha_2'] = country
+        if buyer:
+            if buyer != 'notnull': 
+                filter_args['contract__buyer__buyer_id'] = buyer
+            else:
+                filter_args['contract__buyer__isnull'] = False
         result=[]
-        try:
-            country_instance = Country.objects.get(country_code_alpha_2=country)
-        except Exception as DoesNotExist:
-            goods_services = GoodsServices.objects.values('goods_services_category__category_name',
-                        'goods_services_category__id').annotate(tender=Count('goods_services_category'),
-                        local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
-            for goods in goods_services:
-                data={}
-                data['product_name'] = goods['goods_services_category__category_name']
-                data['product_id'] = goods['goods_services_category__id']
-                data['local_currency_code'] = 'USD'
-                data['tender_count'] = goods['tender']
-                data['amount_local'] = goods['local']
-                data['amount_usd'] = goods['usd']
-                result.append(data)
-            return JsonResponse(result,safe=False)
-        if country:
-            goods_services = GoodsServices.objects.filter(country__country_code_alpha_2=country).values('goods_services_category__category_name',
-                        'goods_services_category__id','country__currency').annotate(tender=Count('goods_services_category'),
-                        local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
-            for goods in goods_services:
-                data={}
-                data['product_name'] = goods['goods_services_category__category_name']
-                data['product_id'] = goods['goods_services_category__id']
+        goods_services = GoodsServices.objects.filter(**filter_args).values('goods_services_category__category_name',
+                    'goods_services_category__id','country__currency').annotate(tender=Count('goods_services_category'),
+                    local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
+        for goods in goods_services:
+            data={}
+            data['product_name'] = goods['goods_services_category__category_name']
+            data['product_id'] = goods['goods_services_category__id']
+            if country:
                 data['local_currency_code'] = goods['country__currency']
-                data['tender_count'] = goods['tender']
-                data['amount_local'] = goods['local']
-                data['amount_usd'] = goods['usd']
-                result.append(data)
-            return JsonResponse(result,safe=False)
+            else:
+                data['local_currency_code'] = 'USD'
+            data['tender_count'] = goods['tender']
+            data['amount_local'] = goods['local']
+            data['amount_usd'] = goods['usd']
+            result.append(data)
+        return JsonResponse(result,safe=False)
 
             
 class EquityIndicatorView(APIView):
     def get(self,request):
+        filter_args = {}
         country =  self.request.GET.get('country',None)
+        buyer = self.request.GET.get('buyer')
+        if country: filter_args['country__country_code_alpha_2'] = country
+        if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
         result=[]
         if country:
             try:
                 country_instance = Country.objects.get(country_code_alpha_2=country)
-                tenders_assigned = Tender.objects.filter(country=country_instance).exclude(equity_categories=[]).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
-                assigned_count = Tender.objects.filter(country=country_instance).exclude(equity_categories=[]).count()
-                tenders_unassigned = Tender.objects.filter(country=country_instance,equity_categories=[]).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
-                unassigned_count = Tender.objects.filter(country=country_instance,equity_categories=[]).count()
+                filter_args['country'] = country_instance
+                tenders_assigned = Tender.objects.filter(**filter_args).exclude(equity_categories=[]).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+                assigned_count = Tender.objects.filter(**filter_args).exclude(equity_categories=[]).count()
+                filter_args['equity_categories'] = []
+                tenders_unassigned = Tender.objects.filter(**filter_args).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+                unassigned_count = Tender.objects.filter(**filter_args).count()
                 data=[{
                     "amount_local": tenders_assigned['total_local'],
                     "amount_usd": tenders_assigned['total_usd'],
@@ -793,10 +795,11 @@ class EquityIndicatorView(APIView):
                 results = [{"error":"Invalid country_code"}]
                 return JsonResponse(results,safe=False)
         else:
-            tenders_assigned = Tender.objects.exclude(equity_categories=[]).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
-            assigned_count = Tender.objects.exclude(equity_categories=[]).count()
-            tenders_unassigned = Tender.objects.filter(equity_categories=[]).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
-            unassigned_count = Tender.objects.filter(equity_categories=[]).count()
+            tenders_assigned = Tender.objects.filter(**filter_args).exclude(equity_categories=[]).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+            assigned_count = Tender.objects.filter(**filter_args).exclude(equity_categories=[]).count()
+            filter_args['equity_categories'] = []
+            tenders_unassigned = Tender.objects.filter(**filter_args).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+            unassigned_count = Tender.objects.filter(**filter_args).count()
             data=[{
                     "amount_local": tenders_assigned['total_local'],
                     "amount_usd": tenders_assigned['total_usd'],
@@ -816,13 +819,18 @@ class EquityIndicatorView(APIView):
 
 class ProductTimelineView(APIView):
     def get(self,request):
+        filter_args = {}
         country =  self.request.GET.get('country',None)
+        buyer = self.request.GET.get('buyer')
+        if country: filter_args['country__country_code_alpha_2'] = country
+        if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
         result=[]
         if country:
             try:
                 country_instance = Country.objects.get(country_code_alpha_2=country)
                 currency = country_instance.currency
-                tenders_assigned = Tender.objects.filter(country=country_instance).exclude(goods_services__goods_services_category=None).annotate(month=TruncMonth('contract_date')).values('month','goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(count=Count('id'),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd')).order_by("-month")
+                filter_args['country'] = country_instance
+                tenders_assigned = Tender.objects.filter(**filter_args).exclude(goods_services__goods_services_category=None).annotate(month=TruncMonth('contract_date')).values('month','goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(count=Count('id'),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd')).order_by("-month")
                 for tender in tenders_assigned:
                     data={}
                     data['amount_local'] = tender['local']
@@ -838,7 +846,7 @@ class ProductTimelineView(APIView):
                 result = [{"error":"Invalid country_code"}]
                 return JsonResponse(result,safe=False)
         else:
-            tenders_assigned = Tender.objects.exclude(goods_services__goods_services_category=None).annotate(month=TruncMonth('contract_date')).values('month','goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(count=Count('id'),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd')).order_by("-month")
+            tenders_assigned = Tender.objects.filter(**filter_args).exclude(goods_services__goods_services_category=None).annotate(month=TruncMonth('contract_date')).values('month','goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(count=Count('id'),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd')).order_by("-month")
             try:
                 for tender in tenders_assigned:
                     data={}
