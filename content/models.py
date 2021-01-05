@@ -1,5 +1,7 @@
 from django.db import models
-from country.models import Country
+from django.utils.translation import ugettext_lazy as _
+from django.core.validators import RegexValidator
+from django.template.defaultfilters import slugify
 from django.utils.timezone import now
 
 from modelcluster.fields import ParentalKey
@@ -17,6 +19,7 @@ from wagtail.core.models import Orderable
 from wagtail.core.templatetags import wagtailcore_tags
 from taggit.models import TaggedItemBase, Tag as TaggitTag
 
+from country.models import Country
 class Contents(Page):
     parent_page_types = ['wagtailcore.Page']
     subpage_types = [
@@ -232,3 +235,21 @@ class StaticPage(Page):
         APIField('page_type'),
         APIField('rendered_body'),
     ]
+
+class CountryPartner(models.Model):
+    alphaSpaces = RegexValidator(r'^[a-zA-Z ]+$', 'Only letters and spaces are allowed in the Country Name')
+    name = models.CharField(verbose_name=_('Name'), null=False, unique=True, max_length=50, validators=[alphaSpaces])
+    description = models.CharField(verbose_name=_('Description'), null=False, unique=True, max_length=50)
+    email = models.EmailField(max_length=254, blank=False, unique=True)
+    website = models.URLField(max_length = 200)
+    logo = models.ImageField(upload_to='country/partner/logo', height_field=None, width_field=None, max_length=100)
+
+    class Meta:
+        verbose_name_plural = _('Country Partners')
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(CountryPartner, self).save(*args, **kwargs)
