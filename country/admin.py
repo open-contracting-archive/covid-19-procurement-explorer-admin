@@ -1,8 +1,10 @@
 from django.contrib import admin
 from .models import Country, Language, Tender, Supplier
+from content.models import CountryPartner
 
 admin.site.register(Language)
 admin.site.register(Supplier)
+admin.site.register(CountryPartner)
 
 
 @admin.register(Country)
