@@ -812,3 +812,46 @@ class EquityIndicatorView(APIView):
                     "type": "unassigned"
                 },]  
             return JsonResponse(data,safe=False)
+
+
+class ProductTimelineView(APIView):
+    def get(self,request):
+        country =  self.request.GET.get('country',None)
+        result=[]
+        if country:
+            try:
+                country_instance = Country.objects.get(country_code_alpha_2=country)
+                currency = country_instance.currency
+                tenders_assigned = Tender.objects.filter(country=country_instance).exclude(goods_services__goods_services_category=None).annotate(month=TruncMonth('contract_date')).values('month','goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(count=Count('id'),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd')).order_by("-month")
+                for tender in tenders_assigned:
+                    data={}
+                    data['amount_local'] = tender['local']
+                    data['amount_usd'] = tender['usd']
+                    data['date'] = tender['month']
+                    data['local_currency_code'] = currency
+                    data['product_id'] = tender['goods_services__goods_services_category__id']
+                    data['product_name'] = tender['goods_services__goods_services_category__category_name']
+                    data['tender_count'] = tender['count']
+                    result.append(data)
+                return JsonResponse(result,safe=False)
+            except Exception as DoesNotExist:
+                result = [{"error":"Invalid country_code"}]
+                return JsonResponse(result,safe=False)
+        else:
+            tenders_assigned = Tender.objects.exclude(goods_services__goods_services_category=None).annotate(month=TruncMonth('contract_date')).values('month','goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(count=Count('id'),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd')).order_by("-month")
+            try:
+                for tender in tenders_assigned:
+                    data={}
+                    data['amount_local'] = tender['local']
+                    data['amount_usd'] = tender['usd']
+                    data['date'] = tender['month']
+                    data['local_currency_code'] = 'USD'
+                    data['product_id'] = tender['goods_services__goods_services_category__id']
+                    data['product_name'] = tender['goods_services__goods_services_category__category_name']
+                    data['tender_count'] = tender['count']
+                    result.append(data)
+                return JsonResponse(result,safe=False)
+            except Exception as DoesNotExist:
+                result = [{"error":"Invalid country_code"}]
+                return JsonResponse(result,safe=False)
+            return JsonResponse(data,safe=False)
