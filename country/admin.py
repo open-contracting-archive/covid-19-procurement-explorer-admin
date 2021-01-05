@@ -4,8 +4,10 @@ from content.models import CountryPartner
 
 admin.site.register(Language)
 admin.site.register(Supplier)
-admin.site.register(CountryPartner)
 
+@admin.register(CountryPartner)
+class CountryPartnerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'order', 'country')
 
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
