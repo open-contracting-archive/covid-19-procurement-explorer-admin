@@ -11,7 +11,7 @@ from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 import math
 from collections import defaultdict
-from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, GoodsServicesCategory
+from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, GoodsServicesCategory, Supplier
 import itertools
 
 def add_filter_args(filter_type,filter_value,filter_args):
@@ -916,3 +916,27 @@ class ProductTimelineRaceView(APIView):
                 result["details"].append(data)
             final_data.append(result)
         return JsonResponse(final_data,safe=False)
+
+        
+class SupplierProfileView(APIView):
+    def get(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        data={}
+        try:
+            instance = Supplier.objects.get(id=pk)
+            supplier_detail = Tender.objects.filter(supplier_id=pk).values('country__name','country__country_code_alpha_2').annotate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+            tender_count = Tender.objects.filter(supplier_id=pk).count()
+            data['name'] = instance.supplier_name
+            data['id'] = pk
+            data['code'] = instance.supplier_id
+            data['address'] = instance.supplier_address
+            data['amount_usd'] = supplier_detail[0]['total_usd']
+            data['amount_local'] = supplier_detail[0]['total_local']
+            data['tender_count'] = tender_count
+            data['country_code'] = supplier_detail[0]['country__country_code_alpha_2']
+            data['country_name'] = supplier_detail[0]['country__name']
+            return JsonResponse(data,safe=False)
+        except Exception as e:
+            data['error'] = "Enter valid ID"
+            return JsonResponse(data,safe=False)
+
