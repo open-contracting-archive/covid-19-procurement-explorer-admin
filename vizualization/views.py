@@ -11,7 +11,7 @@ from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 import math
 from collections import defaultdict
-from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices
+from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, GoodsServicesCategory
 import itertools
 
 def add_filter_args(filter_type,filter_value,filter_args):
@@ -38,8 +38,8 @@ class TotalSpendingsView(APIView):
         if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
         if supplier: filter_args = add_filter_args('supplier',supplier,filter_args)
 
-        total_country_tender_amount = Tender.objects.filter(**filter_args).aggregate(Sum('contract_value_usd'))
-        total__country_tender_local_amount = Tender.objects.filter(**filter_args).aggregate(Sum('contract_value_local'))
+        total_country_tender_amount = Tender.objects.filter(**filter_args).aggregate(Sum('goods_services__contract_value_usd'))
+        total_country_tender_local_amount = Tender.objects.filter(**filter_args).aggregate(Sum('goods_services__contract_value_local'))
         this_month = Tender.objects.filter(**filter_args,contract_date__year=today.year,
                         contract_date__month=today.month).aggregate(Sum('contract_value_usd'))
         this_month_local = Tender.objects.filter(**filter_args,contract_date__year=today.year,
@@ -104,7 +104,7 @@ class TotalSpendingsView(APIView):
             a['date']= i['month']
             a['value'] = i['total']
             line_chart_local_list.append(a)
-        result = {'usd':{'total':total_country_tender_amount['contract_value_usd__sum'],
+        result = {'usd':{'total':total_country_tender_amount['goods_services__contract_value_usd__sum'],
                     'increment':increment,
                     "line_chart" : line_chart_list,
                     'bar_chart':[{
@@ -124,7 +124,7 @@ class TotalSpendingsView(APIView):
                             "value":direct_total
                         }],},
                 'local':{
-                'total':total__country_tender_local_amount['contract_value_local__sum'],
+                'total':total_country_tender_local_amount['goods_services__contract_value_local__sum'],
                     'increment':increment_local,
                     "line_chart" : line_chart_local_list,
                     'bar_chart':[{
@@ -455,7 +455,7 @@ class ContractStatusView(APIView):
         filter_args = {}
         result = list()
         currency_code = ''
-        status = ['active','completed','cancelled']
+        status = ['active','completed','canceled']
         country =  self.request.GET.get('country',None)
         buyer = self.request.GET.get('buyer')
         
@@ -863,3 +863,56 @@ class ProductTimelineView(APIView):
                 result = [{"error":"Invalid country_code"}]
                 return JsonResponse(result,safe=False)
             return JsonResponse(data,safe=False)
+
+
+class ProductTimelineRaceView(APIView):
+    def get(self,request):
+        filter_args={}
+        country =  self.request.GET.get('country',None)
+        buyer = self.request.GET.get('buyer')
+        supplier = self.request.GET.get('supplier')
+        currency ="USD"
+        if supplier: filter_args = add_filter_args('supplier',supplier,filter_args)
+        if country: 
+            filter_args['country__country_code_alpha_2'] = country
+            instance = Country.objects.get(country_code_alpha_2=country)
+            currency = instance.currency
+        if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
+        cum_dict = {}
+        final_data = []
+        categories = GoodsServicesCategory.objects.all()
+        tenders = Tender.objects.exclude(**filter_args,goods_services__goods_services_category=None).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('id')).order_by("month")
+        for tender in tenders:
+            end_date = tender['month'] + dateutil.relativedelta.relativedelta(months=1)
+            start_date=tender['month']
+            result = {}
+            result["month"]=str(start_date.year)+'-'+str(start_date.month)
+            result["details"] = []
+            for category in categories:
+                data={}
+                a = GoodsServices.objects.filter(**filter_args,goods_services_category=category,contract__contract_date__gte=start_date,contract__contract_date__lte=end_date).values('goods_services_category__category_name','goods_services_category__id').annotate(count=Count('id'),local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
+                tender_count = Tender.objects.filter(**filter_args,contract_date__gte=start_date,contract_date__lte=end_date,goods_services__goods_services_category=category).count()
+                data["product_name"]=category.category_name
+                data["product_id"]=category.id
+                local_value = [i['local'] for i in a]
+                usd_value = [i['usd'] for i in a]
+                if category.category_name in cum_dict.keys():
+                    if 'local' in cum_dict[category.category_name].keys():
+                        cum_dict[category.category_name]['local'] = cum_dict[category.category_name]['local'] + (local_value[0] if local_value else 0)
+                    if 'usd' in cum_dict[category.category_name].keys():
+                        cum_dict[category.category_name]['usd'] = cum_dict[category.category_name]['usd'] + (usd_value[0] if usd_value else 0)
+                    if 'count' in cum_dict[category.category_name].keys():
+                        cum_dict[category.category_name]['count'] = cum_dict[category.category_name]['count'] + tender_count
+                else:
+                    cum_dict[category.category_name]={'local': 0 ,'usd': 0, 'count':0}
+                    print(local_value)
+                    cum_dict[category.category_name]['local'] = cum_dict[category.category_name]['local'] + (local_value[0] if local_value else 0)
+                    cum_dict[category.category_name]['usd'] = cum_dict[category.category_name]['usd'] + (usd_value[0] if usd_value else 0)
+                    cum_dict[category.category_name]['count'] = cum_dict[category.category_name]['count'] + tender_count
+                data["amount_local"] = cum_dict[category.category_name]['local']
+                data["amount_usd"] = cum_dict[category.category_name]['usd']
+                data["currency"] = currency  
+                data["tender_count"]= cum_dict[category.category_name]['count']
+                result["details"].append(data)
+            final_data.append(result)
+        return JsonResponse(final_data,safe=False)
