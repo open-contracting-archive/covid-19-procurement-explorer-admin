@@ -11,8 +11,12 @@ from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 import math
 from collections import defaultdict
+
 from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, GoodsServicesCategory, Supplier, Buyer
 import itertools
+from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices
+from content.models import CountryPartner
+import itertools, json
 
 def add_filter_args(filter_type,filter_value,filter_args):
     if filter_value != 'notnull':
@@ -965,3 +969,30 @@ class BuyerProfileView(APIView):
         except Exception as e:
             data['error'] = "Enter valid ID"
             return JsonResponse(data,safe=False)
+
+class CountryPartnerView(APIView):
+    def get(self,request):
+        filter_args = {}
+        country =  self.request.GET.get('country',None)
+        if country: filter_args['country__country_code_alpha_2'] = country
+        try:
+            country_partner = CountryPartner.objects.filter(**filter_args)
+        except Exception as DoesNotExist:
+            country_partner = [{"error": "Country partner doesnot exist for this country"}]
+        result=[]
+        if country_partner:
+            for i in country_partner:
+                data={}
+                data["name"]= i.name
+                data["description"]= i.description
+                data["email"]= i.email
+                data["website"]= i.website
+                data["logo"]= json.dumps(str(i.logo))
+                data["order"]= i.order
+                data["country"]= json.dumps(str(i.country))
+                result.append(data)
+        else:
+            result ={
+                "error": "Country Partner not found for this country"
+            }
+        return JsonResponse(result,safe=False)
