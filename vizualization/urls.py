@@ -22,4 +22,5 @@ urlpatterns = [
     path('equity-indicators/',views.EquityIndicatorView.as_view()),
     path('product-timeline/',views.ProductTimelineView.as_view()),
     path('product-timeline-race/',views.ProductTimelineRaceView.as_view()),
+    path('suppliers/<int:pk>',views.SupplierProfileView.as_view()),
 ]
