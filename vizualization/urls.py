@@ -23,4 +23,5 @@ urlpatterns = [
     path('product-timeline/',views.ProductTimelineView.as_view()),
     path('product-timeline-race/',views.ProductTimelineRaceView.as_view()),
     path('suppliers/<int:pk>',views.SupplierProfileView.as_view()),
+    path('buyers/<int:pk>',views.BuyerProfileView.as_view()),
 ]

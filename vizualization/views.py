@@ -11,7 +11,7 @@ from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
 import math
 from collections import defaultdict
-from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, GoodsServicesCategory, Supplier
+from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, GoodsServicesCategory, Supplier, Buyer
 import itertools
 
 def add_filter_args(filter_type,filter_value,filter_args):
@@ -881,7 +881,7 @@ class ProductTimelineRaceView(APIView):
         cum_dict = {}
         final_data = []
         categories = GoodsServicesCategory.objects.all()
-        tenders = Tender.objects.exclude(**filter_args,goods_services__goods_services_category=None).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('id')).order_by("month")
+        tenders = Tender.objects.exclude(goods_services__goods_services_category=None).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('id')).order_by("month")
         for tender in tenders:
             end_date = tender['month'] + dateutil.relativedelta.relativedelta(months=1)
             start_date=tender['month']
@@ -890,8 +890,11 @@ class ProductTimelineRaceView(APIView):
             result["details"] = []
             for category in categories:
                 data={}
-                a = GoodsServices.objects.filter(**filter_args,goods_services_category=category,contract__contract_date__gte=start_date,contract__contract_date__lte=end_date).values('goods_services_category__category_name','goods_services_category__id').annotate(count=Count('id'),local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
-                tender_count = Tender.objects.filter(**filter_args,contract_date__gte=start_date,contract_date__lte=end_date,goods_services__goods_services_category=category).count()
+                if country:
+                    a = GoodsServices.objects.filter(contract__country__country_code_alpha_2=country,goods_services_category=category,contract__contract_date__gte=start_date,contract__contract_date__lte=end_date).values('goods_services_category__category_name','goods_services_category__id').annotate(count=Count('id'),local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
+                else:
+                    a = GoodsServices.objects.filter(goods_services_category=category,contract__contract_date__gte=start_date,contract__contract_date__lte=end_date).values('goods_services_category__category_name','goods_services_category__id').annotate(count=Count('id'),local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
+                tender_count = Tender.objects.filter(contract_date__gte=start_date,contract_date__lte=end_date,goods_services__goods_services_category=category).count()
                 data["product_name"]=category.category_name
                 data["product_id"]=category.id
                 local_value = [i['local'] for i in a]
@@ -940,3 +943,25 @@ class SupplierProfileView(APIView):
             data['error'] = "Enter valid ID"
             return JsonResponse(data,safe=False)
 
+
+class BuyerProfileView(APIView):
+    def get(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        data={}
+        try:
+            instance = Buyer.objects.get(id=pk)
+            buyer_detail = Tender.objects.filter(buyer_id=pk).values('country__name','country__country_code_alpha_2').annotate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+            tender_count = Tender.objects.filter(buyer_id=pk).count()
+            data['name'] = instance.buyer_name
+            data['id'] = pk
+            data['code'] = instance.buyer_id
+            data['address'] = instance.buyer_address
+            data['amount_usd'] = buyer_detail[0]['total_usd']
+            data['amount_local'] = buyer_detail[0]['total_local']
+            data['tender_count'] = tender_count
+            data['country_code'] = buyer_detail[0]['country__country_code_alpha_2']
+            data['country_name'] = buyer_detail[0]['country__name']
+            return JsonResponse(data,safe=False)
+        except Exception as e:
+            data['error'] = "Enter valid ID"
+            return JsonResponse(data,safe=False)
