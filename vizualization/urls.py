@@ -21,12 +21,8 @@ urlpatterns = [
     path('product-distribution/',views.ProductDistributionView.as_view()),
     path('equity-indicators/',views.EquityIndicatorView.as_view()),
     path('product-timeline/',views.ProductTimelineView.as_view()),
-<<<<<<< HEAD
     path('product-timeline-race/',views.ProductTimelineRaceView.as_view()),
     path('suppliers/<int:pk>',views.SupplierProfileView.as_view()),
     path('buyers/<int:pk>',views.BuyerProfileView.as_view()),
-]
-=======
     path('country-partners/',views.CountryPartnerView.as_view()),
 ] 
->>>>>>> Country Partner API
