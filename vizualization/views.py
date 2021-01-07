@@ -317,9 +317,9 @@ class TopSuppliers(APIView):
         if country: filter_args['country__country_code_alpha_2'] = country
         if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
         filter_args['supplier__isnull']=False
-        for_value = Tender.objects.filter(**filter_args).values('supplier__supplier_id','supplier__supplier_name','country__currency')\
+        for_value = Tender.objects.filter(**filter_args).values('supplier__id','supplier__supplier_name','country__currency')\
                     .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('contract_value_local')).order_by('-usd')[:10]
-        for_number = Tender.objects.filter(**filter_args).values('supplier__supplier_id','supplier__supplier_name','country__currency')\
+        for_number = Tender.objects.filter(**filter_args).values('supplier__id','supplier__supplier_name','country__currency')\
                         .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('contract_value_local')).order_by('-count')[:10]
         by_number= []
         by_value = []
@@ -329,7 +329,7 @@ class TopSuppliers(APIView):
             a["amount_local"] = value['local'] if value['local'] else 0
             a["amount_usd"] = value['usd'] if value['usd'] else 0
             a["local_currency_code"] = value['country__currency']
-            a['supplier_id'] = value['supplier__supplier_id']
+            a['supplier_id'] = value['supplier__id']
             a['supplier_name'] = value['supplier__supplier_name']
             a['tender_count'] = value['count']
             by_value.append(a)
@@ -338,7 +338,7 @@ class TopSuppliers(APIView):
             a["amount_local"] = value['local'] if value['local'] else 0
             a["amount_usd"] = value['usd'] if value['usd'] else 0
             a["local_currency_code"] = value['country__currency']
-            a['supplier_id'] = value['supplier__supplier_id']
+            a['supplier_id'] = value['supplier__id']
             a['supplier_name'] = value['supplier__supplier_name']
             a['tender_count'] = value['count']
             by_number.append(a)
@@ -357,9 +357,9 @@ class TopBuyers(APIView):
         if supplier: filter_args = add_filter_args('supplier',supplier,filter_args)
         filter_args['buyer__isnull']=False
       
-        for_value = Tender.objects.filter(**filter_args).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
+        for_value = Tender.objects.filter(**filter_args).values('buyer__id','buyer__buyer_name','country__currency')\
                     .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('contract_value_local')).order_by('-usd')[:10]
-        for_number = Tender.objects.filter(**filter_args).values('buyer__buyer_id','buyer__buyer_name','country__currency')\
+        for_number = Tender.objects.filter(**filter_args).values('buyer__id','buyer__buyer_name','country__currency')\
                         .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('contract_value_local')).order_by('-count')[:10]
         by_number= []
         by_value = []
@@ -368,7 +368,7 @@ class TopBuyers(APIView):
             a["amount_local"] = value['local'] if value['usd'] else 0
             a["amount_usd"] = value['usd'] if value['usd'] else 0
             a["local_currency_code"] = value['country__currency']
-            a['buyer_id'] = value['buyer__buyer_id']
+            a['buyer_id'] = value['buyer__id']
             a['buyer_name'] = value['buyer__buyer_name']
             a['tender_count'] = value['count']
             by_value.append(a)
@@ -377,7 +377,7 @@ class TopBuyers(APIView):
             a["amount_local"] = value['local'] if value['usd'] else 0
             a["amount_usd"] = value['usd'] if value['usd'] else 0
             a["local_currency_code"] = value['country__currency']
-            a['buyer_id'] = value['buyer__buyer_id']
+            a['buyer_id'] = value['buyer__id']
             a['buyer_name'] = value['buyer__buyer_name']
             a['tender_count'] = value['count']
             by_number.append(a)
@@ -578,15 +578,15 @@ class CountrySuppliersView(APIView):
         filter_args = {}
         country =  self.request.GET.get('country',None)
         if country: filter_args['country__country_code_alpha_2'] = country
-        tender_amounts_buyer = Tender.objects.filter(**filter_args,buyer__isnull=False,goods_services__goods_services_category__isnull=False).values('goods_services__goods_services_category__id','goods_services__goods_services_category__category_name','buyer__buyer_id','buyer__buyer_name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
+        tender_amounts_buyer = Tender.objects.filter(**filter_args,buyer__isnull=False,goods_services__goods_services_category__isnull=False).values('goods_services__goods_services_category__id','goods_services__goods_services_category__category_name','buyer__id','buyer__buyer_name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
 
-        tender_amounts_supplier = Tender.objects.filter(**filter_args,supplier__isnull=False,goods_services__goods_services_category__isnull=False).values('supplier__supplier_id','supplier__supplier_name','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
+        tender_amounts_supplier = Tender.objects.filter(**filter_args,supplier__isnull=False,goods_services__goods_services_category__isnull=False).values('supplier__id','supplier__supplier_name','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
         result = {
             'product_buyer' : [
                 {
                 "amount_local": tender_amounts_buyer[i]['local'],
                 "amount_usd": tender_amounts_buyer[i]['usd'],
-                "buyer_id": tender_amounts_buyer[i]['buyer__buyer_id'],
+                "buyer_id": tender_amounts_buyer[i]['buyer__id'],
                 "buyer_name": tender_amounts_buyer[i]['buyer__buyer_name'],
                 "product_id": tender_amounts_buyer[i]['goods_services__goods_services_category__id'],
                 "product_name": tender_amounts_buyer[i]['goods_services__goods_services_category__category_name'],
@@ -600,7 +600,7 @@ class CountrySuppliersView(APIView):
                 "amount_usd": tender_amounts_supplier[i]['usd'],
                 "product_id": tender_amounts_supplier[i]['goods_services__goods_services_category__id'],
                 "product_name": tender_amounts_supplier[i]['goods_services__goods_services_category__category_name'],
-                "supplier_id": tender_amounts_supplier[i]['supplier__supplier_id'],
+                "supplier_id": tender_amounts_supplier[i]['supplier__id'],
                 "supplier_name": tender_amounts_supplier[i]['supplier__supplier_name'],
                 "tender_count": tender_amounts_supplier[i]['count']
                 }
@@ -666,10 +666,10 @@ class GlobalSuppliersView(APIView):
         final_suppliers_list_countwise = list(itertools.chain.from_iterable([i['countwise'] for i in suppliers_dict.values()]))
         final_suppliers_list_amountwise = list(itertools.chain.from_iterable([i['amountwise'] for i in suppliers_dict.values()]))
         
-        by_value_supplier_product = Tender.objects.filter(supplier__supplier_id__in=final_suppliers_list_amountwise,supplier__isnull=False,goods_services__goods_services_category__isnull=False).values('supplier__supplier_id','supplier__supplier_name','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
+        by_value_supplier_product = Tender.objects.filter(supplier__supplier_id__in=final_suppliers_list_amountwise,supplier__isnull=False,goods_services__goods_services_category__isnull=False).values('supplier__id','supplier__supplier_name','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
         by_value_product_country = Tender.objects.filter(supplier__supplier_id__in=final_suppliers_list_amountwise,supplier__isnull=False,goods_services__goods_services_category__isnull=False).values('goods_services__goods_services_category__id','goods_services__goods_services_category__category_name','country__id','country__name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
         
-        by_number_supplier_product = Tender.objects.filter(supplier__supplier_id__in=final_suppliers_list_countwise,supplier__isnull=False,goods_services__goods_services_category__isnull=False).values('supplier__supplier_id','supplier__supplier_name','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
+        by_number_supplier_product = Tender.objects.filter(supplier__supplier_id__in=final_suppliers_list_countwise,supplier__isnull=False,goods_services__goods_services_category__isnull=False).values('supplier__id','supplier__supplier_name','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
         by_number_product_country = Tender.objects.filter(supplier__supplier_id__in=final_suppliers_list_countwise,supplier__isnull=False,goods_services__goods_services_category__isnull=False).values('goods_services__goods_services_category__id','goods_services__goods_services_category__category_name','country__id','country__name').annotate(local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),count=Count('id'))
         results = {
                     "by_number": {
@@ -691,7 +691,7 @@ class GlobalSuppliersView(APIView):
                             "amount_usd": i['usd'],
                             "product_id": i['goods_services__goods_services_category__id'],
                             "product_name": i['goods_services__goods_services_category__category_name'],
-                            "supplier_id": i['supplier__supplier_id'],
+                            "supplier_id": i['supplier__id'],
                             "supplier_name": i['supplier__supplier_name'],
                             "tender_count": i['count']
                         }
@@ -717,7 +717,7 @@ class GlobalSuppliersView(APIView):
                             "amount_usd": i['usd'],
                             "product_id": i['goods_services__goods_services_category__id'],
                             "product_name": i['goods_services__goods_services_category__category_name'],
-                            "supplier_id": i['supplier__supplier_id'],
+                            "supplier_id": i['supplier__id'],
                             "supplier_name": i['supplier__supplier_name'],
                             "tender_count": i['count']
                         }
