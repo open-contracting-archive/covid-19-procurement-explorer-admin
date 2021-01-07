@@ -62,6 +62,7 @@ class SupplierSerializer(serializers.ModelSerializer):
     product_category_count =  serializers.SerializerMethodField()
     buyer_count =  serializers.SerializerMethodField()
     tender_count =  serializers.SerializerMethodField()
+    supplier_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Supplier
@@ -119,6 +120,9 @@ class SupplierSerializer(serializers.ModelSerializer):
             tender_count =  supplier_related_tenders.count()
             return tender_count
 
+    def get_supplier_id(self,obj):
+        return obj.id
+
 
 class BuyerSerializer(serializers.ModelSerializer):
     amount_local = serializers.SerializerMethodField()
@@ -129,6 +133,7 @@ class BuyerSerializer(serializers.ModelSerializer):
     product_category_count =  serializers.SerializerMethodField()
     supplier_count =  serializers.SerializerMethodField()
     tender_count =  serializers.SerializerMethodField()
+    buyer_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Buyer
@@ -185,6 +190,9 @@ class BuyerSerializer(serializers.ModelSerializer):
         if  buyer_related_tenders:
             tender_count =  buyer_related_tenders.count()
             return tender_count
+
+    def get_buyer_id(self,obj):
+        return obj.id
 
 
 class TenderSerializer(serializers.ModelSerializer):
