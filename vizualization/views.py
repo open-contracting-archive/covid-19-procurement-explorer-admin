@@ -232,7 +232,7 @@ class AverageBidsView(APIView):
         country =  self.request.GET.get('country',None)
         buyer = self.request.GET.get('buyer')
         current_time = datetime.datetime.now()
-        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=1)
+        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=-1)
         previous_month = previous_month_date.replace(day=1).date()
         filter_args = {}
         if country: filter_args['country__country_code_alpha_2'] = country
@@ -995,4 +995,66 @@ class CountryPartnerView(APIView):
             result ={
                 "error": "Country Partner not found for this country"
             }
+        return JsonResponse(result,safe=False)
+
+
+class BuyerSummaryView(APIView):
+    def get(self,request):
+        filter_args = {}
+        country =  self.request.GET.get('country',None)
+        result = {}
+        trend = []
+        current_time = datetime.datetime.now()
+        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=1)
+        previous_month = previous_month_date.replace(day=1).date()
+        if country: filter_args['country__country_code_alpha_2'] = country
+        buyer_details = Tender.objects.filter(**filter_args).exclude(buyer__isnull=True).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('buyer_id',distinct=True)).order_by("-month")
+        totals = Tender.objects.filter(**filter_args).exclude(buyer__isnull=True).values('buyer').distinct().aggregate(total=Count('buyer'))
+        for details in buyer_details:
+            data = {}
+            data['buyer_count'] = details['count']
+            data['month'] = details['month']
+            trend.append(data)
+        try:
+            dates_in_details = [i['month'] for i in buyer_details]
+            final_current_month_count = [buyer_details[0]['count'] if current_time.replace(day=1).date() in dates_in_details else 0]
+            final_previous_month_count = [buyer_details[1]['count'] if previous_month in dates_in_details else 0]
+            percentage = round((( final_current_month_count[0] - final_previous_month_count[0])/final_previous_month_count[0])*100)
+            print(final_current_month_count)
+            print(final_previous_month_count)
+        except:
+            percentage = 0
+        result['total'] = totals['total']
+        result['percentage'] = percentage
+        result['trend'] = trend
+        return JsonResponse(result,safe=False)
+
+
+class SupplierSummaryView(APIView):
+    def get(self,request):
+        filter_args = {}
+        country =  self.request.GET.get('country',None)
+        result = {}
+        trend = []
+        current_time = datetime.datetime.now()
+        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=-1)
+        previous_month = previous_month_date.replace(day=1).date()
+        if country: filter_args['country__country_code_alpha_2'] = country
+        supplier_details = Tender.objects.filter(**filter_args).exclude(supplier__isnull=True).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('supplier_id',distinct=True)).order_by("-month")
+        totals = Tender.objects.filter(**filter_args).exclude(supplier__isnull=True).values('supplier').distinct().aggregate(total=Count('supplier'))
+        for details in supplier_details:
+            data = {}
+            data['supplier_count'] = details['count']
+            data['month'] = details['month']
+            trend.append(data)
+        try:
+            dates_in_details = [i['month'] for i in supplier_details]
+            final_current_month_count = [supplier_details[0]['count'] if current_time.replace(day=1).date() in dates_in_details else 0]
+            final_previous_month_count = [supplier_details[1]['count'] if previous_month in dates_in_details else 0]
+            percentage = round((( final_current_month_count[0] - final_previous_month_count[0])/final_previous_month_count[0])*100)
+        except:
+            percentage = 0
+        result['total'] = totals['total']
+        result['percentage'] = percentage
+        result['trend'] = trend
         return JsonResponse(result,safe=False)
