@@ -1058,6 +1058,30 @@ class SupplierSummaryView(APIView):
         result['percentage'] = percentage
         result['trend'] = trend
         return JsonResponse(result,safe=False)
+
+
+class ProductSummaryView(APIView):
+    def get(self,request):
+        filter_args = {}
+        country =  self.request.GET.get('country',None)
+        currency= 'USD'
+        if country: 
+            filter_args['country__country_code_alpha_2'] = country
+            instance = Country.objects.get(country_code_alpha_2=country)
+            currency = instance.currency
+        result = []
+        tenders_assigned = Tender.objects.filter(**filter_args).exclude(goods_services__goods_services_category=None).annotate(category=Count('goods_services__goods_services_category__category_name')).values('goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(count=Count('id'),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'))
+        for tender in tenders_assigned:
+            data={}
+            data['amount_local'] = tender['local']
+            data['amount_usd'] = tender['usd']
+            data['local_currency_code'] = currency 
+            data['product_id'] = tender['goods_services__goods_services_category__id']
+            data['product_name'] = tender['goods_services__goods_services_category__category_name']
+            data['tender_count'] = tender['count']
+            result.append(data)
+        return JsonResponse(result,safe=False)
+
 class FilterParams(APIView):
     def get(self, request, *args, **kwargs):
         try:
