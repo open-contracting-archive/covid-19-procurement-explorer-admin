@@ -1058,3 +1058,102 @@ class SupplierSummaryView(APIView):
         result['percentage'] = percentage
         result['trend'] = trend
         return JsonResponse(result,safe=False)
+class FilterParams(APIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            buyers = Buyer.objects.values('buyer_id','buyer_name')
+            suppliers = Supplier.objects.values('supplier_id','supplier_name')
+            countries = Country.objects.values('id','country_code','name')
+            products = GoodsServicesCategory.objects.values('id','category_name')
+
+            result_buyer=[]
+            result_supplier=[]
+            result_country =[]
+            result_product =[]
+            result={}
+
+            if buyers:
+                for buyer in buyers:
+                    data_buyer = {}
+                    data_buyer['id'] = buyer['buyer_id']
+                    data_buyer['name'] = buyer['buyer_name']
+                    result_buyer.append(data_buyer)
+
+            if suppliers:
+                for supplier in suppliers:
+                    data_supplier = {}
+                    data_supplier['id'] = supplier['supplier_id']
+                    data_supplier['name'] = supplier['supplier_name']
+                    result_supplier.append(data_supplier)
+                    
+            if countries:
+                for country in countries:
+                    data_country = {}
+                    data_country['id'] = country['id']
+                    data_country['code'] = country['country_code']
+                    data_country['name'] = country['name']
+                    result_country.append(data_country)
+            
+            if products:
+                for product in products:
+                    data_product = {}
+                    data_product['id'] = product['id']
+                    data_product['name'] = product['category_name']
+                    result_product.append(data_product)
+
+            
+            result = {
+                "buyer": result_buyer,
+                "contracts": {
+                "method": [
+                {
+                    "label": "Direct",
+                    "value": "direct"
+                },
+                {
+                    "label": "Limited",
+                    "value": "limited"
+                },
+                {
+                    "label": "Open",
+                    "value": "open"
+                },
+                {
+                    "label": "Other",
+                    "value": "other"
+                },
+                {
+                    "label": "Selective",
+                    "value": "selective"
+                }
+                ],
+                "status": [
+                {
+                    "label": "Active",
+                    "value": "active"
+                },
+                {
+                    "label": "Canceled",
+                    "value": "canceled"
+                },
+                {
+                    "label": "Completed",
+                    "value": "completed"
+                },
+                {
+                    "label": "Other",
+                    "value": "other"
+                }
+                ]
+            },
+            "country": result_country,
+            "product": result_product,
+            "supplier": result_supplier
+            }
+            
+            return JsonResponse(result,safe=False)
+
+        except Exception as DoesNotExist:
+            result = [{"error": "No buyer and supplier data available"}]
+            return JsonResponse(result,safe=False)
+            

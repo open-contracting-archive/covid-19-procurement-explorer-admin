@@ -27,4 +27,5 @@ urlpatterns = [
     path('country-partners/',views.CountryPartnerView.as_view()),
     path('buyer-summary/',views.BuyerSummaryView.as_view()),
     path('supplier-summary/',views.SupplierSummaryView.as_view()),
+    path('filter-parameters/',views.FilterParams.as_view()),
 ] 
