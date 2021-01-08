@@ -272,7 +272,7 @@ class GlobalOverView(APIView):
         countries = Country.objects.all()
         for i in count:
             result={}
-            end_date = i['month'] + dateutil.relativedelta.relativedelta(months=1)
+            end_date = i['month'] + dateutil.relativedelta.relativedelta(months=-1)
             start_date=i['month']
             result["details"]=[]
             result["month"]=str(start_date.year)+'-'+str(start_date.month)
@@ -549,7 +549,7 @@ class MonopolizationView(APIView):
         if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
 
         current_time = datetime.datetime.now()
-        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=1)
+        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=-1)
         previous_month = previous_month_date.replace(day=1).date()
 
         # Month wise average of number of bids for contracts
@@ -887,7 +887,7 @@ class ProductTimelineRaceView(APIView):
         categories = GoodsServicesCategory.objects.all()
         tenders = Tender.objects.exclude(goods_services__goods_services_category=None).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('id')).order_by("month")
         for tender in tenders:
-            end_date = tender['month'] + dateutil.relativedelta.relativedelta(months=1)
+            end_date = tender['month'] + dateutil.relativedelta.relativedelta(months=-1)
             start_date=tender['month']
             result = {}
             result["month"]=str(start_date.year)+'-'+str(start_date.month)
@@ -1005,7 +1005,7 @@ class BuyerSummaryView(APIView):
         result = {}
         trend = []
         current_time = datetime.datetime.now()
-        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=1)
+        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=-1)
         previous_month = previous_month_date.replace(day=1).date()
         if country: filter_args['country__country_code_alpha_2'] = country
         buyer_details = Tender.objects.filter(**filter_args).exclude(buyer__isnull=True).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('buyer_id',distinct=True)).order_by("-month")
