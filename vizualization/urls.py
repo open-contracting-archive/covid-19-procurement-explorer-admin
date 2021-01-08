@@ -25,4 +25,6 @@ urlpatterns = [
     path('suppliers/<int:pk>',views.SupplierProfileView.as_view()),
     path('buyers/<int:pk>',views.BuyerProfileView.as_view()),
     path('country-partners/',views.CountryPartnerView.as_view()),
+    path('buyer-summary/',views.BuyerSummaryView.as_view()),
+    path('supplier-summary/',views.SupplierSummaryView.as_view()),
 ] 
