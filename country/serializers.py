@@ -95,7 +95,7 @@ class SupplierSerializer(serializers.ModelSerializer):
     def get_country_code(self, obj):
         tender_obj = obj.tenders.first()
         if tender_obj:
-            return tender_obj.country.country_code
+            return tender_obj.country.country_code_alpha_2
 
     def get_country_name(self, obj):
         tender_obj = obj.tenders.first()
@@ -166,7 +166,7 @@ class BuyerSerializer(serializers.ModelSerializer):
     def get_country_code(self, obj):
         tender_obj = obj.tenders.first()
         if tender_obj:
-            return tender_obj.country.country_code
+            return tender_obj.country.country_code_alpha_2
 
     def get_country_name(self, obj):
         tender_obj = obj.tenders.first()
