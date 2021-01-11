@@ -20,7 +20,8 @@ from country.models import (
     Supplier, 
     Tender, 
     CurrencyConversionCache,
-    EquityKeywords
+    EquityKeywords,
+    EquityCategory
 )
 
 app = Celery()
@@ -510,16 +511,9 @@ def fetch_equity_data(country):
                 keyword_value = keyword.keyword
                 if keyword_value in good_service.contract_title.strip() or keyword_value in good_service.contract_desc.strip():
                     category = keyword.equity_category.category_name
-                    if tender.equity_categories:
-                        if category not in tender.equity_categories: 
-                            print(">>>>>>>>>>>"+ str(tender.equity_categories))
-                            print(category)
-                            tender.equity_categories.append(category)
-                            tender.save()
-                    else:
-
-                        tender.equity_categories = [category]
-                        tender.save()
+                    print(category)
+                    instance = EquityCategory.objects.get(category_name=category)
+                    tender.equity_category.add(instance)
 
 
 @app.task(name='process_currency_conversion')
