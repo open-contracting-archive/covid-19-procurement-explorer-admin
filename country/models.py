@@ -88,6 +88,14 @@ class Buyer(models.Model):
 
     def __str__(self):
         return f'{self.buyer_id} - {self.buyer_name}'
+        
+
+class EquityCategory(models.Model):
+    category_name = models.CharField(verbose_name=_('Category name'), max_length=50, null=True, unique=True)
+
+    def __str__(self):
+        return self.category_name
+
 
 class Tender(models.Model):
     PROCUREMENT_METHOD_CHOICES = [
@@ -122,6 +130,7 @@ class Tender(models.Model):
     contract_desc = models.TextField(verbose_name=_('Contract description'), null=True, blank=True)
 
     equity_categories = ArrayField(models.CharField(max_length=100,null=True, blank=True), default=list, null=True)
+    equity_category = models.ManyToManyField(EquityCategory)
 
     def __str__(self):
         return self.contract_id
@@ -162,12 +171,6 @@ class CovidMonthlyActiveCases(models.Model):
     covid_data_date = models.DateField()
     active_cases_count = models.BigIntegerField(verbose_name=_('Active cases count'), null=True, blank=True)
 
-
-class EquityCategory(models.Model):
-    category_name = models.CharField(verbose_name=_('Category name'), max_length=50, null=True, unique=True)
-
-    def __str__(self):
-        return self.category_name
 
 
 class EquityKeywords(models.Model):
