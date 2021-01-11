@@ -1085,8 +1085,8 @@ class ProductSummaryView(APIView):
 class FilterParams(APIView):
     def get(self, request, *args, **kwargs):
         try:
-            buyers = Buyer.objects.values('buyer_id','buyer_name')
-            suppliers = Supplier.objects.values('supplier_id','supplier_name')
+            buyers = Buyer.objects.values('id','buyer_name')
+            suppliers = Supplier.objects.values('id','supplier_name')
             countries = Country.objects.values('id','country_code','name')
             products = GoodsServicesCategory.objects.values('id','category_name')
 
@@ -1099,14 +1099,14 @@ class FilterParams(APIView):
             if buyers:
                 for buyer in buyers:
                     data_buyer = {}
-                    data_buyer['id'] = buyer['buyer_id']
+                    data_buyer['id'] = buyer['id']
                     data_buyer['name'] = buyer['buyer_name']
                     result_buyer.append(data_buyer)
 
             if suppliers:
                 for supplier in suppliers:
                     data_supplier = {}
-                    data_supplier['id'] = supplier['supplier_id']
+                    data_supplier['id'] = supplier['id']
                     data_supplier['name'] = supplier['supplier_name']
                     result_supplier.append(data_supplier)
                     
