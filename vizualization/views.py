@@ -776,9 +776,9 @@ class EquityIndicatorView(APIView):
             try:
                 country_instance = Country.objects.get(country_code_alpha_2=country)
                 filter_args['country'] = country_instance
-                tenders_assigned = Tender.objects.filter(**filter_args).exclude(equity_categories=[]).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
-                assigned_count = Tender.objects.filter(**filter_args).exclude(equity_categories=[]).count()
-                filter_args['equity_categories'] = []
+                tenders_assigned = Tender.objects.filter(**filter_args).exclude(equity_category=None).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+                assigned_count = Tender.objects.filter(**filter_args).exclude(equity_category=None).count()
+                filter_args['equity_category'] = None
                 tenders_unassigned = Tender.objects.filter(**filter_args).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
                 unassigned_count = Tender.objects.filter(**filter_args).count()
                 data=[{
@@ -800,9 +800,9 @@ class EquityIndicatorView(APIView):
                 results = [{"error":"Invalid country_code"}]
                 return JsonResponse(results,safe=False)
         else:
-            tenders_assigned = Tender.objects.filter(**filter_args).exclude(equity_categories=[]).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
-            assigned_count = Tender.objects.filter(**filter_args).exclude(equity_categories=[]).count()
-            filter_args['equity_categories'] = []
+            tenders_assigned = Tender.objects.filter(**filter_args).exclude(equity_category=None).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
+            assigned_count = Tender.objects.filter(**filter_args).exclude(equity_category=None).count()
+            filter_args['equity_category'] = None
             tenders_unassigned = Tender.objects.filter(**filter_args).aggregate(total_usd=Sum('goods_services__contract_value_usd'),total_local=Sum('goods_services__contract_value_local'))
             unassigned_count = Tender.objects.filter(**filter_args).count()
             data=[{
@@ -1182,3 +1182,23 @@ class FilterParams(APIView):
             result = [{"error": "No buyer and supplier data available"}]
             return JsonResponse(result,safe=False)
             
+
+
+class EquitySummaryView(APIView):
+    def get(self,request):
+        filter_args={}
+        country =  self.request.GET.get('country',None)
+        if country: filter_args['country__country_code_alpha_2'] = country
+        filter_args['equity_category__isnull']=False
+        result=[]
+        equity_summary = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month','equity_category','equity_category__category_name').annotate(total=Count('id'),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd')).order_by("-month")
+        for detail in equity_summary:
+            data={}
+            data['amount_local'] = detail['local']
+            data['amount_usd'] = detail['usd']
+            data['equity'] = detail['equity_category__category_name']
+            data['equity_category_id'] = detail['equity_category']
+            data['month'] = detail['month']
+            data['tender_count'] = detail['total']
+            result.append(data)
+        return JsonResponse(result,safe=False)
