@@ -29,4 +29,5 @@ urlpatterns = [
     path('supplier-summary/',views.SupplierSummaryView.as_view()),
     path('filter-parameters/',views.FilterParams.as_view()),
     path('product-summary/',views.ProductSummaryView.as_view()),
+    path('equity-summary/',views.EquitySummaryView.as_view()),
 ] 
