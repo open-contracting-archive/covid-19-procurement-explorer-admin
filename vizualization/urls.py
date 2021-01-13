@@ -31,4 +31,7 @@ urlpatterns = [
     path('product-summary/',views.ProductSummaryView.as_view()),
     path('equity-summary/',views.EquitySummaryView.as_view()),
     path('products/',views.ProductTableView.as_view()),
+    path('filters-parameters/suppliers/',views.FilterParametersSuppliers.as_view()),
+    path('filters-parameters/buyers/',views.FilterParametersBuyers.as_view()),
+    path('filters-parameters/static/',views.FilterParametersStatic.as_view()),
 ] 
