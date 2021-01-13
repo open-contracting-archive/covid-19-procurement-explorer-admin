@@ -1372,3 +1372,25 @@ class FilterParametersStatic(APIView):
         result['country'] = result_country
         result['products'] = result_product
         return JsonResponse(result,safe=False)
+
+
+class ProductSpendingComparision(APIView):
+    def get(self,request):
+        amount_usd_local =  Tender.objects.annotate(month=TruncMonth('contract_date')).values('country__country_code','country__currency','month','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_usd')).order_by('-month')
+        count =  Tender.objects.annotate(month=TruncMonth('contract_date')).values('country__country_code','country__currency','month','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(count=Count('id')).order_by('-month')
+        # import ipdb; ipdb.set_trace()
+        result = [
+            {
+                "amount_local": i['local'],
+                "amount_usd": i['usd'],
+                "country_code": i['country__country_code'],
+                "currency": i['country__currency'],
+                "month": i['month'],
+                "product_id": i['goods_services__goods_services_category__id'],
+                "product_name": i['goods_services__goods_services_category__category_name']
+            }
+            for i in amount_usd_local
+        ] 
+        for i in range(len(count)):
+            result[i]['tender_count'] = count[i]['count']
+        return JsonResponse(result,safe=False)
