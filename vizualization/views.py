@@ -1385,7 +1385,7 @@ class ProductSpendingComparision(APIView):
                 "amount_usd": i['usd'],
                 "country_code": i['country__country_code'],
                 "currency": i['country__currency'],
-                "month": i['month'],
+                "month": i['month'].strftime("%Y-%m"),
                 "product_id": i['goods_services__goods_services_category__id'],
                 "product_name": i['goods_services__goods_services_category__category_name']
             }
