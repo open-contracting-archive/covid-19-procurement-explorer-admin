@@ -1098,34 +1098,40 @@ class FilterParams(APIView):
             result={}
 
             if buyers:
-                for buyer in buyers:
-                    data_buyer = {}
-                    data_buyer['id'] = buyer['id']
-                    data_buyer['name'] = buyer['buyer_name']
-                    result_buyer.append(data_buyer)
-
+                result_buyer = [
+                    {
+                        'id' : buyer['id'],
+                        'name': buyer['buyer_name']
+                    }
+                    for buyer in buyers
+                    ]
             if suppliers:
-                for supplier in suppliers:
-                    data_supplier = {}
-                    data_supplier['id'] = supplier['id']
-                    data_supplier['name'] = supplier['supplier_name']
-                    result_supplier.append(data_supplier)
+                result_supplier = [
+                   {
+                        'id' : supplier['id'],
+                        'name': supplier['supplier_name']
+                    }
+                    for supplier in suppliers 
+                ]
                     
             if countries:
-                for country in countries:
-                    data_country = {}
-                    data_country['id'] = country['id']
-                    data_country['code'] = country['country_code']
-                    data_country['name'] = country['name']
-                    result_country.append(data_country)
-            
+                result_country = [
+                   {
+                        'id' : country['id'],
+                        'code': country['country_code'],
+                        'name' : country['name']
+                    }
+                    for country in countries 
+                ]
+              
             if products:
-                for product in products:
-                    data_product = {}
-                    data_product['id'] = product['id']
-                    data_product['name'] = product['category_name']
-                    result_product.append(data_product)
-
+                result_product = [
+                   {
+                        'id' : product['id'],
+                        'name': product['category_name']
+                    }
+                    for product in products
+                ]
             
             result = {
                 "buyer": result_buyer,
@@ -1181,7 +1187,6 @@ class FilterParams(APIView):
         except Exception as DoesNotExist:
             result = [{"error": "No buyer and supplier data available"}]
             return JsonResponse(result,safe=False)
-            
 
 
 class EquitySummaryView(APIView):
