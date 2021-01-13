@@ -12,7 +12,7 @@ from django.http import JsonResponse
 import math
 from collections import defaultdict
 
-from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, GoodsServicesCategory, Supplier, Buyer
+from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, GoodsServicesCategory, Supplier, Buyer, EquityCategory
 import itertools
 from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices
 from content.models import CountryPartner
@@ -1237,4 +1237,138 @@ class ProductTableView(APIView):
             data['supplier_count'] = product['supplier']
             data['tender_count'] = product['total']
             result.append(data)
+        return JsonResponse(result,safe=False)
+
+
+class FilterParametersSuppliers(APIView):
+    def get(self,request):
+        filter_args={}
+        result=[]
+        country =  self.request.GET.get('country',None)
+        try:
+            if country: 
+                filter_args['country__country_code_alpha_2'] = country
+                instance = Country.objects.get(country_code_alpha_2=country)
+                country_code = instance.country_code_alpha_2
+            filter_args['supplier__isnull']=False
+            suppliers = Tender.objects.filter(**filter_args).values('supplier__id','supplier__supplier_name').distinct()
+            for supplier in suppliers:
+                data={}
+                data['id'] = supplier['supplier__id']
+                data['name'] =  supplier['supplier__supplier_name']
+                if country:
+                    data['country_code'] = country_code
+                else:
+                    data['country_code'] = "USD"
+                result.append(data)
+            return JsonResponse(result,safe=False)
+        except Exception as DoesNotExist:
+            result = [{"error": "Country code doest not exists"}]
+            return JsonResponse(result,safe=False)
+
+class FilterParametersBuyers(APIView):
+    def get(self,request):
+        filter_args={}
+        result=[]
+        country =  self.request.GET.get('country',None)
+        try:
+            if country: 
+                filter_args['country__country_code_alpha_2'] = country
+                instance = Country.objects.get(country_code_alpha_2=country)
+                country_code = instance.country_code_alpha_2
+            filter_args['buyer__isnull']=False
+            buyers = Tender.objects.filter(**filter_args).values('buyer__id','buyer__buyer_name').distinct()
+            for buyer in buyers:
+                data={}
+                data['id'] = buyer['buyer__id']
+                data['name'] =  buyer['buyer__buyer_name']
+                if country:
+                    data['country_code'] = country_code
+                else:
+                    data['country_code'] = "USD"
+                result.append(data)
+            return JsonResponse(result,safe=False)
+        except Exception as DoesNotExist:
+            result = [{"error": "Country code doest not exists"}]
+            return JsonResponse(result,safe=False)
+
+class FilterParametersStatic(APIView):
+    def get(self,request):
+        filter_args={}
+        countries = Country.objects.values('id','country_code','name')
+        products = GoodsServicesCategory.objects.values('id','category_name')
+        equities = EquityCategory.objects.values('id','category_name')
+        result_country =[]
+        result_product =[]
+        result_equity = []
+        result={}
+        if countries:
+            result_country = [
+                {
+                    'id' : country['id'],
+                    'code': country['country_code'],
+                    'name' : country['name']
+                }
+                for country in countries 
+            ]
+              
+        if products:
+            result_product = [
+            {
+                    'id' : product['id'],
+                    'name': product['category_name']
+                }
+                for product in products
+            ]
+
+        if equities:
+            result_equity = [
+            {
+                    'id' : equity['id'],
+                    'name': equity['category_name']
+                }
+                for equity in equities
+            ]
+        result['method'] = [
+                {
+                    "label": "Direct",
+                    "value": "direct"
+                },
+                {
+                    "label": "Limited",
+                    "value": "limited"
+                },
+                {
+                    "label": "Open",
+                    "value": "open"
+                },
+                {
+                    "label": "Other",
+                    "value": "other"
+                },
+                {
+                    "label": "Selective",
+                    "value": "selective"
+                }
+                ]
+        result["status"]= [
+                {
+                    "label": "Active",
+                    "value": "active"
+                },
+                {
+                    "label": "Cancelled",
+                    "value": "cancelled"
+                },
+                {
+                    "label": "Completed",
+                    "value": "completed"
+                },
+                {
+                    "label": "Other",
+                    "value": "other"
+                }
+                ]
+        result['country'] = result_country
+        result['products'] = result_product
         return JsonResponse(result,safe=False)
