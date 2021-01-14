@@ -203,6 +203,7 @@ class TenderSerializer(serializers.ModelSerializer):
     contract_value_local = serializers.SerializerMethodField()
     supplier = SupplierSerializer(read_only=True)
     buyer = BuyerSerializer(read_only=True)
+    product_category = serializers.SerializerMethodField()
 
     class Meta:
         model = Tender
@@ -224,7 +225,8 @@ class TenderSerializer(serializers.ModelSerializer):
             'buyer',
             'link_to_contract',
             'link_to_tender',
-            'data_source'
+            'data_source',
+            'product_category'
         )
         read_only_fields = (
             'contract_value_usd',
@@ -237,3 +239,6 @@ class TenderSerializer(serializers.ModelSerializer):
     def get_contract_value_local(self, obj):
         return obj.goods_services.aggregate(total=Sum('contract_value_local'))['total']
 
+    def get_product_category(self,obj):
+        tender = Tender.objects.filter(id=obj.id).values('goods_services__goods_services_category__category_name').distinct()
+        return tender[0]['goods_services__goods_services_category__category_name']

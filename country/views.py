@@ -12,6 +12,7 @@ from .models import Country, Language, Tender,Supplier,Buyer
 from .serializers import CountrySerializer, LanguageSerializer, TenderSerializer ,SupplierSerializer,BuyerSerializer
 from vizualization.views import add_filter_args
 from django_filters import rest_framework as filters
+from django.contrib.postgres.search import SearchVector
 
 
 class CountryView(viewsets.ModelViewSet):
@@ -71,8 +72,8 @@ class TenderView(viewsets.ModelViewSet):
         if country: filter_args['country__country_code_alpha_2'] = country
         if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
         if supplier: filter_args = add_filter_args('supplier',supplier,filter_args)
-        if product_id: filter_args['tenders__goods_services__goods_services_category'] = product_id
-        if title: filter_args['contract_title__iexact'] = title
+        if product_id: filter_args['goods_services__goods_services_category'] = product_id
+        if title: filter_args['contract_title__icontains'] = title
         if date_from and date_to : filter_args['contract_date__range'] = [date_from,date_to]
         if contract_value_usd and value_comparison : 
             if value_comparison == "gt":
