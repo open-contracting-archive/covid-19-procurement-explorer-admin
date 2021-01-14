@@ -15,8 +15,10 @@ from collections import defaultdict
 from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, GoodsServicesCategory, Supplier, Buyer, EquityCategory
 import itertools
 from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices
-from content.models import CountryPartner
+from content.models import CountryPartner, InsightsPage
 import itertools, json
+
+from wagtail.core.models import Page
 
 def add_filter_args(filter_type,filter_value,filter_args):
     if filter_value != 'notnull':
@@ -1393,4 +1395,27 @@ class ProductSpendingComparision(APIView):
         ] 
         for i in range(len(count)):
             result[i]['tender_count'] = count[i]['count']
+        return JsonResponse(result,safe=False)
+
+
+class SlugBlogShow(APIView):
+    def get (self, request, *args, **kwargs):
+        content_type = self.kwargs['type']
+        slug = self.kwargs['slug']
+        result = {}
+        try:
+            if content_type:
+                results = InsightsPage.objects.filter(contents_type=content_type,slug=slug).values('title','published_date', 'body', 'author','country_id', 'featured', 'content_image_id')
+                print(result)
+                result['title'] = results[0]['title']
+                result['published_date'] = results[0]['title']
+                result['body'] = results[0]['body']
+                result['author'] = results[0]['author']
+                result['featured'] = results[0]['featured']
+                result['country_id'] = results[0]['country_id']
+                result['content_image_id'] = results[0]['content_image_id']
+
+        except Exception as DoesNotExist:
+            result = [{"error": "Content doest not exists"}]
+
         return JsonResponse(result,safe=False)
