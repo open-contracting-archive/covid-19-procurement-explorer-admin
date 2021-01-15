@@ -239,7 +239,7 @@ class StaticPage(Page):
 class CountryPartner(models.Model):
     alphaSpaces = RegexValidator(r'^[a-zA-Z ]+$', 'Only letters and spaces are allowed in the Country Name')
     name = models.CharField(verbose_name=_('Name'), null=False, unique=True, max_length=50, validators=[alphaSpaces])
-    description = models.CharField(verbose_name=_('Description'), null=False, unique=True, max_length=50)
+    description = models.TextField(verbose_name=_('Description'), null=False, unique=True, max_length=500000)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True)    
     email = models.EmailField(max_length=254, blank=False, unique=True)
     website = models.URLField(max_length = 200)
