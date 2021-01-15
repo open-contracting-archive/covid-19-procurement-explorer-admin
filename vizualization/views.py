@@ -642,9 +642,9 @@ class CountryMapView(APIView):
 
 class WorldMapView(APIView):
     def get(self,request):
-        product = self.request.get('product',None)
+        product = self.request.GET.get('product',None)
         filter_args = {}
-        if product: filter_args['goods_services__goods_services_category'] = product
+        if product: filter_args['goods_services__goods_services_category__id'] = product
         country_instance = Country.objects.all()
         result = []
         for country in country_instance:
