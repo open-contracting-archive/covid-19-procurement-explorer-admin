@@ -642,12 +642,15 @@ class CountryMapView(APIView):
 
 class WorldMapView(APIView):
     def get(self,request):
+        product = self.request.get('product',None)
+        filter_args = {}
+        if product: filter_args['goods_services__goods_services_category'] = product
         country_instance = Country.objects.all()
         result = []
         for country in country_instance:
             data = {}
-            tender_instance = Tender.objects.filter(country=country).aggregate(total_usd=Sum('goods_services__contract_value_usd'))
-            tender_count = Tender.objects.filter(country=country).count()
+            tender_instance = Tender.objects.filter(country=country,**filter_args).aggregate(total_usd=Sum('goods_services__contract_value_usd'))
+            tender_count = Tender.objects.filter(country=country,**filter_args).count()
             data['country_code']=country.country_code_alpha_2
             data['country'] = country.name
             data['country_continent']=country.continent
