@@ -760,14 +760,15 @@ class ProductDistributionView(APIView):
                 filter_args['contract__buyer__isnull'] = False
         result=[]
         goods_services = GoodsServices.objects.filter(**filter_args).values('goods_services_category__category_name',
-                    'goods_services_category__id','country__currency').annotate(tender=Count('goods_services_category'),
+                    'goods_services_category__id').annotate(tender=Count('goods_services_category'),
                     local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
         for goods in goods_services:
             data={}
             data['product_name'] = goods['goods_services_category__category_name']
             data['product_id'] = goods['goods_services_category__id']
             if country:
-                data['local_currency_code'] = goods['country__currency']
+                instance = Country.objects.get(country_code_alpha_2=country)
+                data['local_currency_code'] = instance.currency
             else:
                 data['local_currency_code'] = 'USD'
             data['tender_count'] = goods['tender']
@@ -840,8 +841,10 @@ class ProductTimelineView(APIView):
         filter_args = {}
         country =  self.request.GET.get('country',None)
         buyer = self.request.GET.get('buyer')
+        supplier = self.request.GET.get('supplier')
         if country: filter_args['country__country_code_alpha_2'] = country
         if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
+        if supplier: filter_args = add_filter_args('supplier',supplier,filter_args)
         result=[]
         if country:
             try:
@@ -901,7 +904,7 @@ class ProductTimelineRaceView(APIView):
         categories = GoodsServicesCategory.objects.all()
         tenders = Tender.objects.exclude(goods_services__goods_services_category=None).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('id')).order_by("month")
         for tender in tenders:
-            end_date = tender['month'] + dateutil.relativedelta.relativedelta(months=-1)
+            end_date = tender['month'] + dateutil.relativedelta.relativedelta(months=1)
             start_date=tender['month']
             result = {}
             result["month"]=str(start_date.year)+'-'+str(start_date.month)
@@ -909,14 +912,14 @@ class ProductTimelineRaceView(APIView):
             for category in categories:
                 data={}
                 if country:
-                    a = GoodsServices.objects.filter(contract__country__country_code_alpha_2=country,goods_services_category=category,contract__contract_date__gte=start_date,contract__contract_date__lte=end_date).values('goods_services_category__category_name','goods_services_category__id').annotate(count=Count('id'),local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
+                    good_services = GoodsServices.objects.filter(contract__country__country_code_alpha_2=country,goods_services_category=category,contract__contract_date__gte=start_date,contract__contract_date__lte=end_date).values('goods_services_category__category_name','goods_services_category__id').annotate(count=Count('id'),local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
                 else:
-                    a = GoodsServices.objects.filter(goods_services_category=category,contract__contract_date__gte=start_date,contract__contract_date__lte=end_date).values('goods_services_category__category_name','goods_services_category__id').annotate(count=Count('id'),local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
+                    good_services = GoodsServices.objects.filter(goods_services_category=category,contract__contract_date__gte=start_date,contract__contract_date__lte=end_date).values('goods_services_category__category_name','goods_services_category__id').annotate(count=Count('id'),local=Sum('contract_value_local'),usd=Sum('contract_value_usd'))
                 tender_count = Tender.objects.filter(contract_date__gte=start_date,contract_date__lte=end_date,goods_services__goods_services_category=category).count()
                 data["product_name"]=category.category_name
                 data["product_id"]=category.id
-                local_value = [i['local'] for i in a]
-                usd_value = [i['usd'] for i in a]
+                local_value = [i['local'] for i in good_services]
+                usd_value = [i['usd'] for i in good_services]
                 if category.category_name in cum_dict.keys():
                     if 'local' in cum_dict[category.category_name].keys():
                         cum_dict[category.category_name]['local'] = cum_dict[category.category_name]['local'] + (local_value[0] if local_value else 0)
