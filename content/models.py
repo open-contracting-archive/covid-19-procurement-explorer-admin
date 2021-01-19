@@ -12,7 +12,7 @@ from wagtail.admin.menu import MenuItem
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.documents.edit_handlers import DocumentChooserPanel
 from wagtail.api import APIField
-from wagtail.core.fields import RichTextField
+from ckeditor.fields import RichTextField
 from wagtail.core.models import Page
 from wagtail.documents.models import Document
 from wagtail.core.models import Orderable
@@ -67,7 +67,7 @@ class InsightsPage(Page):
         FieldPanel('contents_type'),
         FieldPanel('featured'),
         FieldPanel('country'),
-        FieldPanel('body', classname="full"),
+        FieldPanel('body'),
         ImageChooserPanel('content_image'),
         FieldPanel('author', classname="full"),
         FieldPanel('tags'),
