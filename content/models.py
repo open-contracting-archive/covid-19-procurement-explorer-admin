@@ -213,9 +213,9 @@ class StaticPage(Page):
     
     subpage_types = []
     page_choice = [
-        ('About us', 'About us'),
+        ('About Us', 'About Us'),
         ('Privacy Policy', 'Privacy Policy'),
-        ('Terms of use', 'Terms of use'),
+        ('Terms Of Use', 'Terms Of Use'),
     ]
     page_type = models.CharField(
         max_length=20,
