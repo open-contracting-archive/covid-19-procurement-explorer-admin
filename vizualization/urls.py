@@ -35,5 +35,4 @@ urlpatterns = [
     path('filters-parameters/buyers/',views.FilterParametersBuyers.as_view()),
     path('filters-parameters/static/',views.FilterParametersStatic.as_view()),
     path('product-spending-comparision/',views.ProductSpendingComparision.as_view()),
-    path('insight/<str:type>/<str:slug>/',views.SlugBlogShow.as_view()),
 ] 
