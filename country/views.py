@@ -4,7 +4,7 @@ from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils.translation import ugettext_lazy as _
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Count, Min, Sum, Count,Window
@@ -14,8 +14,13 @@ from vizualization.views import add_filter_args
 from django_filters import rest_framework as filters
 from django.contrib.postgres.search import SearchVector
 
+class TenderPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'limit'
+    max_page_size = 1000
 
 class CountryView(viewsets.ModelViewSet):
+    pagination_class = None
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
     lookup_field = 'slug'
@@ -28,25 +33,19 @@ class CountryView(viewsets.ModelViewSet):
     def choices(self, request):
         countries = Country.objects.all().order_by('name')
         serializer = self.get_serializer(countries, many=True)
-
         country_id_and_name = [{'id': country['id'], 'name': _(icountry['name'])} for country in serializer.data]
 
         return Response(country_id_and_name)
 
 
 class LanguageView(viewsets.ModelViewSet):
+    pagination_class = PageNumberPagination
     queryset = Language.objects.all()
     serializer_class = LanguageSerializer
 
 
-class TenderPagination(PageNumberPagination):
-    page_size = 50
-    page_size_query_param = 'page_size'
-    max_page_size = 1000
-
-
 class TenderView(viewsets.ModelViewSet):
-    pagination_class = TenderPagination
+    pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering = ['-id']
     serializer_class = TenderSerializer
@@ -67,8 +66,10 @@ class TenderView(viewsets.ModelViewSet):
         date_to = self.request.GET.get('date_to',None)
         contract_value_usd = self.request.GET.get('contract_value_usd',None)
         value_comparison = self.request.GET.get('value_comparison',None)
+        equity_id = self.request.GET.get('equity_id',None)
         filter_args = {}
         exclude_args={}
+        if equity_id: filter_args['equity_category__id'] = equity_id
         if country: filter_args['country__country_code_alpha_2'] = country
         if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
         if supplier: filter_args = add_filter_args('supplier',supplier,filter_args)
@@ -93,7 +94,7 @@ class TenderView(viewsets.ModelViewSet):
 
 
 class BuyerView(viewsets.ModelViewSet):
-    pagination_class = TenderPagination
+    pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     serializer_class = BuyerSerializer
 
@@ -114,7 +115,7 @@ class BuyerView(viewsets.ModelViewSet):
         return queryset
 
 class SupplierView(viewsets.ModelViewSet):
-    pagination_class = TenderPagination
+    pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     serializer_class = SupplierSerializer
 

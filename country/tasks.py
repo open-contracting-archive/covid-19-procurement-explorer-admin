@@ -129,14 +129,9 @@ def save_tender_excel_to_db(excel_file_path):
             contract_id = row['Contract ID']
             contract_date = row['Contract date (yyyy-mm-dd)'].date()
 
-            procurement_procedure = random.choice([
-                'open',
-                'limited',
-                'direct',
-                'selective',
-                ])    # row['Procurement procedure code']
+            procurement_procedure = row['Procurement procedure code']
 
-            classification_code = row['CPV code clear']
+            classification_code = row['CPV code clear'] or ''
 
             goods_services_category_name = row['Goods/Services'].strip()
             goods_services_category_desc = ''
@@ -152,22 +147,18 @@ def save_tender_excel_to_db(excel_file_path):
                 no_of_bidders = None
 
             buyer_id = row['Buyer ID']
-            buyer_name = row['Buyer']
+            buyer_name = row['Buyer'].strip()
             buyer_address = row['Buyer address (as an object)']
 
             supplier_id = row['Supplier ID']
-            supplier_name = row['Supplier']
+            supplier_name = row['Supplier'].strip()
             supplier_address = row['Supplier address']
 
-            status = random.choice([
-                'active',
-                'completed',
-                'canceled',
-                ])    # row['Contract Status Code']
+            status = row['Contract Status Code']
 
             link_to_contract = row['Link to the contract']
-            link_to_tender = ''    # row['Link to the tender']
-            data_source = ''    # row['Data source']
+            link_to_tender = row['Link to the tender']
+            data_source = row['Data source']
 
 
             # Get Country

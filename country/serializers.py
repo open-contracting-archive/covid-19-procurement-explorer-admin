@@ -211,6 +211,7 @@ class TenderSerializer(serializers.ModelSerializer):
     tender_usd = serializers.SerializerMethodField()
     award_local = serializers.SerializerMethodField()
     award_usd = serializers.SerializerMethodField()
+    equity_category = serializers.SerializerMethodField()
 
     class Meta:
         model = Tender
@@ -239,6 +240,7 @@ class TenderSerializer(serializers.ModelSerializer):
             'tender_usd',
             'award_local',
             'award_usd'
+            'equity_category'
         )
         read_only_fields = (
             'contract_value_usd',
@@ -289,3 +291,9 @@ class TenderSerializer(serializers.ModelSerializer):
             result  = obj.goods_services.aggregate(award_value_usd=Sum('award_value_usd'))['award_value_usd']
         except:
             return result
+    def get_equity_category(self,obj):
+        equity_categories = obj.equity_category.all()
+        result= []
+        for equity in equity_categories:
+            result.append(equity.category_name)
+        return result
