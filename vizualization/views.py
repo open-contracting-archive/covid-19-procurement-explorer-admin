@@ -554,11 +554,10 @@ class MonopolizationView(APIView):
         current_time = datetime.datetime.now()
         previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=-1)
         previous_month = previous_month_date.replace(day=1).date()
-
+      
         # Month wise average of number of bids for contracts
-        monthwise_data_contracts = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('id')).order_by("-month")
-        monthwise_data_suppliers = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month').annotate(count=Count('supplier__supplier_id',distinct=True)).order_by("-month")
-        final_line_chart_data = [{'date': monthwise_data_contracts[i]['month'],'value': round(monthwise_data_contracts[i]['count']/monthwise_data_suppliers[i]['count']) if monthwise_data_contracts[i]['count'] and monthwise_data_suppliers[i]['count']  else 0} for i in range(len(monthwise_data_contracts))]
+        monthwise_data = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month').annotate(count_supplier=Count('supplier__supplier_id',distinct=True),count_contract =Count('id')).order_by("-month")
+        final_line_chart_data = [{'date': monthwise_data[i]['month'],'value': round(monthwise_data[i]['count_contract']/monthwise_data[i]['count_supplier']) if monthwise_data[i]['count_supplier'] and monthwise_data[i]['count_contract']  else 0} for i in range(len(monthwise_data))]
 
         # Difference percentage calculation
         try:
@@ -570,11 +569,10 @@ class MonopolizationView(APIView):
             difference = 0
 
         # Overall average number of bids for contracts
-        overall_contracts = Tender.objects.filter(**filter_args).aggregate(count=Count('id'))
-        overall_suppliers = Tender.objects.filter(**filter_args).aggregate(count=Count('supplier__supplier_id',distinct=True))
+        overall = Tender.objects.filter(**filter_args).aggregate(count_supplier=Count('supplier__supplier_id',distinct=True),count_contract=Count('id'))
 
         result ={
-            'average' : round(overall_contracts['count']/overall_suppliers['count']) if overall_contracts['count'] and overall_suppliers['count'] else 0,
+            'average' : round(overall['count_contract']/overall['count_supplier']) if overall['count_contract'] and overall['count_supplier'] else 0,
             'difference' : difference,
             'line_chart' : final_line_chart_data
         }
