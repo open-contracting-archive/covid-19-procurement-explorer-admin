@@ -23,7 +23,7 @@ class Country(models.Model):
     population = models.BigIntegerField(verbose_name=_('Population'),null=True, blank=True, validators=[MinValueValidator(0)])
     gdp = models.FloatField(verbose_name=_('GDP'), null=True, blank=True, validators=[MinValueValidator(0)])
     country_code = models.CharField(verbose_name=_('Country code'), max_length=10, null=False)
-    country_code_alpha_2 = models.CharField(verbose_name=_('Country code alpha-2'), max_length=2, null=False)
+    country_code_alpha_2 = models.CharField(verbose_name=_('Country code alpha-2'), max_length=2, null=False,db_index=True)
     currency = models.CharField(verbose_name=_('Currency'), max_length=50, null=False)
     healthcare_budget = models.FloatField(verbose_name=_('Healthcare budget'),null=True, blank=True, validators=[MinValueValidator(0)])
     healthcare_gdp_pc = models.FloatField(verbose_name=_('% of GDP to healthcare'), null=True, blank=True, validators=[MinValueValidator(0),MaxValueValidator(100)])
@@ -74,7 +74,7 @@ class CurrencyConversionCache(models.Model):
 
 class Supplier(models.Model):
     supplier_id = models.CharField(verbose_name=_('Supplier ID'), max_length=50, null=False, unique=True)
-    supplier_name = models.CharField(verbose_name=_('Supplier name'), max_length=250, null=True, blank=True)
+    supplier_name = models.CharField(verbose_name=_('Supplier name'), max_length=250, null=True, blank=True,db_index=True)
     supplier_address = models.CharField(verbose_name=_('Supplier address'), max_length=250, null=True, blank=True)
 
     def __str__(self):
@@ -83,7 +83,7 @@ class Supplier(models.Model):
 
 class Buyer(models.Model):
     buyer_id = models.CharField(verbose_name=_('Buyer ID'), max_length=50, null=False, unique=True)
-    buyer_name = models.CharField(verbose_name=_('Buyer name'), max_length=250, null=True, blank=True)
+    buyer_name = models.CharField(verbose_name=_('Buyer name'), max_length=250, null=True, blank=True,db_index=True)
     buyer_address = models.CharField(verbose_name=_('Buyer address'), max_length=250, null=True, blank=True)
 
     def __str__(self):
@@ -116,7 +116,7 @@ class Tender(models.Model):
     buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name='tenders', null=True, blank=True)
 
     contract_id = models.CharField(verbose_name=_('Contract ID'), max_length=150, null=True)
-    contract_date = models.DateField(verbose_name=_('Contract date'), null=True)
+    contract_date = models.DateField(verbose_name=_('Contract date'), null=True,db_index=True)
     procurement_procedure = models.CharField(verbose_name=_('Procurement procedure'), max_length=25, choices=PROCUREMENT_METHOD_CHOICES, null=True)
     status = models.CharField(verbose_name=_('Contract status'), max_length=25, choices=TENDER_STATUS_CHOICES, null=True)
     link_to_contract = models.CharField(verbose_name=_('Link to contract'), max_length=250, null=True, blank=True)
@@ -137,7 +137,7 @@ class Tender(models.Model):
 
 
 class GoodsServicesCategory(models.Model):
-    category_name = models.CharField(verbose_name=_('Category name'), max_length=100, null=False, unique=True)
+    category_name = models.CharField(verbose_name=_('Category name'), max_length=100, null=False, unique=True,db_index=True)
     category_desc = models.TextField(verbose_name=_('Category description'), null=True, blank=True)
 
     def __str__(self):
@@ -159,8 +159,8 @@ class GoodsServices(models.Model):
     tender_value_usd = models.FloatField(verbose_name=_('Tender value USD'),null=True, blank=True)
     award_value_local = models.FloatField(verbose_name=_('Award value local'), null=True, blank=True)
     award_value_usd = models.FloatField(verbose_name=_('Award value USD'),null=True, blank=True)
-    contract_value_local = models.FloatField(verbose_name=_('Contract value local'), null=True, blank=True)
-    contract_value_usd = models.FloatField(verbose_name=_('Contract value USD'),null=True, blank=True)
+    contract_value_local = models.FloatField(verbose_name=_('Contract value local'), null=True, blank=True,db_index=True)
+    contract_value_usd = models.FloatField(verbose_name=_('Contract value USD'),null=True, blank=True,db_index=True)
     
     def __str__(self):
         return f'{self.goods_services_category} - {self.contract_title}'

@@ -24,6 +24,7 @@ from wagtail.documents import urls as wagtaildocs_urls
 from .api import api_router
 from vizualization.views import SlugBlogShow,SlugStaticPageShow
 
+# import debug_toolbar
 
 admin.site.site_header = 'COVID-19 Procurement Explorer'
 
@@ -40,3 +41,8 @@ urlpatterns = [
     path('api/v2/', api_router.urls),
     re_path(r'^', include(wagtail_urls)),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# if settings.DEBUG:
+#         urlpatterns = [
+#             path('__debug__/', include(debug_toolbar.urls)),
+#         ] + urlpatterns

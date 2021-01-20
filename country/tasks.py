@@ -10,6 +10,7 @@ import sys, traceback
 import pandas as pd
 import random
 import dateutil.parser
+import math
 
 
 from country.models import (
@@ -147,6 +148,8 @@ def save_tender_excel_to_db(excel_file_path):
             contract_title = row['Contract title']
             contract_desc = row['Contract description']
             no_of_bidders = row['Number of bidders'] or None
+            if math.isnan(no_of_bidders):
+                no_of_bidders = None
 
             buyer_id = row['Buyer ID']
             buyer_name = row['Buyer']
