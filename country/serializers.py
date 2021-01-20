@@ -239,7 +239,7 @@ class TenderSerializer(serializers.ModelSerializer):
             'tender_local',
             'tender_usd',
             'award_local',
-            'award_usd'
+            'award_usd',
             'equity_category'
         )
         read_only_fields = (
@@ -291,6 +291,7 @@ class TenderSerializer(serializers.ModelSerializer):
             result  = obj.goods_services.aggregate(award_value_usd=Sum('award_value_usd'))['award_value_usd']
         except:
             return result
+
     def get_equity_category(self,obj):
         equity_categories = obj.equity_category.all()
         result= []
