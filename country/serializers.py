@@ -72,6 +72,7 @@ class SupplierSerializer(serializers.ModelSerializer):
             'average_red_flag',
             'supplier_id',
             'supplier_name',
+            'supplier_address',
             'country_code',
             'country_name',
             'product_category_count',
@@ -143,6 +144,7 @@ class BuyerSerializer(serializers.ModelSerializer):
             'average_red_flag',
             'buyer_id',
             'buyer_name',
+            'buyer_address',
             'country_code',
             'country_name',
             'product_category_count',
@@ -204,6 +206,11 @@ class TenderSerializer(serializers.ModelSerializer):
     supplier = SupplierSerializer(read_only=True)
     buyer = BuyerSerializer(read_only=True)
     product_category = serializers.SerializerMethodField()
+    bidders_no = serializers.SerializerMethodField()
+    tender_local = serializers.SerializerMethodField()
+    tender_usd = serializers.SerializerMethodField()
+    award_local = serializers.SerializerMethodField()
+    award_usd = serializers.SerializerMethodField()
 
     class Meta:
         model = Tender
@@ -226,7 +233,12 @@ class TenderSerializer(serializers.ModelSerializer):
             'link_to_contract',
             'link_to_tender',
             'data_source',
-            'product_category'
+            'product_category',
+            'bidders_no',
+            'tender_local',
+            'tender_usd',
+            'award_local',
+            'award_usd'
         )
         read_only_fields = (
             'contract_value_usd',
@@ -242,3 +254,38 @@ class TenderSerializer(serializers.ModelSerializer):
     def get_product_category(self,obj):
         tender = Tender.objects.filter(id=obj.id).values('goods_services__goods_services_category__category_name').distinct()
         return tender[0]['goods_services__goods_services_category__category_name']
+
+    def get_bidders_no(self,obj):
+        try:
+            result =  obj.goods_services.aggregate(bidders=Sum('no_of_bidders'))['bidders']
+            return result 
+        except:
+            return 0
+
+    def get_tender_local(self,obj):
+        result = 0
+        try:
+            result  = obj.goods_services.aggregate(tender_value_local=Sum('tender_value_local'))['tender_value_local']
+        except:
+            return result
+
+    def get_tender_usd(self,obj):
+        result = 0
+        try:
+            result  = obj.goods_services.aggregate(tender_value_usd=Sum('tender_value_usd'))['tender_value_usd']
+        except:
+            return result
+
+    def get_award_local(self,obj):
+        result = 0
+        try:
+            result  = obj.goods_services.aggregate(award_value_local=Sum('award_value_local'))['award_value_local']
+        except:
+            return result
+
+    def get_award_usd(self,obj):
+        result = 0
+        try:
+            result  = obj.goods_services.aggregate(award_value_usd=Sum('award_value_usd'))['award_value_usd']
+        except:
+            return result
