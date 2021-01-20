@@ -107,7 +107,7 @@ class BuyerView(viewsets.ModelViewSet):
         value_less_than = self.request.GET.get('value_less_than',None)
         filter_args = {}
         if country: filter_args['tenders__country__country_code_alpha_2'] = country
-        if buyer_name: filter_args['buyer_name'] = buyer_name
+        if buyer_name: filter_args['buyer_name__icontains'] = buyer_name
         if product_id: filter_args['tenders__goods_services__goods_services_category'] = product_id
         if value_greater_than:  filter_args['tenders__goods_services__contract_value_usd__gte'] = value_greater_than
         if value_less_than: filter_args['tenders__goods_services__contract_value_usd__lte'] = value_less_than
@@ -128,7 +128,7 @@ class SupplierView(viewsets.ModelViewSet):
         value_less_than = self.request.GET.get('value_less_than',None)
         filter_args = {}
         if country: filter_args['tenders__country__country_code_alpha_2'] = country
-        if supplier_name: filter_args['supplier_name'] = supplier_name
+        if supplier_name: filter_args['supplier_name__icontains'] = supplier_name
         if product_id: filter_args['tenders__goods_services__goods_services_category'] = product_id
         if value_greater_than:  filter_args['tenders__goods_services__contract_value_usd__gte'] = value_greater_than
         if value_less_than: filter_args['tenders__goods_services__contract_value_usd__lte'] = value_less_than
