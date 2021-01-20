@@ -36,7 +36,7 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
-
+INTERNAL_IPS = ('127.0.0.1',)
 
 # Application definition
 
@@ -69,7 +69,8 @@ INSTALLED_APPS = [
     'taggit',
     'wagtail.api.v2',
     'content',
-    'ckeditor'
+    'ckeditor',
+    # 'debug_toolbar',
     # 'corsheaders',
 ]
 
@@ -85,6 +86,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'wagtail.contrib.redirects.middleware.RedirectMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'covidadmin.urls'
