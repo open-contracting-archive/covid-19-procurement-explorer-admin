@@ -223,17 +223,23 @@ class StaticPage(Page):
     )
     
     body = RichTextField()
+    show_in_header_menu = models.BooleanField(blank=True,null=True)
+    show_in_footer_menu = models.BooleanField(blank=True,null=True)
     def rendered_body(self):
         return wagtailcore_tags.richtext(self.body)
 
     content_panels = Page.content_panels + [
         FieldPanel('page_type'),
-        FieldPanel('body', classname="full"),
+        FieldPanel('body'),
+        FieldPanel('show_in_header_menu'),
+        FieldPanel('show_in_footer_menu'),
     ]
 
     api_fields = [
         APIField('page_type'),
         APIField('rendered_body'),
+        APIField('show_in_header_menu'),
+        APIField('show_in_footer_menu'),
     ]
 
 class CountryPartner(models.Model):
