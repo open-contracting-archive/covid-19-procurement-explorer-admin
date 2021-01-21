@@ -69,6 +69,7 @@ class TenderView(viewsets.ModelViewSet):
         equity_id = self.request.GET.get('equity_id',None)
         filter_args = {}
         exclude_args={}
+        annotate_args= {}
         if equity_id: filter_args['equity_category__id'] = equity_id
         if country: filter_args['country__country_code_alpha_2'] = country
         if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
@@ -78,9 +79,11 @@ class TenderView(viewsets.ModelViewSet):
         if date_from and date_to : filter_args['contract_date__range'] = [date_from,date_to]
         if contract_value_usd and value_comparison : 
             if value_comparison == "gt":
-                filter_args['goods_services__contract_value_usd__gte'] = contract_value_usd
+                annotate_args['sum'] = Sum('goods_services__contract_value_usd')
+                filter_args['sum__gte'] = contract_value_usd
             elif value_comparison == "lt":
-                filter_args['goods_services__contract_value_usd__lte'] = contract_value_usd
+                annotate_args['sum'] = Sum('goods_services__contract_value_usd')
+                filter_args['sum__lte'] = contract_value_usd
         if status=="others":
             exclude_args['status__in'] = ['active','canceled','completed']
         elif status in ['active','canceled','completed']:
@@ -89,7 +92,7 @@ class TenderView(viewsets.ModelViewSet):
             exclude_args['procurement_procedure__in'] = ['open','limited','direct','selective']
         elif procurement_procedure in ['open','limited','direct','selective']:
             filter_args['procurement_procedure'] = procurement_procedure
-        queryset = Tender.objects.filter(**filter_args).exclude(**exclude_args)
+        queryset = Tender.objects.annotate(**annotate_args).filter(**filter_args).exclude(**exclude_args)
         return queryset
 
 
@@ -103,15 +106,21 @@ class BuyerView(viewsets.ModelViewSet):
         country =  self.request.GET.get('country',None)
         buyer_name =  self.request.GET.get('buyer_name',None)
         product_id =  self.request.GET.get('product_id',None)
-        value_greater_than =  self.request.GET.get('value_greater_than',None)
-        value_less_than = self.request.GET.get('value_less_than',None)
+        contract_value_usd = self.request.GET.get('contract_value_usd',None)
+        value_comparison = self.request.GET.get('value_comparison',None)
         filter_args = {}
+        annotate_args= {}
         if country: filter_args['tenders__country__country_code_alpha_2'] = country
         if buyer_name: filter_args['buyer_name__icontains'] = buyer_name
         if product_id: filter_args['tenders__goods_services__goods_services_category'] = product_id
-        if value_greater_than:  filter_args['tenders__goods_services__contract_value_usd__gte'] = value_greater_than
-        if value_less_than: filter_args['tenders__goods_services__contract_value_usd__lte'] = value_less_than
-        queryset = Buyer.objects.filter(**filter_args)      
+        if contract_value_usd and value_comparison : 
+            if value_comparison == "gt":
+                annotate_args['sum'] = Sum('tenders__goods_services__contract_value_usd')
+                filter_args['sum__gte'] = contract_value_usd
+            elif value_comparison == "lt":
+                annotate_args['sum'] = Sum('tenders__goods_services__contract_value_usd')
+                filter_args['sum__lte'] = contract_value_usd
+        queryset = Buyer.objects.annotate(**annotate_args).filter(**filter_args)      
         return queryset
 
 class SupplierView(viewsets.ModelViewSet):
@@ -124,13 +133,19 @@ class SupplierView(viewsets.ModelViewSet):
         country =  self.request.GET.get('country',None)
         supplier_name =  self.request.GET.get('supplier_name',None)
         product_id =  self.request.GET.get('product_id',None)
-        value_greater_than =  self.request.GET.get('value_greater_than',None)
-        value_less_than = self.request.GET.get('value_less_than',None)
         filter_args = {}
+        annotate_args= {}
         if country: filter_args['tenders__country__country_code_alpha_2'] = country
         if supplier_name: filter_args['supplier_name__icontains'] = supplier_name
         if product_id: filter_args['tenders__goods_services__goods_services_category'] = product_id
-        if value_greater_than:  filter_args['tenders__goods_services__contract_value_usd__gte'] = value_greater_than
-        if value_less_than: filter_args['tenders__goods_services__contract_value_usd__lte'] = value_less_than
-        queryset = Supplier.objects.filter(**filter_args)      
+        contract_value_usd = self.request.GET.get('contract_value_usd',None)
+        value_comparison = self.request.GET.get('value_comparison',None)
+        if contract_value_usd and value_comparison : 
+            if value_comparison == "gt":
+                annotate_args['sum'] = Sum('tenders__goods_services__contract_value_usd')
+                filter_args['sum__gte'] = contract_value_usd
+            elif value_comparison == "lt":
+                annotate_args['sum'] = Sum('tenders__goods_services__contract_value_usd')
+                filter_args['sum__lte'] = contract_value_usd
+        queryset = Supplier.objects.annotate(**annotate_args).filter(**filter_args)      
         return queryset
