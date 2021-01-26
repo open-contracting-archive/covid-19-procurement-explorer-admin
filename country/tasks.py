@@ -109,7 +109,7 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
             return None
 
 
-def save_tender_excel_to_db(excel_file_path):
+def save_tender_excel_to_db(excel_file_path,country,currency):
     total_rows_imported_count = 0
     errors = []
 
@@ -117,8 +117,10 @@ def save_tender_excel_to_db(excel_file_path):
         ws_settings = pd.read_excel(excel_file_path, sheet_name='settings', header=None)
         ws_data = pd.read_excel(excel_file_path, sheet_name='data', header=0)
 
-        country = ws_settings[2][1]
-        currency = ws_settings[2][2]
+        # country = ws_settings[2][1]
+        # currency = ws_settings[2][2]
+        country = country
+        currency = currency
     except Exception:
         traceback.print_exc(file=sys.stdout)
         return True
@@ -468,9 +470,9 @@ def import_tender_data(gs_sheet_url):
 
 
 @app.task(name='import_tender_data_excel')
-def import_tender_data_excel(excel_file_path):
+def import_tender_data_excel(excel_file_path,country,currency):
     print(f'import_tender_data from {excel_file_path}')
-    save_tender_excel_to_db(excel_file_path)
+    save_tender_excel_to_db(excel_file_path,country,currency)
 
 
 @app.task(name='local_currency_to_usd')

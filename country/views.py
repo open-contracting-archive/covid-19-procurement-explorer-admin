@@ -120,7 +120,7 @@ class BuyerView(viewsets.ModelViewSet):
             elif value_comparison == "lt":
                 annotate_args['sum'] = Sum('tenders__goods_services__contract_value_usd')
                 filter_args['sum__lte'] = contract_value_usd
-        queryset = Buyer.objects.annotate(**annotate_args).filter(**filter_args)      
+        queryset = Buyer.objects.annotate(**annotate_args).filter(**filter_args).distinct()    
         return queryset
 
 class SupplierView(viewsets.ModelViewSet):
@@ -147,5 +147,5 @@ class SupplierView(viewsets.ModelViewSet):
             elif value_comparison == "lt":
                 annotate_args['sum'] = Sum('tenders__goods_services__contract_value_usd')
                 filter_args['sum__lte'] = contract_value_usd
-        queryset = Supplier.objects.annotate(**annotate_args).filter(**filter_args)      
+        queryset = Supplier.objects.annotate(**annotate_args).filter(**filter_args).distinct()
         return queryset
