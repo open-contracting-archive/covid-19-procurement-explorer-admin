@@ -1,9 +1,33 @@
 from django.contrib import admin
+from django.utils.html import format_html
+from django.urls import reverse
+from django.conf.urls import url
 from .models import Country, Language, Tender, Supplier
-from content.models import CountryPartner
+from content.models import CountryPartner, DataImport
 
 admin.site.register(Language)
 admin.site.register(Supplier)
+
+@admin.register(DataImport)
+class DataImportAdmin(admin.ModelAdmin):
+    exclude = ('path','depth','numchild','slug','owner','go_live_at','expire_at','first_published_at','search_description','show_in_menus','seo_title','content_type')
+    def has_add_permission(self, request, obj=None):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def import_actions(self):
+        country= str(self.country)
+        import_file = str(self.import_file.filename)
+        
+        return format_html(
+            f'''<a class="button" href="/data_import?country={country}&filename={import_file}">Import</a>&nbsp;'''
+        )
+    import_actions.short_description = 'Actions'
+    import_actions.allow_tags = True
+
+    list_display = ('title','description','country',import_actions)
 
 @admin.register(CountryPartner)
 class CountryPartnerAdmin(admin.ModelAdmin):

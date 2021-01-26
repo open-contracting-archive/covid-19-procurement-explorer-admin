@@ -3,6 +3,7 @@ from django.utils import translation
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework.filters import OrderingFilter
@@ -13,6 +14,11 @@ from .serializers import CountrySerializer, LanguageSerializer, TenderSerializer
 from vizualization.views import add_filter_args
 from django_filters import rest_framework as filters
 from django.contrib.postgres.search import SearchVector
+from django.core import management
+from django.conf import settings
+from django.contrib import messages
+from django.http.response import HttpResponseRedirect
+import os
 
 class TenderPagination(PageNumberPagination):
     page_size = 50
@@ -147,5 +153,28 @@ class SupplierView(viewsets.ModelViewSet):
             elif value_comparison == "lt":
                 annotate_args['sum'] = Sum('tenders__goods_services__contract_value_usd')
                 filter_args['sum__lte'] = contract_value_usd
-        queryset = Supplier.objects.annotate(**annotate_args).filter(**filter_args).distinct()
+        queryset = Supplier.objects.annotate(**annotate_args).filter(**filter_args).distinct()      
         return queryset
+
+
+class DataImportView(APIView):
+    def get(self,request):
+        country =  self.request.GET.get('country',None)
+        filename =  self.request.GET.get('filename',None)
+
+        file_path = settings.MEDIA_ROOT+'/documents/'+filename
+        valid_file_extension = ['.xlsx','.xls',]
+        file_extension= os.path.splitext(filename)[-1].lower()
+
+        if file_extension in valid_file_extension:
+            try:
+                management.call_command('import_tender_excel', country, file_path)
+                messages.info(request, 'Your import has started!')
+
+            except:
+                messages.error(request, 'Your import has failed!')
+        else:
+            messages.error(request, 'Your import failed because it only supports .xlsx and .xls file!')
+        
+        return HttpResponseRedirect('/admin/content/dataimport')
+

@@ -27,6 +27,7 @@ class Contents(Page):
         'content.EventsPage',
         'content.ResourcesPage',
         'content.StaticPage',
+        'content.DataImport',
     ]
 class InsightsPage(Page):
     parent_page_types = ['content.Contents']
@@ -208,6 +209,42 @@ class Tag(TaggitTag):
     class Meta:
         proxy = True
 
+class DataImport(Page):
+    parent_page_types = ['content.Contents']
+    
+    subpage_types = []
+    
+    description = models.TextField(verbose_name=_('Description'), null=False, unique=True, max_length=500000)
+
+    import_file = models.ForeignKey(
+        'wagtaildocs.Document',
+        null=True,
+        blank=False,
+        on_delete=models.SET_NULL,
+        related_name='+',
+        help_text= "Only upload xlsx, xls format"
+    )
+
+    country =  models.ForeignKey(Country, on_delete=models.CASCADE,blank=False, null=False)   
+
+    def admin_unit_details(self):  # Button for admin to get to API
+        return format_html(u'<a href="#" onclick="return false;" class="button" '
+                           u'id="id_admin_unit_selected">Unit Details</a>')
+    admin_unit_details.allow_tags = True
+    admin_unit_details.short_description = "Unit Details"
+
+    content_panels = Page.content_panels + [
+        FieldPanel('description'),
+        DocumentChooserPanel('import_file'),
+        FieldPanel('country'),
+    ]
+
+    api_fields = [
+        APIField('description'),
+        APIField('import_file'),
+        APIField('import_file'),
+        APIField('country'),
+    ]
 class StaticPage(Page):
     parent_page_types = ['content.Contents']
     
@@ -246,7 +283,7 @@ class CountryPartner(models.Model):
     alphaSpaces = RegexValidator(r'^[a-zA-Z ]+$', 'Only letters and spaces are allowed in the Country Name')
     name = models.CharField(verbose_name=_('Name'), null=False, unique=True, max_length=50, validators=[alphaSpaces])
     description = models.TextField(verbose_name=_('Description'), null=False, unique=True, max_length=500000)
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True)    
+    country = models.ForeignKey(Country, on_delete=models.CASCADE,blank=False, null=False)    
     email = models.EmailField(max_length=254, blank=False, unique=True)
     website = models.URLField(max_length = 200)
     order = models.IntegerField(null=True)
