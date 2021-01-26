@@ -58,7 +58,7 @@ class TenderView(viewsets.ModelViewSet):
         country =  self.request.GET.get('country',None)
         buyer = self.request.GET.get('buyer',None)
         supplier = self.request.GET.get('supplier',None)
-        product_id = self.request.GET.get('product_id',None)
+        product_id = self.request.GET.get('product',None)
         status = self.request.GET.get('status',None)
         procurement_procedure = self.request.GET.get('procurement_procedure',None)
         title = self.request.GET.get('title',None)
@@ -105,7 +105,7 @@ class BuyerView(viewsets.ModelViewSet):
     #    country, buyer name, value range, red flag range
         country =  self.request.GET.get('country',None)
         buyer_name =  self.request.GET.get('buyer_name',None)
-        product_id =  self.request.GET.get('product_id',None)
+        product_id =  self.request.GET.get('product',None)
         contract_value_usd = self.request.GET.get('contract_value_usd',None)
         value_comparison = self.request.GET.get('value_comparison',None)
         filter_args = {}
@@ -120,7 +120,7 @@ class BuyerView(viewsets.ModelViewSet):
             elif value_comparison == "lt":
                 annotate_args['sum'] = Sum('tenders__goods_services__contract_value_usd')
                 filter_args['sum__lte'] = contract_value_usd
-        queryset = Buyer.objects.annotate(**annotate_args).filter(**filter_args)      
+        queryset = Buyer.objects.annotate(**annotate_args).filter(**filter_args).distinct()    
         return queryset
 
 class SupplierView(viewsets.ModelViewSet):
@@ -147,5 +147,5 @@ class SupplierView(viewsets.ModelViewSet):
             elif value_comparison == "lt":
                 annotate_args['sum'] = Sum('tenders__goods_services__contract_value_usd')
                 filter_args['sum__lte'] = contract_value_usd
-        queryset = Supplier.objects.annotate(**annotate_args).filter(**filter_args)      
+        queryset = Supplier.objects.annotate(**annotate_args).filter(**filter_args).distinct()
         return queryset
