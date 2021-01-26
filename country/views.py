@@ -132,7 +132,7 @@ class SupplierView(viewsets.ModelViewSet):
     #    country, buyer name, value range, red flag range
         country =  self.request.GET.get('country',None)
         supplier_name =  self.request.GET.get('supplier_name',None)
-        product_id =  self.request.GET.get('product_id',None)
+        product_id =  self.request.GET.get('product',None)
         filter_args = {}
         annotate_args= {}
         if country: filter_args['tenders__country__country_code_alpha_2'] = country
