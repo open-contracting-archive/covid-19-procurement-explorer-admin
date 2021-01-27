@@ -112,7 +112,7 @@ class SupplierSerializer(serializers.ModelSerializer):
     def get_buyer_count(self, obj):
         supplier_related_tenders = obj.tenders.all()
         if supplier_related_tenders:
-            supplier_count = supplier_related_tenders.distinct('buyer_id').count()
+            supplier_count = supplier_related_tenders.exclude(buyer_id__isnull=True).distinct('buyer_id').count()
             return supplier_count
 
     def get_tender_count(self, obj):
@@ -184,7 +184,7 @@ class BuyerSerializer(serializers.ModelSerializer):
     def get_supplier_count(self, obj):
         buyer_related_tenders = obj.tenders.all()
         if  buyer_related_tenders:
-            supplier_count = buyer_related_tenders.distinct('supplier_id').count()
+            supplier_count = buyer_related_tenders.exclude(supplier_id__isnull=True).distinct('supplier_id').count()
             return supplier_count
 
     def get_tender_count(self, obj):
