@@ -3,7 +3,7 @@ from wagtail.contrib.modeladmin.options import (
     modeladmin_register,
 )
 
-from .models import InsightsPage, EventsPage, ResourcesPage, StaticPage
+from .models import InsightsPage, EventsPage, ResourcesPage, StaticPage, DataImport
 
 class InsightsPageAdmin(ModelAdmin):
     model = InsightsPage
@@ -59,4 +59,16 @@ class StaticPageAdmin(ModelAdmin):
     search_fields = ('body')
 
 modeladmin_register(StaticPageAdmin)
+
+class DataImportAdmin(ModelAdmin):
+    model = DataImport
+    menu_label = 'Data Import'
+    menu_icon = 'download'
+    menu_order = 300
+    add_to_settings_menu = False  
+    exclude_from_explorer = False 
+    list_display = ('title','country')
+    search_fields = ('description')
+
+modeladmin_register(DataImportAdmin)
 
