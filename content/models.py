@@ -62,7 +62,7 @@ class InsightsPage(Page):
     )
     author = models.CharField(blank=True, max_length=250)
     tags = ClusterTaggableManager(through='content.InsightPageTag', blank=True)
-
+    news_date = models.DateField("News published date",default=now)
 
     content_panels = Page.content_panels + [
         FieldPanel('contents_type'),
@@ -72,6 +72,8 @@ class InsightsPage(Page):
         ImageChooserPanel('content_image'),
         FieldPanel('author', classname="full"),
         FieldPanel('tags'),
+        FieldPanel('news_date'),
+
     ]
 
     api_fields = [
@@ -83,6 +85,7 @@ class InsightsPage(Page):
         APIField('content_image'),
         APIField('author'),
         APIField('tags'),
+        APIField('news_date'),
     ]
 
     class Meta:  # noqa
@@ -172,7 +175,14 @@ class ResourcesPage(Page):
     )
 
     link = models.URLField(
-        max_length=100)
+        max_length=10000,null = True, blank=True)
+
+    language = models.CharField(
+        max_length=2000, null = True, blank=True
+    )
+    topic = models.CharField(
+        max_length=2000, null = True, blank=True
+    )
 
     published_date = models.DateField("Published date")
     author = models.CharField(blank=True, max_length=250)
@@ -183,6 +193,8 @@ class ResourcesPage(Page):
     FieldPanel('country'),
     DocumentChooserPanel('document'),
     FieldPanel('link'),
+    FieldPanel('language'),
+    FieldPanel('topic'),
     FieldPanel('published_date'),
     FieldPanel('author', classname="full"),
     ]
@@ -193,6 +205,8 @@ class ResourcesPage(Page):
         APIField('country'),
         APIField('document'),
         APIField('link'),
+        APIField('language'),
+        APIField('topic'),
         APIField('published_date'),
         APIField('author')
     ]
