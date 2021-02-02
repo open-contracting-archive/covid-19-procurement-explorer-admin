@@ -41,15 +41,17 @@ class TotalSpendingsView(APIView):
         one_month_earlier = today + dateutil.relativedelta.relativedelta(months=-1)
         earlier = one_month_earlier.replace(day=1).date()
         filter_args = {}
+        exclude_args = {}
+        exclude_args['status'] = "canceled"
         if country: filter_args['country__country_code_alpha_2'] = country
         if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
         if supplier: filter_args = add_filter_args('supplier',supplier,filter_args)
 
-        total_country_tender_amount = Tender.objects.filter(**filter_args).aggregate(usd = Sum('goods_services__contract_value_usd'),local = Sum('goods_services__contract_value_local'))
+        total_country_tender_amount = Tender.objects.filter(**filter_args).exclude(**exclude_args).aggregate(usd = Sum('goods_services__contract_value_usd'),local = Sum('goods_services__contract_value_local'))
         this_month = Tender.objects.filter(**filter_args,contract_date__year=today.year,
-                        contract_date__month=today.month).aggregate(usd =Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
+                        contract_date__month=today.month).exclude(**exclude_args).aggregate(usd =Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
         earlier_month = Tender.objects.filter(**filter_args,contract_date__year=earlier.year,
-                        contract_date__month=earlier.month).aggregate(usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
+                        contract_date__month=earlier.month).exclude(**exclude_args).aggregate(usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
         try:
             increment = ((this_month['usd'] - earlier_month['usd'])/earlier_month['usd'])*100
             increment_local = ((this_month['local'] - earlier_month['local'])/earlier_month['local'])*100
@@ -57,7 +59,7 @@ class TotalSpendingsView(APIView):
             increment =0
             increment_local = 0
 
-        bar_chart = Tender.objects.filter(**filter_args).values('procurement_procedure').annotate(usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
+        bar_chart = Tender.objects.filter(**filter_args).exclude(**exclude_args).values('procurement_procedure').annotate(usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local'))
         selective_sum_local=0
         limited_sum_local=0
         open_sum_local=0
@@ -81,7 +83,7 @@ class TotalSpendingsView(APIView):
                 direct_total = i['usd']
                 direct_sum_local = i['local']
 
-        line_chart = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month').annotate(usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local')).order_by("-month")
+        line_chart = Tender.objects.filter(**filter_args).exclude(**exclude_args).annotate(month=TruncMonth('contract_date')).values('month').annotate(usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local')).order_by("-month")
         line_chart_local_list = [{'date':i['month'],'value':i['local']} for i in line_chart]
         line_chart_list = [{'date':i['month'],'value':i['usd']} for i in line_chart]
        

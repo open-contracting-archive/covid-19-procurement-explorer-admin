@@ -21,8 +21,8 @@ class Command(BaseCommand):
         print(f'Fetching tender data from {excel_file_path} for country {country}')
 
         try:
-            ws = pd.read_excel(excel_file_path, sheet_name=['settings','data'], header=None)
-            ws_settings = ws['settings']
+            # ws = pd.read_excel(excel_file_path, sheet_name=['data'], header=None)
+            # ws_settings = ws['settings']
             # '/Users/bigyan/UKRAINIAN DATA COVID_11.12.20.xlsx'
             # Check if country exists in our database
             result = Country.objects.filter(name=country).first()

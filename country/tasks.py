@@ -114,7 +114,7 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
     errors = []
 
     try:
-        ws_settings = pd.read_excel(excel_file_path, sheet_name='settings', header=None)
+        # ws_settings = pd.read_excel(excel_file_path, sheet_name='settings', header=None)
         ws_data = pd.read_excel(excel_file_path, sheet_name='data', header=0)
 
         # country = ws_settings[2][1]
@@ -134,8 +134,12 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
             procurement_procedure = row['Procurement procedure code']
 
             classification_code = row['CPV code clear'] or ''
-
-            goods_services_category_name = row['Goods/Services'].strip()
+            try:
+                goods_services_category_name = row['Goods/Services'].strip()
+                if math.isnan(goods_services_category_name):
+                    goods_services_category_name = 'Other'
+            except:
+                goods_services_category_name = 'Other'
             goods_services_category_desc = ''
 
             tender_value_local = row['Tender value'] or None
@@ -157,6 +161,8 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
             supplier_address = row['Supplier address']
 
             status = row['Contract Status Code']
+            if status == 'Terminated' or status =='Canclled':
+                status='canceled'
 
             link_to_contract = row['Link to the contract']
             link_to_tender = row['Link to the tender']

@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.template.defaultfilters import slugify
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.postgres.fields import ArrayField
+from django.db.models import Avg, Count, Min, Sum, Window, Q, F
 
 class Country(models.Model):
     CONTINENT_CHOICES = [
@@ -72,10 +73,24 @@ class CurrencyConversionCache(models.Model):
     conversion_rate = models.FloatField(verbose_name=_('Conversion rate'), null=True)
 
 
+class SupplierManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().annotate(amount_local=Sum('tenders__goods_services__contract_value_local'),amount_usd=Sum('tenders__goods_services__contract_value_usd'),country_name=F('tenders__country__name'),product_category_count=Count('tenders__goods_services__goods_services_category', distinct=True),tender_count=Count('tenders__id',distinct=True),buyer_count=Count('tenders__buyer_id',filter=Q(tenders__buyer_id__isnull=False),distinct=True))
+
+
+class BuyerManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().annotate(amount_local=Sum('tenders__goods_services__contract_value_local'),amount_usd=Sum('tenders__goods_services__contract_value_usd'),country_name=F('tenders__country__name'),product_category_count=Count('tenders__goods_services__goods_services_category', distinct=True),tender_count=Count('tenders__id',distinct=True),supplier_count=Count('tenders__supplier_id',filter=Q(tenders__supplier_id__isnull=False),distinct=True))
+
+class TenderManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().annotate(amount_local=Sum('goods_services__contract_value_local'),amount_usd=Sum('goods_services__contract_value_usd'))
+
 class Supplier(models.Model):
     supplier_id = models.CharField(verbose_name=_('Supplier ID'), max_length=50, null=False, unique=True)
     supplier_name = models.CharField(verbose_name=_('Supplier name'), max_length=250, null=True, blank=True,db_index=True)
     supplier_address = models.CharField(verbose_name=_('Supplier address'), max_length=250, null=True, blank=True)
+    objects = SupplierManager()
 
     def __str__(self):
         return f'{self.supplier_id} - {self.supplier_name}'
@@ -85,6 +100,7 @@ class Buyer(models.Model):
     buyer_id = models.CharField(verbose_name=_('Buyer ID'), max_length=50, null=False, unique=True)
     buyer_name = models.CharField(verbose_name=_('Buyer name'), max_length=250, null=True, blank=True,db_index=True)
     buyer_address = models.CharField(verbose_name=_('Buyer address'), max_length=250, null=True, blank=True)
+    objects = BuyerManager()
 
     def __str__(self):
         return f'{self.buyer_id} - {self.buyer_name}'
