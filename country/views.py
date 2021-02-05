@@ -55,7 +55,7 @@ class TenderView(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering = ['-id']
     serializer_class = TenderSerializer
-    ordering_fields = ('contract_title','procurement_procedure','supplier','status','contract_value_usd','buyer')
+    ordering_fields = ('contract_title','procurement_procedure','supplier','status','contract_value_usd','buyer','contract_value_local','country','contract_date')
     filterset_fields = {
         'country__country_code_alpha_2': ['exact'],
     }
@@ -104,8 +104,10 @@ class TenderView(viewsets.ModelViewSet):
 
 class BuyerView(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [OrderingFilter]
     serializer_class = BuyerSerializer
+    ordering_fields = ['tender_count','supplier_count','product_category_count','buyer_name','country_name','amount_usd','amount_local']
+    ordering = ['-id']
 
     def get_queryset(self):
     #    country, buyer name, value range, red flag range
@@ -131,8 +133,10 @@ class BuyerView(viewsets.ModelViewSet):
 
 class SupplierView(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [OrderingFilter]
     serializer_class = SupplierSerializer
+    ordering_fields = ['tender_count','buyer_count','product_category_count','supplier_name','country_name','amount_usd','amount_local']
+    ordering = ['-id']
 
     def get_queryset(self):
     #    country, buyer name, value range, red flag range

@@ -64,6 +64,7 @@ class SupplierSerializer(serializers.ModelSerializer):
     tender_count =  serializers.SerializerMethodField()
     supplier_id = serializers.SerializerMethodField()
 
+
     class Meta:
         model = Supplier
         fields = (
@@ -77,18 +78,32 @@ class SupplierSerializer(serializers.ModelSerializer):
             'country_name',
             'product_category_count',
             'buyer_count',
-            'tender_count'
+            'tender_count',
             )
 
     def get_amount_usd(self, obj):
-        supplier_related_tenders = obj.tenders.all()
-        sum_result = supplier_related_tenders.aggregate(sum_usd=Sum('goods_services__contract_value_usd'))
-        return sum_result['sum_usd']
+        try:
+            if obj.amount_usd:
+                return obj.amount_usd
+            else:
+                return None
+        except:
+            supplier_related_tenders = obj.tenders.all()
+            sum_result = supplier_related_tenders.aggregate(sum_usd=Sum('goods_services__contract_value_usd'))
+            return sum_result['sum_usd']
+
 
     def get_amount_local(self, obj):
-        supplier_related_tenders = obj.tenders.all()
-        sum_result = supplier_related_tenders.aggregate(sum_local=Sum('goods_services__contract_value_local'))
-        return sum_result['sum_local']
+        try:
+            if obj.amount_local:
+                return obj.amount_local
+            else:
+                return None
+        except:
+            supplier_related_tenders = obj.tenders.all()
+            sum_result = supplier_related_tenders.aggregate(sum_local=Sum('goods_services__contract_value_local'))
+            return sum_result['sum_local']
+
 
     def get_average_red_flag(self, obj):
         return 0
@@ -99,15 +114,16 @@ class SupplierSerializer(serializers.ModelSerializer):
             return tender_obj.country.country_code_alpha_2
 
     def get_country_name(self, obj):
-        tender_obj = obj.tenders.first()
-        if tender_obj:
-            return tender_obj.country.name
+        try:
+            if obj.country_name:
+                return obj.country_name
+            else:
+                return None
+        except:
+            tender_obj = obj.tenders.first()
+            if tender_obj:
+                return tender_obj.country.name
 
-    def get_product_category_count(self, obj):
-        supplier_related_tenders = obj.tenders.all()
-        if supplier_related_tenders:
-            product_category_count =  supplier_related_tenders.distinct('goods_services__goods_services_category').count()
-            return product_category_count
 
     def get_buyer_count(self, obj):
         supplier_related_tenders = obj.tenders.all()
@@ -115,14 +131,33 @@ class SupplierSerializer(serializers.ModelSerializer):
             supplier_count = supplier_related_tenders.exclude(buyer_id__isnull=True).distinct('buyer_id').count()
             return supplier_count
 
-    def get_tender_count(self, obj):
-        supplier_related_tenders = obj.tenders.all()
-        if supplier_related_tenders:
-            tender_count =  supplier_related_tenders.count()
-            return tender_count
 
     def get_supplier_id(self,obj):
         return obj.id
+        
+    def get_tender_count(self,obj):
+        try:
+            if obj.tender_count:
+                return obj.tender_count
+            else:
+                return None
+        except:
+            supplier_related_tenders = obj.tenders.all()
+            if supplier_related_tenders:
+                tender_count =  supplier_related_tenders.count()
+                return tender_count
+        
+    def get_product_category_count(self,obj):
+        try:
+            if obj.product_category_count:
+                return obj.product_category_count
+            else:
+                return None
+        except:
+            supplier_related_tenders = obj.tenders.all()
+            if supplier_related_tenders:
+                product_category_count =  supplier_related_tenders.distinct('goods_services__goods_services_category').count()
+                return product_category_count
 
 
 class BuyerSerializer(serializers.ModelSerializer):
@@ -149,18 +184,30 @@ class BuyerSerializer(serializers.ModelSerializer):
             'country_name',
             'product_category_count',
             'supplier_count',
-            'tender_count'
+            'tender_count',
             )
 
     def get_amount_usd(self, obj):
-        buyer_related_tenders = obj.tenders.all()
-        sum_result = buyer_related_tenders.aggregate(sum_usd=Sum('goods_services__contract_value_usd'))
-        return sum_result['sum_usd']
+        try:
+            if obj.amount_usd:
+                return obj.amount_usd
+            else:
+                return None
+        except:
+            buyer_related_tenders = obj.tenders.all()
+            sum_result = buyer_related_tenders.aggregate(sum_usd=Sum('goods_services__contract_value_usd'))
+            return sum_result['sum_usd']
 
     def get_amount_local(self, obj):
-        buyer_related_tenders = obj.tenders.all()
-        sum_result = buyer_related_tenders.aggregate(sum_local=Sum('goods_services__contract_value_local'))
-        return sum_result['sum_local']
+        try:
+            if obj.amount_local:
+                return obj.amount_local
+            else:
+                return None
+        except:
+            buyer_related_tenders = obj.tenders.all()
+            sum_result = buyer_related_tenders.aggregate(sum_local=Sum('goods_services__contract_value_local'))
+            return sum_result['sum_local']
 
     def get_average_red_flag(self, obj):
         return 0
@@ -171,15 +218,27 @@ class BuyerSerializer(serializers.ModelSerializer):
             return tender_obj.country.country_code_alpha_2
 
     def get_country_name(self, obj):
-        tender_obj = obj.tenders.first()
-        if tender_obj:
-            return tender_obj.country.name
+        try:
+            if obj.country_name:
+                return obj.country_name
+            else:
+                return None
+        except:
+            tender_obj = obj.tenders.first()
+            if tender_obj:
+                return tender_obj.country.name
 
-    def get_product_category_count(self, obj):
-        buyer_related_tenders = obj.tenders.all()
-        if  buyer_related_tenders:
-            product_category_count =  buyer_related_tenders.distinct('goods_services__goods_services_category').count()
-            return product_category_count
+    def get_product_category_count(self,obj):
+        try:
+            if obj.product_category_count:
+                return obj.product_category_count
+            else:
+                return None
+        except:
+            buyer_related_tenders = obj.tenders.all()
+            if buyer_related_tenders:
+                product_category_count =  buyer_related_tenders.distinct('goods_services__goods_services_category').count()
+                return product_category_count
 
     def get_supplier_count(self, obj):
         buyer_related_tenders = obj.tenders.all()
@@ -187,11 +246,17 @@ class BuyerSerializer(serializers.ModelSerializer):
             supplier_count = buyer_related_tenders.exclude(supplier_id__isnull=True).distinct('supplier_id').count()
             return supplier_count
 
-    def get_tender_count(self, obj):
-        buyer_related_tenders = obj.tenders.all()
-        if  buyer_related_tenders:
-            tender_count =  buyer_related_tenders.count()
-            return tender_count
+    def get_tender_count(self,obj):
+        try:
+            if obj.tender_count:
+                return obj.tender_count
+            else:
+                return None
+        except:
+            buyer_related_tenders = obj.tenders.all()
+            if buyer_related_tenders:
+                tender_count =  buyer_related_tenders.count()
+                return tender_count
 
     def get_buyer_id(self,obj):
         return obj.id
