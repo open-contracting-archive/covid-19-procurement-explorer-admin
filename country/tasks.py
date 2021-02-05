@@ -11,7 +11,7 @@ import pandas as pd
 import random
 import dateutil.parser
 import math
-
+from country.red_flag import RedFlags
 
 from country.models import (
     Country,
@@ -22,7 +22,8 @@ from country.models import (
     Tender, 
     CurrencyConversionCache,
     EquityKeywords,
-    EquityCategory
+    EquityCategory,
+    RedFlag
 )
 
 app = Celery()
@@ -531,4 +532,19 @@ def process_currency_conversion(tender_value_local,award_value_local,contract_va
         tender.contract_value_usd = contract_value_usd
         tender.save()
         print('Converted goodsservices id:'+ str(tender.id))
+    print(f'end of {id}')
+
+
+@app.task(name='process_redflag')
+def process_redflag(id):
+    tender = Tender.objects.get(id=id)
+    red_flag = RedFlags()
+    flag1 = getattr(red_flag, 'flag1')(id)
+    flag4 = getattr(red_flag, 'flag4')(id)
+    if flag1:
+        flag1_obj = RedFlag.objects.get(function_name='flag1')
+        tender.red_flag.add(flag1_obj)
+    if flag4:
+        flag4_obj = RedFlag.objects.get(function_name='flag4')
+        tender.red_flag.add(flag4_obj)
     print(f'end of {id}')
