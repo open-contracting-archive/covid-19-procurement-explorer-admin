@@ -1409,3 +1409,154 @@ class SlugStaticPageShow(APIView):
             result = [{"error": "Content doest not exists"}]
 
         return JsonResponse(result,safe=False)
+
+
+class BuyerTrendView(APIView):
+    def get(self,request):
+        temp={}
+        tender_temp ={}
+        data=[]
+        count = Tender.objects.annotate(month=TruncMonth('contract_date')).values('month').annotate(total_buyer_count=Count('buyer__id',distinct=True),sum = Sum('goods_services__contract_value_usd')).order_by("month")
+        countries = Country.objects.all()
+        for i in count:
+            result={}
+            end_date = i['month'] + dateutil.relativedelta.relativedelta(months=1)
+            start_date=i['month']
+            result["details"]=[]
+            result["month"]=str(start_date.year)+'-'+str(start_date.month)
+            for j in countries:
+                b={}
+                tender =  Tender.objects.filter(country__country_code_alpha_2=j.country_code_alpha_2,contract_date__gte=start_date,contract_date__lte=end_date).aggregate(total_buyer_count=Count('buyer__id',distinct=True),amount_usd =Sum('goods_services__contract_value_usd'))
+                b['country']=j.name
+                b['country_code']=j.country_code_alpha_2
+                b['country_continent']=j.continent
+                buyer_count = tender['total_buyer_count']
+                if tender['amount_usd']==None:
+                    tender_val = 0
+                else:
+                    tender_val = tender['amount_usd']
+                if buyer_count==None:
+                    buyer_val = 0
+                else:
+                    buyer_val = buyer_count
+                if bool(temp) and j.name in temp.keys():
+                    current_val = temp[j.name]
+                    cum_value =current_val+tender_val
+                    temp[j.name]=cum_value
+                    b['amount_usd'] = cum_value
+                else:
+                    temp[j.name] = tender_val
+                    b['amount_usd'] = tender_val
+                if bool(tender_temp) and j.name in tender_temp.keys():
+                    current_val = tender_temp[j.name]
+                    cum_value =current_val+buyer_val
+                    tender_temp[j.name]=cum_value
+                    b['buyer_count'] = cum_value
+                else:
+                    tender_temp[j.name] = buyer_val
+                    b['buyer_count'] = buyer_val
+                result["details"].append(b)
+            data.append(result)
+        final={"result":data}
+        return JsonResponse(final)
+
+
+class SupplierTrendView(APIView):
+    def get(self,request):
+        temp={}
+        tender_temp ={}
+        data=[]
+        count = Tender.objects.annotate(month=TruncMonth('contract_date')).values('month').annotate(total_buyer_count=Count('supplier__id',distinct=True),sum = Sum('goods_services__contract_value_usd')).order_by("month")
+        countries = Country.objects.all()
+        for i in count:
+            result={}
+            end_date = i['month'] + dateutil.relativedelta.relativedelta(months=1)
+            start_date=i['month']
+            result["details"]=[]
+            result["month"]=str(start_date.year)+'-'+str(start_date.month)
+            for j in countries:
+                b={}
+                tender =  Tender.objects.filter(country__country_code_alpha_2=j.country_code_alpha_2,contract_date__gte=start_date,contract_date__lte=end_date).aggregate(total_supplier_count=Count('supplier__id',distinct=True),amount_usd =Sum('goods_services__contract_value_usd'))
+                b['country']=j.name
+                b['country_code']=j.country_code_alpha_2
+                b['country_continent']=j.continent
+                supplier_count = tender['total_supplier_count']
+                if tender['amount_usd']==None:
+                    tender_val = 0
+                else:
+                    tender_val = tender['amount_usd']
+                if supplier_count==None:
+                    supplier_val = 0
+                else:
+                    supplier_val = supplier_count
+                if bool(temp) and j.name in temp.keys():
+                    current_val = temp[j.name]
+                    cum_value =current_val+tender_val
+                    temp[j.name]=cum_value
+                    b['amount_usd'] = cum_value
+                else:
+                    temp[j.name] = tender_val
+                    b['amount_usd'] = tender_val
+                if bool(tender_temp) and j.name in tender_temp.keys():
+                    current_val = tender_temp[j.name]
+                    cum_value =current_val+supplier_val
+                    tender_temp[j.name]=cum_value
+                    b['supplier_count'] = cum_value
+                else:
+                    tender_temp[j.name] = supplier_val
+                    b['supplier_count'] = supplier_val
+                result["details"].append(b)
+            data.append(result)
+        final={"result":data}
+        return JsonResponse(final)
+
+
+class DirectOpenContractTrendView(APIView):
+    def get(self,request):
+        temp={}
+        tender_temp ={}
+        data=[]
+        count = Tender.objects.annotate(month=TruncMonth('contract_date')).values('month').annotate(total_contract=Count('id'),total_amount=Sum('goods_services__contract_value_usd')).order_by("month")
+        countries = Country.objects.all()
+        for i in count:
+            result={}
+            end_date = i['month'] + dateutil.relativedelta.relativedelta(months=1)
+            start_date=i['month']
+            result["details"]=[]
+            result["month"]=str(start_date.year)+'-'+str(start_date.month)
+            for j in countries:
+                b={}
+                contracts = ['direct','Direct','open','Open']
+                tender_count =Tender.objects.filter(country__country_code_alpha_2=j.country_code_alpha_2,contract_date__gte=start_date,contract_date__lte=end_date,procurement_procedure__in=contracts).count()
+                tender =  Tender.objects.filter(country__country_code_alpha_2=j.country_code_alpha_2,contract_date__gte=start_date,contract_date__lte=end_date,procurement_procedure__in=contracts).aggregate(Sum('goods_services__contract_value_usd'))
+                b['country']=j.name
+                b['country_code']=j.country_code_alpha_2
+                b['country_continent']=j.continent
+                if tender['goods_services__contract_value_usd__sum']==None:
+                    tender_val = 0
+                else:
+                    tender_val = tender['goods_services__contract_value_usd__sum']
+                if tender_count==None:
+                    contract_val = 0
+                else:
+                    contract_val = tender_count
+                if bool(temp) and j.name in temp.keys():
+                    current_val = temp[j.name]
+                    cum_value =current_val+tender_val
+                    temp[j.name]=cum_value
+                    b['amount_usd'] = cum_value
+                else:
+                    temp[j.name] = tender_val
+                    b['amount_usd'] = tender_val
+                if bool(tender_temp) and j.name in tender_temp.keys():
+                    current_val = tender_temp[j.name]
+                    cum_value =current_val+contract_val
+                    tender_temp[j.name]=cum_value
+                    b['tender_count'] = cum_value
+                else:
+                    tender_temp[j.name] = contract_val
+                    b['tender_count'] = contract_val
+                result["details"].append(b)
+            data.append(result)
+        final={"result":data}
+        return JsonResponse(final)

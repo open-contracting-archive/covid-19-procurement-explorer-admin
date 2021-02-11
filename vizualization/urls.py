@@ -35,4 +35,7 @@ urlpatterns = [
     path('filters-parameters/buyers/',views.FilterParametersBuyers.as_view()),
     path('filters-parameters/static/',views.FilterParametersStatic.as_view()),
     path('product-spending-comparision/',views.ProductSpendingComparision.as_view()),
+    path('buyer-trend/',views.BuyerTrendView.as_view()),
+    path('supplier-trend/',views.SupplierTrendView.as_view()),
+    path('direct-open-contract-trend/',views.DirectOpenContractTrendView.as_view()),
 ] 
