@@ -14,7 +14,7 @@ class InsightsPageAdmin(ModelAdmin):
     exclude_from_explorer = False 
     list_display = ('contents_type','title','author','country','tags_','published_date')
     list_filter = ('contents_type','country','author', 'tags')
-    search_fields = ('contents_type', 'body')
+    search_fields = ('title')
 
     def tags_(self, obj):
         tags = obj.tags.all()
@@ -31,7 +31,7 @@ class EventsPageAdmin(ModelAdmin):
     exclude_from_explorer = False 
     list_display = ('title','event_date','time_from','location')
     list_filter = ('event_date','location')
-    search_fields = ('description')
+    search_fields = ('title')
 
 modeladmin_register(EventsPageAdmin)
 
@@ -44,7 +44,7 @@ class ResourcesPageAdmin(ModelAdmin):
     exclude_from_explorer = False 
     list_display = ('resource_type','title','published_date','author')
     list_filter = ('author','country')
-    search_fields = ('description')
+    search_fields = ('title')
 
 modeladmin_register(ResourcesPageAdmin)
 
@@ -56,7 +56,7 @@ class StaticPageAdmin(ModelAdmin):
     add_to_settings_menu = False  
     exclude_from_explorer = False 
     list_display = ('page_type','body')
-    search_fields = ('body')
+    search_fields = ('title')
 
 modeladmin_register(StaticPageAdmin)
 

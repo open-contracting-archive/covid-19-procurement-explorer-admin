@@ -15,7 +15,7 @@ from collections import defaultdict
 from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, GoodsServicesCategory, Supplier, Buyer, EquityCategory, RedFlag
 import itertools
 from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices
-from content.models import CountryPartner, InsightsPage, StaticPage
+from content.models import CountryPartner, InsightsPage, StaticPage, EventsPage
 import itertools, json
 
 from wagtail.core.models import Page
@@ -1412,7 +1412,6 @@ class SlugStaticPageShow(APIView):
         result = {}
         try:
             if page_type:
-                print(page_type)
                 results = StaticPage.objects.filter(page_type=page_type.title()).values('page_type','body')
                 result['page_type'] = results[0]['page_type']
                 result['body'] = results[0]['body']
@@ -1616,4 +1615,17 @@ class RedFlagSummaryView(APIView):
             data['month'] = detail['month']
             data['tender_count'] = detail['total']
             result.append(data)
+
+class UpcomingEventView(APIView):
+    def get(self,request):
+        result={}
+        today = datetime.datetime.now()
+        results= EventsPage.objects.filter(event_date__gte=today).values('title','description','event_date','time_from','time_to','location','event_image_id')
+        result['title']=results[0]['title']
+        result['description']=results[0]['description']
+        result['event_date']=results[0]['event_date']
+        result['time_from']=results[0]['time_from']
+        result['time_to']=results[0]['time_to']
+        result['location']=results[0]['location']
+
         return JsonResponse(result,safe=False)
