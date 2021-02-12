@@ -17,6 +17,7 @@ from wagtail.core.models import Page
 from wagtail.documents.models import Document
 from wagtail.core.models import Orderable
 from wagtail.core.templatetags import wagtailcore_tags
+from wagtail.search import index
 from taggit.models import TaggedItemBase, Tag as TaggitTag
 
 from country.models import Country
@@ -92,6 +93,9 @@ class InsightsPage(Page):
         verbose_name = "Insight"
         verbose_name_plural = "Insights"
 
+    search_fields = Page.search_fields + [ 
+        index.SearchField('published_date'),
+    ]
 
 class EventsPage(Page):
     parent_page_types = ['content.Contents']
