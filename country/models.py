@@ -113,6 +113,15 @@ class EquityCategory(models.Model):
         return self.category_name
 
 
+class RedFlag(models.Model):
+    title = models.CharField(verbose_name=_('Red Flag Title'), max_length=250, null=True, blank=True,db_index=True)
+    description = models.CharField(verbose_name=_('Description'), max_length=300, null=True, blank=True,db_index=True)
+    function_name = models.CharField(verbose_name=_('Function Name'), max_length=300, null=True, blank=True,db_index=True)
+
+    def __str__(self):
+        return self.title
+
+
 class Tender(models.Model):
     PROCUREMENT_METHOD_CHOICES = [
         ('open', 'open'),
@@ -147,6 +156,7 @@ class Tender(models.Model):
 
     equity_categories = ArrayField(models.CharField(max_length=100,null=True, blank=True), default=list, null=True)
     equity_category = models.ManyToManyField(EquityCategory)
+    red_flag = models.ManyToManyField(RedFlag)
 
     def __str__(self):
         return self.contract_id

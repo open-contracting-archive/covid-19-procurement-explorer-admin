@@ -38,4 +38,6 @@ urlpatterns = [
     path('buyer-trend/',views.BuyerTrendView.as_view()),
     path('supplier-trend/',views.SupplierTrendView.as_view()),
     path('direct-open-contract-trend/',views.DirectOpenContractTrendView.as_view()),
+    path('contract-red-flags/',views.ContractRedFlagsView.as_view()),
+    path('red-flag-summary/',views.RedFlagSummaryView.as_view()),
 ] 
