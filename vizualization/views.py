@@ -1615,6 +1615,7 @@ class RedFlagSummaryView(APIView):
             data['month'] = detail['month']
             data['tender_count'] = detail['total']
             result.append(data)
+        return JsonResponse(result,safe=False)
 
 class UpcomingEventView(APIView):
     def get(self,request):
