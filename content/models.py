@@ -3,9 +3,13 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.validators import RegexValidator
 from django.template.defaultfilters import slugify
 from django.utils.timezone import now
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.conf import settings
 
 from modelcluster.fields import ParentalKey
 from modelcluster.tags import ClusterTaggableManager
+import pandas as pd
 
 from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.admin.menu import MenuItem
@@ -21,6 +25,8 @@ from wagtail.search import index
 from taggit.models import TaggedItemBase, Tag as TaggitTag
 
 from country.models import Country
+from .validators import validate_file_extension
+
 class Contents(Page):
     parent_page_types = ['wagtailcore.Page']
     subpage_types = [
@@ -234,32 +240,20 @@ class DataImport(Page):
     
     description = models.TextField(verbose_name=_('Description'), null=False, unique=True, max_length=500000)
 
-    import_file = models.ForeignKey(
-        'wagtaildocs.Document',
-        null=True,
-        blank=False,
-        on_delete=models.SET_NULL,
-        related_name='+',
-        help_text= "Only upload xlsx, xls format"
-    )
+    import_file = models.FileField(null=True,
+        blank=False,upload_to="documents", validators=[validate_file_extension])
 
-    country =  models.ForeignKey(Country, on_delete=models.CASCADE,blank=False, null=False)   
-
-    def admin_unit_details(self):  # Button for admin to get to API
-        return format_html(u'<a href="#" onclick="return false;" class="button" '
-                           u'id="id_admin_unit_selected">Unit Details</a>')
-    admin_unit_details.allow_tags = True
-    admin_unit_details.short_description = "Unit Details"
+    country =  models.ForeignKey(Country, on_delete=models.CASCADE,blank=False, null=False)
+    validated = models.BooleanField(null=False, blank=True, default=False)   
 
     content_panels = Page.content_panels + [
         FieldPanel('description'),
-        DocumentChooserPanel('import_file'),
+        FieldPanel('import_file'),
         FieldPanel('country'),
     ]
 
     api_fields = [
         APIField('description'),
-        APIField('import_file'),
         APIField('import_file'),
         APIField('country'),
     ]
@@ -316,3 +310,17 @@ class CountryPartner(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super(CountryPartner, self).save(*args, **kwargs)
+
+
+@receiver(post_save, sender=DataImport)
+def check_column_available(sender, instance, *args, **kwargs):
+    if instance.import_file:
+        valid_columns =['Contract ID','Procurement procedure code','CPV code clear']
+        file_path = settings.MEDIA_ROOT+'/'+str(instance.import_file)
+        try:
+            ws = pd.read_excel(file_path,sheet_name='data')
+            if set(valid_columns).issubset(ws.columns):
+                instance.validated = True
+                instance.save()
+        except Exception as e:
+            print('e')
