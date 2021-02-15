@@ -96,12 +96,15 @@ class InsightsPage(Page):
     ]
 
     class Meta:  # noqa
-        verbose_name = "Insight"
-        verbose_name_plural = "Insights"
+        verbose_name = "News & Blog"
+        verbose_name_plural = "News &  Blog"
 
     search_fields = Page.search_fields + [ 
         index.SearchField('published_date'),
     ]
+    settings_panels = []
+    promote_panels = []
+
 
 class EventsPage(Page):
     parent_page_types = ['content.Contents']
@@ -147,7 +150,10 @@ class EventsPage(Page):
 
     class Meta:  # noqa
         verbose_name = "Event"
-        verbose_name_plural = "Events"
+        verbose_name_plural = "Event"
+
+    settings_panels = []
+    promote_panels = []
 
 class ResourcesPage(Page):
     parent_page_types = ['content.Contents']
@@ -222,8 +228,11 @@ class ResourcesPage(Page):
     ]
 
     class Meta:  # noqa
-        verbose_name = "Resource"
-        verbose_name_plural = "Resources"
+        verbose_name = "Library"
+        verbose_name_plural = "Library"
+
+    settings_panels = []
+    promote_panels = []
 
 class InsightPageTag(TaggedItemBase):
     content_object = ParentalKey('InsightsPage', related_name='post_tags')
@@ -257,6 +266,15 @@ class DataImport(Page):
         APIField('import_file'),
         APIField('country'),
     ]
+    settings_panels = []
+    promote_panels = []
+
+    class Meta:  # noqa
+        verbose_name = "Data Imports"
+        verbose_name_plural = "Data Imports"
+
+
+
 class StaticPage(Page):
     parent_page_types = ['content.Contents']
     
@@ -272,8 +290,20 @@ class StaticPage(Page):
     )
     
     body = RichTextField()
-    show_in_header_menu = models.BooleanField(blank=True,null=True)
-    show_in_footer_menu = models.BooleanField(blank=True,null=True)
+    BOOLEAN_OPTIONS = (
+        ( 'Yes','Yes'),
+        ( 'Yes', 'No'),
+    )
+    show_in_header_menu =models.CharField(
+        max_length=20,
+        choices=BOOLEAN_OPTIONS,
+        blank=True,null=True, default= 'No'
+    )
+    show_in_footer_menu = models.CharField(
+        max_length=20,
+        choices=BOOLEAN_OPTIONS,
+        blank=True,null=True, default= 'No'
+    )
     def rendered_body(self):
         return wagtailcore_tags.richtext(self.body)
 
@@ -283,6 +313,8 @@ class StaticPage(Page):
         FieldPanel('show_in_header_menu'),
         FieldPanel('show_in_footer_menu'),
     ]
+    settings_panels = []
+    promote_panels = []
 
     api_fields = [
         APIField('page_type'),
@@ -290,6 +322,10 @@ class StaticPage(Page):
         APIField('show_in_header_menu'),
         APIField('show_in_footer_menu'),
     ]
+
+    class Meta:  # noqa
+        verbose_name = "Static Page"
+        verbose_name_plural = "Static Page"
 
 class CountryPartner(models.Model):
     alphaSpaces = RegexValidator(r'^[a-zA-Z ]+$', 'Only letters and spaces are allowed in the Country Name')

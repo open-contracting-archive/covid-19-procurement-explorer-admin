@@ -108,7 +108,7 @@ ROOT_URLCONF = 'covidadmin.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['covidadmin/templates'],
+        'DIRS': ['covidadmin/templates','content/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -229,7 +229,7 @@ CELERY_BEAT_SCHEDULE = {
 GOOGLE_SHEET_CREDENTIALS_JSON = env('GOOGLE_SHEET_CREDENTIALS_JSON')
 FIXER_IO_API_KEY = env('FIXER_IO_API_KEY')
 
-WAGTAIL_SITE_NAME = 'Covid procurement admin'
+WAGTAIL_SITE_NAME = 'Covid 19 procurement explorer'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = env('MEDIA_URL')

@@ -55,14 +55,15 @@ class StaticPageAdmin(ModelAdmin):
     menu_order = 300
     add_to_settings_menu = False  
     exclude_from_explorer = False 
-    list_display = ('page_type','body')
+    list_display = ('title','page_type')
     search_fields = ('title')
+
 
 modeladmin_register(StaticPageAdmin)
 
 class DataImportAdmin(ModelAdmin):
     model = DataImport
-    menu_label = 'Data Import'
+    menu_label = 'Data Imports'
     menu_icon = 'download'
     menu_order = 300
     add_to_settings_menu = False  
