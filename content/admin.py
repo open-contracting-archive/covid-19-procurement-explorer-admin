@@ -3,10 +3,10 @@ from wagtail.contrib.modeladmin.options import (
     modeladmin_register,
 )
 
-from .models import InsightsPage, EventsPage, ResourcesPage, StaticPage, DataImport
+from .models import NewsBlogPage, EventsPage, LibraryPage, StaticPage, DataImport
 
-class InsightsPageAdmin(ModelAdmin):
-    model = InsightsPage
+class NewsBlogPageAdmin(ModelAdmin):
+    model = NewsBlogPage
     menu_label = 'News & Blog'  
     menu_icon = 'doc-full'  
     menu_order = 300 
@@ -14,13 +14,14 @@ class InsightsPageAdmin(ModelAdmin):
     exclude_from_explorer = False 
     list_display = ('contents_type','title','author','country','tags_','published_date')
     list_filter = ('contents_type','country','author', 'tags')
-    search_fields = ('title')
+    search_fields = ('title',)
+    ordering=('-last_published_at',)
 
     def tags_(self, obj):
         tags = obj.tags.all()
         return ', '.join([i.name for i in tags])
 
-modeladmin_register(InsightsPageAdmin)
+modeladmin_register(NewsBlogPageAdmin)
 
 class EventsPageAdmin(ModelAdmin):
     model = EventsPage
@@ -31,12 +32,12 @@ class EventsPageAdmin(ModelAdmin):
     exclude_from_explorer = False 
     list_display = ('title','event_date','time_from','location')
     list_filter = ('event_date','location')
-    search_fields = ('title')
+    search_fields = ('title',)
 
 modeladmin_register(EventsPageAdmin)
 
-class ResourcesPageAdmin(ModelAdmin):
-    model = ResourcesPage
+class LibraryPageAdmin(ModelAdmin):
+    model = LibraryPage
     menu_label = 'Library'  
     menu_icon = 'folder-open-inverse'  
     menu_order = 300 
@@ -44,9 +45,9 @@ class ResourcesPageAdmin(ModelAdmin):
     exclude_from_explorer = False 
     list_display = ('resource_type','title','published_date','author')
     list_filter = ('author','country')
-    search_fields = ('title')
+    search_fields = ('title',)
 
-modeladmin_register(ResourcesPageAdmin)
+modeladmin_register(LibraryPageAdmin)
 
 class StaticPageAdmin(ModelAdmin):
     model = StaticPage
@@ -56,7 +57,7 @@ class StaticPageAdmin(ModelAdmin):
     add_to_settings_menu = False  
     exclude_from_explorer = False 
     list_display = ('title','page_type')
-    search_fields = ('title')
+    search_fields = ('title',)
 
 
 modeladmin_register(StaticPageAdmin)
@@ -69,7 +70,7 @@ class DataImportAdmin(ModelAdmin):
     add_to_settings_menu = False  
     exclude_from_explorer = False 
     list_display = ('title','country')
-    search_fields = ('description')
+    search_fields = ('description',)
 
 modeladmin_register(DataImportAdmin)
 

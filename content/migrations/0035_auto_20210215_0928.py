@@ -31,16 +31,16 @@ class Migration(migrations.Migration):
             name='staticpage',
             options={'verbose_name': 'Static Page', 'verbose_name_plural': 'Static Page'},
         ),
-        migrations.AddField(
-            model_name='dataimport',
-            name='validated',
-            field=models.BooleanField(blank=True, default=False),
-        ),
-        migrations.AlterField(
-            model_name='dataimport',
-            name='import_file',
-            field=models.FileField(null=True, upload_to='documents', validators=[content.validators.validate_file_extension]),
-        ),
+        # migrations.AddField(
+        #     model_name='dataimport',
+        #     name='validated',
+        #     field=models.BooleanField(blank=True, default=False),
+        # ),
+        # migrations.AlterField(
+        #     model_name='dataimport',
+        #     name='import_file',
+        #     field=models.FileField(null=True, upload_to='documents', validators=[content.validators.validate_file_extension]),
+        # ),
         migrations.AlterField(
             model_name='staticpage',
             name='show_in_footer_menu',

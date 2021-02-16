@@ -32,6 +32,7 @@ static/wagtailsearch/
 static/wagtailsnippets/
 static/wagtailusers/
 static/wagtailvideos/
+static/ckeditor
 
 #media
 #public folders

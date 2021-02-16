@@ -30,13 +30,13 @@ from .validators import validate_file_extension
 class Contents(Page):
     parent_page_types = ['wagtailcore.Page']
     subpage_types = [
-        'content.InsightsPage',
+        'content.NewsBlogPage',
         'content.EventsPage',
-        'content.ResourcesPage',
+        'content.LibraryPage',
         'content.StaticPage',
         'content.DataImport',
     ]
-class InsightsPage(Page):
+class NewsBlogPage(Page):
     parent_page_types = ['content.Contents']
     
     subpage_types = []
@@ -155,7 +155,7 @@ class EventsPage(Page):
     settings_panels = []
     promote_panels = []
 
-class ResourcesPage(Page):
+class LibraryPage(Page):
     parent_page_types = ['content.Contents']
     
     subpage_types = []
@@ -235,7 +235,7 @@ class ResourcesPage(Page):
     promote_panels = []
 
 class InsightPageTag(TaggedItemBase):
-    content_object = ParentalKey('InsightsPage', related_name='post_tags')
+    content_object = ParentalKey('NewsBlogPage', related_name='post_tags')
 
 # @register_snippet
 class Tag(TaggitTag):
@@ -268,6 +268,7 @@ class DataImport(Page):
     ]
     settings_panels = []
     promote_panels = []
+    preview_modes = []
 
     class Meta:  # noqa
         verbose_name = "Data Imports"
@@ -315,6 +316,7 @@ class StaticPage(Page):
     ]
     settings_panels = []
     promote_panels = []
+    preview_modes = []
 
     api_fields = [
         APIField('page_type'),

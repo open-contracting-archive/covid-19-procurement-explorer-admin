@@ -15,7 +15,7 @@ from collections import defaultdict
 from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, GoodsServicesCategory, Supplier, Buyer, EquityCategory, RedFlag
 import itertools
 from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices
-from content.models import CountryPartner, InsightsPage, StaticPage, EventsPage
+from content.models import CountryPartner, NewsBlogPage, StaticPage, EventsPage
 import itertools, json
 
 from wagtail.core.models import Page
