@@ -268,6 +268,7 @@ class DataImport(Page):
     ]
     settings_panels = []
     promote_panels = []
+    preview_modes = []
 
     class Meta:  # noqa
         verbose_name = "Data Imports"
@@ -315,6 +316,7 @@ class StaticPage(Page):
     ]
     settings_panels = []
     promote_panels = []
+    preview_modes = []
 
     api_fields = [
         APIField('page_type'),
