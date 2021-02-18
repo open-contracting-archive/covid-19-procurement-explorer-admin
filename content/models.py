@@ -24,7 +24,7 @@ from wagtail.core.templatetags import wagtailcore_tags
 from wagtail.search import index
 from taggit.models import TaggedItemBase, Tag as TaggitTag
 
-from country.models import Country
+from country.models import Country,Language
 from .validators import validate_file_extension
 
 class Contents(Page):
@@ -280,16 +280,8 @@ class StaticPage(Page):
     parent_page_types = ['content.Contents']
     
     subpage_types = []
-    page_choice = [
-        ('About Us', 'About Us'),
-        ('Privacy Policy', 'Privacy Policy'),
-        ('Terms Of Use', 'Terms Of Use'),
-    ]
-    page_type = models.CharField(
-        max_length=20,
-        choices=page_choice,
-    )
     
+    language =  models.ForeignKey(Language, on_delete=models.CASCADE,blank=False, null=False)
     body = RichTextField()
     BOOLEAN_OPTIONS = (
         ( 'Yes','Yes'),
@@ -309,8 +301,9 @@ class StaticPage(Page):
         return wagtailcore_tags.richtext(self.body)
 
     content_panels = Page.content_panels + [
-        FieldPanel('page_type'),
+        FieldPanel('slug'),
         FieldPanel('body'),
+        FieldPanel('language'),
         FieldPanel('show_in_header_menu'),
         FieldPanel('show_in_footer_menu'),
     ]
@@ -319,8 +312,9 @@ class StaticPage(Page):
     preview_modes = []
 
     api_fields = [
-        APIField('page_type'),
+        APIField('slug'),
         APIField('rendered_body'),
+        APIField('language'),
         APIField('show_in_header_menu'),
         APIField('show_in_footer_menu'),
     ]
