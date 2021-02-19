@@ -3,10 +3,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.validators import RegexValidator
 from django.template.defaultfilters import slugify
 from django.utils.timezone import now
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save,pre_save
 from django.dispatch import receiver
 from django.conf import settings
-
+from django.core.signals import request_finished
 from modelcluster.fields import ParentalKey
 from modelcluster.tags import ClusterTaggableManager
 import pandas as pd
@@ -343,16 +343,23 @@ class CountryPartner(models.Model):
         self.slug = slugify(self.name)
         super(CountryPartner, self).save(*args, **kwargs)
 
-
 @receiver(post_save, sender=DataImport)
-def check_column_available(sender, instance, *args, **kwargs):
-    if instance.import_file:
-        valid_columns =['Contract ID','Procurement procedure code','CPV code clear']
-        file_path = settings.MEDIA_ROOT+'/'+str(instance.import_file)
-        try:
-            ws = pd.read_excel(file_path,sheet_name='data')
-            if set(valid_columns).issubset(ws.columns):
-                instance.validated = True
-                instance.save()
-        except Exception as e:
-            print('e')
+def check_column_available(sender,created ,instance, *args, **kwargs):
+    if created:
+        print(instance.id)
+        filename= instance.import_file.name
+        valid_columns =valid_columns =['Contract ID','Procurement procedure code','Classification Code (CPV or other)', 'Quantity, units', 'Price per unit, including VAT', 'Tender value', 'Award value','Contract value','Contract title','Contract description','Number of bidders','Buyer','Buyer ID','Buyer address (as an object)','Supplier','Supplier ID','Supplier address','Contract Status','Contract Status Code','Link to the contract','Link to the tender','Data source']
+        file_path = settings.MEDIA_ROOT+'/'+str(filename)
+        ws = pd.read_excel(file_path,sheet_name='data',header=0)
+        print(ws.columns)
+        if set(valid_columns).issubset(ws.columns):
+            instance.validated = True
+            print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            instance.save()
+
+# post_save.connect(check_column_available, sender=DataImport)   
+
+
+
+
+            
