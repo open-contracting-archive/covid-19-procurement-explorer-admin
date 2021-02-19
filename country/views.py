@@ -176,11 +176,14 @@ class DataImportView(APIView):
                 try:
                     management.call_command('import_tender_excel', country, file_path)
                     messages.info(request, 'Your import has started!')
+                    return HttpResponseRedirect('/admin/content/dataimport')
 
                 except:
                     messages.error(request, 'Your import has failed!')
+                    return HttpResponseRedirect('/admin/content/dataimport')
             else:
                 messages.error(request, 'Your import failed because it only supports .xlsx and .xls file!')
+                return HttpResponseRedirect('/admin/content/dataimport')
         else:
             messages.error(request,'Your data import file is not validated, please upload file with all necessary headers and try importing again.')
             

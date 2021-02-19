@@ -134,13 +134,12 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
 
             procurement_procedure = row['Procurement procedure code']
 
-            classification_code = row['CPV code clear'] or ''
-            try:
-                goods_services_category_name = row['Goods/Services'].strip()
+            classification_code = row['Classification Code (CPV or other)'] or ''
+            goods_services_category_name = row['Goods/Services'].strip()
+            if type(goods_services_category_name) == int or type(goods_services_category_name) == float:
                 if math.isnan(goods_services_category_name):
                     goods_services_category_name = 'Other'
-            except:
-                goods_services_category_name = 'Other'
+
             goods_services_category_desc = ''
 
             tender_value_local = row['Tender value'] or None
