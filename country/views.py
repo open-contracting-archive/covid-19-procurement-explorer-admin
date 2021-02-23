@@ -204,27 +204,3 @@ class DataImportView(APIView):
             
             return HttpResponseRedirect('/admin/content/dataimport')
 
-class TempDataImportView(APIView):
-    def get(self,request):
-        country =  self.request.GET.get('country',None)
-        filename =  self.request.GET.get('filename',None)
-        validated = self.request.GET.get('validated', None)
-
-        file_path = settings.MEDIA_ROOT+'/documents/'+filename
-        valid_file_extension = ['.xlsx','.xls',]
-        file_extension= os.path.splitext(filename)[-1].lower()
-
-        if validated:
-            if file_extension in valid_file_extension:
-                try:
-                    management.call_command('import_tender_excel', country, file_path)
-                    messages.info(request, 'Your import has started!')
-
-                except:
-                    messages.error(request, 'Your import has failed!')
-            else:
-                messages.error(request, 'Your import failed because it only supports .xlsx and .xls file!')
-        else:
-            messages.error(request,'Your data import file is not validated, please upload file with all necessary headers and try importing again.')
-            
-            return HttpResponseRedirect('/admin/content/dataimport')
