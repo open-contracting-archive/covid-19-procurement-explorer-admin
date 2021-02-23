@@ -231,6 +231,8 @@ class ImportBatch(models.Model):
     import_type=models.CharField(verbose_name= ('Import Type'), max_length=150, null=False)
     description=models.CharField(verbose_name= ('Description'), max_length=500, null=False)
     data_import_id = models.IntegerField(null=True)
+    def __str__(self):
+        return f'Import batch id: {str(self.id)}'
 
 class TempDataImportTable(models.Model):
     import_batch = models.ForeignKey(ImportBatch, on_delete=models.CASCADE, related_name='import_batch',null=True)
@@ -260,6 +262,8 @@ class TempDataImportTable(models.Model):
     link_to_tender = models.CharField(verbose_name= ('Link to Tender'), max_length=1500, null=True)
     data_source = models.CharField(verbose_name= ('Data Source'), max_length=1500, null=True)
 
+    def __str__(self):
+        return self.contract_id
 
 class DataProvider(models.Model):
     alphaSpaces = RegexValidator(r'^[a-zA-Z ]+$', 'Only letters and spaces are allowed in the Country Name')
