@@ -19,6 +19,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.http.response import HttpResponseRedirect
 import os
+from django.core.exceptions import MultipleObjectsReturned
 
 class TenderPagination(PageNumberPagination):
     page_size = 50
@@ -109,6 +110,13 @@ class BuyerView(viewsets.ModelViewSet):
     ordering_fields = ['tender_count','supplier_count','product_category_count','buyer_name','country_name','amount_usd','amount_local']
     ordering = ['-id']
 
+    def retrieve(self, request, *args, **kwargs):
+        # do your customization here
+        pk = self.kwargs['pk'] 
+        instance = Buyer.objects.filter(id=pk)[0]
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+    
     def get_queryset(self):
     #    country, buyer name, value range, red flag range
         country =  self.request.GET.get('country',None)
@@ -137,6 +145,13 @@ class SupplierView(viewsets.ModelViewSet):
     serializer_class = SupplierSerializer
     ordering_fields = ['tender_count','buyer_count','product_category_count','supplier_name','country_name','amount_usd','amount_local']
     ordering = ['-id']
+
+    def retrieve(self, request, *args, **kwargs):
+        # do your customization here
+        pk = self.kwargs['pk'] 
+        instance = Supplier.objects.filter(id=pk)[0]
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def get_queryset(self):
     #    country, buyer name, value range, red flag range

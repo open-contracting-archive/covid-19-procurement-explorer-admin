@@ -558,3 +558,22 @@ def clear_redflag(id):
     tender = Tender.objects.get(id=id)
     tender.red_flag.clear()
     print(f'end of {id}')
+
+@app.task(name='process_red_flag7')
+def process_redflag7(id,tender):
+    flag7_obj = RedFlag.objects.get(function_name='flag7')
+    concentration = Tender.objects.filter(buyer__buyer_name=tender['buyer__buyer_name'],supplier__supplier_name=tender['supplier__supplier_name'])
+    if len(concentration) > 10:    # supplier who has signed X(10) percent or more of their contracts with the same buyer (wins tenders from the same buyer);
+        for i in concentration:
+            obj = Tender.objects.get(id=i.id)
+            obj.red_flag.add(flag7_obj)
+
+@app.task(name='process_red_flag6')
+def process_redflag6(id,tender):
+    flag6_obj = RedFlag.objects.get(function_name='flag6')
+    a = Tender.objects.values('buyer__buyer_name').filter(supplier__supplier_name=tender['supplier__supplier_name'],supplier__supplier_address=tender['supplier__supplier_address']).distinct('buyer__buyer_name')
+    if len(a) > 2:
+        if a[0]['buyer__buyer_name']==a[1]['buyer__buyer_name']:
+            for obj in a:
+                objs = Tender.objects.get(id=obj.id)
+                objs.red_flag.add(flag6_obj)

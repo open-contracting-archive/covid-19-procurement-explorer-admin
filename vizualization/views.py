@@ -1635,7 +1635,6 @@ class ContractRedFlagsView(APIView):
         product =  self.request.GET.get('product',None)
         if country: filter_args['country__country_code_alpha_2'] = country
         if supplier: filter_args = add_filter_args('supplier',supplier,filter_args)
-        if supplier: filter_args = add_filter_args('supplier',supplier,filter_args)
         if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
         if product: filter_args['goods_services__goods_services_category__id'] = product
         red_flags = RedFlag.objects.all()
