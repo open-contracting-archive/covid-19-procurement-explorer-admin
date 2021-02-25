@@ -299,6 +299,12 @@ class TenderSerializer(serializers.ModelSerializer):
     contract_value_local = serializers.SerializerMethodField()
     supplier_name = serializers.SerializerMethodField()
     buyer_name = serializers.SerializerMethodField()
+    supplier_id = serializers.SerializerMethodField()
+    buyer_id = serializers.SerializerMethodField()
+    supplier_address = serializers.SerializerMethodField()
+    buyer_address = serializers.SerializerMethodField()
+    supplier_code = serializers.SerializerMethodField()
+    buyer_code = serializers.SerializerMethodField()
     product_category = serializers.SerializerMethodField()
     bidders_no = serializers.SerializerMethodField()
     tender_local = serializers.SerializerMethodField()
@@ -306,7 +312,7 @@ class TenderSerializer(serializers.ModelSerializer):
     award_local = serializers.SerializerMethodField()
     award_usd = serializers.SerializerMethodField()
     equity_category = serializers.SerializerMethodField()
-    red_flag_count = serializers.SerializerMethodField()
+    # red_flag_count = serializers.SerializerMethodField()
     red_flag = RedFlagSerializer(many=True, read_only=True)
 
     class Meta:
@@ -327,6 +333,12 @@ class TenderSerializer(serializers.ModelSerializer):
             'status',
             'supplier_name',
             'buyer_name',
+            'supplier_id',
+            'buyer_id',
+            'supplier_address',
+            'buyer_address',
+            'supplier_code',
+            'buyer_code',
             'link_to_contract',
             'link_to_tender',
             'data_source',
@@ -337,7 +349,7 @@ class TenderSerializer(serializers.ModelSerializer):
             'award_local',
             'award_usd',
             'equity_category',
-            'red_flag_count',
+            # 'red_flag_count',
             'red_flag'
         )
         read_only_fields = (
@@ -397,14 +409,32 @@ class TenderSerializer(serializers.ModelSerializer):
             result.append(equity.category_name)
         return result
 
-    def get_red_flag_count(self,obj):
-        red_flags = obj.red_flag.all().count()
-        return red_flags
+    # def get_red_flag_count(self,obj):
+    #     red_flags = obj.red_flag.all().count()
+    #     return red_flags
 
     def get_supplier_name(self,obj):
         return obj.supplier.supplier_name
 
     def get_buyer_name(self,obj):
         return obj.buyer.buyer_name
+
+    def get_supplier_id(self,obj):
+        return obj.supplier.id
+
+    def get_buyer_id(self,obj):
+        return obj.buyer.id
+
+    def get_supplier_address(self,obj):
+        return obj.supplier.supplier_address
+
+    def get_buyer_address(self,obj):
+        return obj.buyer.buyer_address
+
+    def get_supplier_code(self,obj):
+        return obj.supplier.supplier_id
+
+    def get_buyer_code(self,obj):
+        return obj.buyer.buyer_id
 
 

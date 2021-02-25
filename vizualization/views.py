@@ -495,16 +495,20 @@ class QuantityCorrelation(APIView):
         contracts_quantity_list = []
         
         for i in contracts_quantity:
-            active_case = CovidMonthlyActiveCases.objects.filter(**filter_args, covid_data_date__year=i['month'].year, covid_data_date__month=i['month'].month).values('active_cases_count')
+            active_case = CovidMonthlyActiveCases.objects.filter(**filter_args, covid_data_date__year=i['month'].year, covid_data_date__month=i['month'].month).values('active_cases_count','death_count')
             active_case_count = 0
+            death_count = 0
             try:
                 for j in active_case:
-                    if j['active_cases_count']:
+                    if j['active_cases_count'] and j['death_count']:
                         active_case_count += j['active_cases_count']
+                        death_count += j['death_count']
             except Exception:
                 active_case_count = 0
+                death_count = 0
             a = {}
             a["active_cases"] = active_case_count
+            a["death_cases"] = death_count
             a["amount_local"] = i['local'] if 'local' in i else ''
             a["amount_usd"] = i['usd']
             a["local_currency_code"] = i['country__currency'] if 'country__currency' in i else ''
@@ -788,7 +792,7 @@ class ProductDistributionView(APIView):
             data['product_id'] = goods['goods_services_category__id']
             if country:
                 instance = Country.objects.get(country_code_alpha_2=country)
-                data['local_currency_code'] = instance.currency
+                data['local_currency_code'] = instance.currency 
             else:
                 data['local_currency_code'] = 'USD'
             data['tender_count'] = goods['tender']
@@ -1252,7 +1256,7 @@ class ProductTableView(APIView):
         if country: filter_args['country__country_code_alpha_2'] = country
         filter_args['goods_services__goods_services_category__isnull'] = False 
         result=[]
-        product_tables =  Tender.objects.filter(**filter_args).values('goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(total=Count('id'),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),buyer=Sum('buyer'),supplier=Sum('supplier'))
+        product_tables =  Tender.objects.filter(**filter_args).values('goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(total=Count('id',distinct=True),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),buyer=Sum('buyer',distinct=True),supplier=Sum('supplier',distinct=True))
         for product in product_tables:
             data={}
             data['amount_local'] = product['local']

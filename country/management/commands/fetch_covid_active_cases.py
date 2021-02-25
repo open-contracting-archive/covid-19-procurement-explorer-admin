@@ -12,7 +12,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         countries = Country.objects.all()
-        YEARS = [2020]
+        YEARS = [2020,2021]
 
         for country in countries:
             country_code = country.country_code
@@ -31,10 +31,12 @@ class Command(BaseCommand):
                             if covid_data:
                                 print(f'Fetching {request_string}... OK')
                                 active_cases_count = sum([province['active'] for province in covid_data])
+                                death_count = sum([province['deaths'] for province in covid_data])
                                 rec = CovidMonthlyActiveCases(
                                     country=country,
                                     covid_data_date=date,
-                                    active_cases_count=active_cases_count
+                                    active_cases_count=active_cases_count,
+                                    death_count=death_count
                                 )
                                 rec.save()
                             else:
@@ -43,7 +45,8 @@ class Command(BaseCommand):
                                 rec = CovidMonthlyActiveCases(
                                     country=country,
                                     covid_data_date=date,
-                                    active_cases_count=None
+                                    active_cases_count=None,
+                                    death_count=None
                                 )
                                 rec.save()
                                 continue
