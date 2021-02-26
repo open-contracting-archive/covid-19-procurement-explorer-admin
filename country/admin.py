@@ -37,27 +37,6 @@ class DataImportAdmin(admin.ModelAdmin):
             f'''<a class="button" href="/data_import?country={country}&filename={import_file}&validated={validated}">Import</a>&nbsp;'''
         )
     import_actions.short_description = 'Actions'
-    import_actions.allow_tags = True
-
-    # def import_status(self):
-    #     country= str(self.country)
-    #     import_file = str(self.import_file)
-        
-    #     return format_html(
-    #         f'''<a class="button" href="#">Not Aprroved</a>&nbsp;'''
-    #     )
-    # import_status.short_description = 'Status'
-    # import_status.allow_tags = True
-
-    # def edit_status(self):
-    #     country= str(self.country)
-    #     import_file = str(self.import_file)
-        
-    #     return format_html(
-    #         f'''<a class="button" href="/data_import/edit?country={country}&filename={import_file}">Edit</a>&nbsp;'''
-    #     )
-    # edit_status.short_description = 'Status'
-    # edit_status.allow_tags = True
 
     list_display = ('title','description','country',import_actions,'validated')
 

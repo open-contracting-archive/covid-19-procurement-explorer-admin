@@ -12,5 +12,5 @@ router.register('api/v1/contracts', views.TenderView,basename='TenderView')
 urlpatterns = [
     path('', include(router.urls)),
     path('data_import/',views.DataImportView.as_view(), name='data_imports'),
-    path('temp_data_import/',views.TempDataImportView.as_view(), name='temp_data_imports')
+    # path('data_edit/',views.DataEditView.as_view(), name='data_edits')
 ]
