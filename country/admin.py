@@ -29,17 +29,22 @@ class DataImportAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         return False
 
-    def import_actions(self):
+    def import_status(self):
         country= str(self.country)
-        import_file = str(self.import_file).split("/")[-1]
+        # import_file = str(self.import_file).split("/")[-1]
         validated = bool(self.validated)
-        
-        return format_html(
-            f'''<a class="button" href="/data_import?country={country}&filename={import_file}&validated={validated}">Import</a>&nbsp;'''
-        )
-    import_actions.short_description = 'Actions'
+        data_import_id = str(self.page_ptr_id)
+        if self.imported:
+            return format_html(
+                    f'''<a class="button" disabled="True">Imported</a>&nbsp;<img src="/static/admin/img/icon-yes.svg" alt="True">'''
+                    )
+        else:
+            return format_html(
+                f'''<a class="button" href="/data_import?country={country}&data_import_id={data_import_id}&validated={validated}">Import</a>&nbsp;'''
+            )
+    import_status.short_description = 'Import Status'
 
-    list_display = ('title','description','country',import_actions,'validated')
+    list_display = ('title','description','country','validated',import_status,)
 
 @admin.register(CountryPartner)
 class CountryPartnerAdmin(admin.ModelAdmin):
