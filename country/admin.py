@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.conf.urls import url
-from .models import Country, Language, Tender, Supplier, EquityCategory, EquityKeywords
+from .models import Country, Language, Tender, Supplier, EquityCategory, EquityKeywords, Topic
 from content.models import CountryPartner, DataImport
 
 class EquityInline(admin.TabularInline):
@@ -16,6 +16,7 @@ class EquityAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Language)
+admin.site.register(Topic)
 admin.site.register(Supplier)
 admin.site.register(EquityCategory,EquityAdmin)
 
