@@ -61,10 +61,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'content',
+    'country',
     'rest_framework',
     'corsheaders',
     'django_filters',
-    'country',
+
+    
     'vizualization',
 
     'wagtail.contrib.forms',
@@ -82,7 +85,7 @@ INSTALLED_APPS = [
     'modelcluster',
     'taggit',
     'wagtail.api.v2',
-    'content',
+    
     'ckeditor',
     # 'debug_toolbar',
     # 'corsheaders',

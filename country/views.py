@@ -20,6 +20,7 @@ from django.contrib import messages
 from django.http.response import HttpResponseRedirect
 import os
 from django.core.exceptions import MultipleObjectsReturned
+from content.models import ImportBatch
 
 class TenderPagination(PageNumberPagination):
     page_size = 50
@@ -179,17 +180,21 @@ class SupplierView(viewsets.ModelViewSet):
 class DataImportView(APIView):
     def get(self,request):
         country =  self.request.GET.get('country',None)
-        filename =  self.request.GET.get('filename',None)
+        # filename =  self.request.GET.get('filename',None)
+        data_import_id =  self.request.GET.get('data_import_id',None)
         validated = self.request.GET.get('validated', None)
 
-        file_path = settings.MEDIA_ROOT+'/documents/'+filename
-        valid_file_extension = ['.xlsx','.xls',]
-        file_extension= os.path.splitext(filename)[-1].lower()
+        # file_path = settings.MEDIA_ROOT+'/documents/'+filename
+        # valid_file_extension = ['.xlsx','.xls',]
+        # file_extension= os.path.splitext(filename)[-1].lower()
 
         if validated:
-            if file_extension in valid_file_extension:
+            if data_import_id:
                 try:
-                    management.call_command('import_tender_excel', country, file_path)
+                    import_batch_instance = ImportBatch.objects.get(data_import_id=data_import_id)
+                    batch_id = import_batch_instance.id
+                    # management.call_command('import_tender_excel', country, file_path)
+                    management.call_command('import_tender_from_id', country, batch_id)
                     messages.info(request, 'Your import has started!')
                     return HttpResponseRedirect('/admin/content/dataimport')
 
@@ -197,7 +202,8 @@ class DataImportView(APIView):
                     messages.error(request, 'Your import has failed!')
                     return HttpResponseRedirect('/admin/content/dataimport')
             else:
-                messages.error(request, 'Your import failed because it only supports .xlsx and .xls file!')
+                # messages.error(request, 'Your import failed because it only supports .xlsx and .xls file!')
+                messages.error(request, 'Your import failed !!')
                 return HttpResponseRedirect('/admin/content/dataimport')
         else:
             messages.error(request,'Your data import file is not validated, please upload file with all necessary headers and try importing again.')

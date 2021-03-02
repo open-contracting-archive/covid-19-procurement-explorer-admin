@@ -230,6 +230,7 @@ class ImportBatch(models.Model):
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='import_batch_country',null=True)
     import_type=models.CharField(verbose_name= ('Import Type'), max_length=150, null=False)
     description=models.CharField(verbose_name= ('Description'), max_length=500, null=False)
+    data_import_id = models.IntegerField(null=True)
 
 class TempDataImportTable(models.Model):
     import_batch = models.ForeignKey(ImportBatch, on_delete=models.CASCADE, related_name='import_batch',null=True)

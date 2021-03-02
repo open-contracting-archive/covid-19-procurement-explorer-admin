@@ -267,7 +267,8 @@ class DataImport(Page):
         blank=False,upload_to="documents", validators=[validate_file_extension])
 
     country =  models.ForeignKey(Country, on_delete=models.CASCADE,blank=False, null=False)
-    validated = models.BooleanField(null=False, blank=True, default=False)   
+    validated = models.BooleanField(null=False, blank=True, default=False) 
+    imported = models.BooleanField(null=False, blank=True, default=False)  
 
     content_panels = Page.content_panels + [
         FieldPanel('description'),
@@ -369,16 +370,16 @@ def check_column_available(sender,created ,instance, *args, **kwargs):
             instance.validated = True
             instance.save()
 
-
 @receiver(post_save, sender=DataImport)
 def store_in_temp_table(sender,created, instance, *args, **kwargs):
     if created:
         filename= instance.import_file.name
         file_path = settings.MEDIA_ROOT+'/'+str(filename)
         try:
+            data_import_id = instance.id
             ws = pd.read_excel(file_path,sheet_name='data',header=0)
             country_id = Country.objects.filter(name = instance.country).values('id').get()
-            new_importbatch = ImportBatch(import_type="XLS file", description="Import data of file : "+filename, country_id= country_id['id'])
+            new_importbatch = ImportBatch(import_type="XLS file", description="Import data of file : "+filename, country_id= country_id['id'], data_import_id=data_import_id)
             new_importbatch.save()
             importbatch_id = new_importbatch.id
             i = 0
@@ -414,4 +415,5 @@ def store_in_temp_table(sender,created, instance, *args, **kwargs):
                 i = i+1
         except Exception as e:
             print(e)
+
 
