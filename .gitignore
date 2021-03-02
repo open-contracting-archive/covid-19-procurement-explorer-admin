@@ -36,3 +36,6 @@ static/wagtailvideos/
 #media
 #public folders
 media/
+
+
+export/*
