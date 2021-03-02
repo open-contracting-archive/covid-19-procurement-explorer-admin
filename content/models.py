@@ -24,7 +24,7 @@ from wagtail.core.templatetags import wagtailcore_tags
 from wagtail.search import index
 from taggit.models import TaggedItemBase, Tag as TaggitTag
 
-from country.models import Country,Language, TempDataImportTable,ImportBatch
+from country.models import Country,Language, TempDataImportTable,ImportBatch, Topic
 from .validators import validate_file_extension
 
 class Contents(Page):
@@ -48,12 +48,13 @@ class InsightsPage(Page):
         max_length=20,
         choices=contents_choice,
     )
-    featured = models.BooleanField(blank=True,null=True)
-    # template = "news_template.html"
+    BOOL_CHOICES = ((True, 'Yes'), (False, 'No'))
+
+    featured = models.BooleanField("Featured ?",choices=BOOL_CHOICES,blank=False,null=False,  default=False)
     
     country =  models.ForeignKey(Country,null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
+        blank=False,
+        on_delete=models.SET_NULL, default=1,
         related_name='+')
     published_date = models.DateField("Published date",default=now, editable=False)
     body = RichTextField()
@@ -69,11 +70,16 @@ class InsightsPage(Page):
     )
     author = models.CharField(blank=True, max_length=250)
     tags = ClusterTaggableManager(through='content.InsightPageTag', blank=True)
-    news_date = models.DateField("News published date",default=now)
+    news_date = models.DateField("Published date",default=now)
+
+    language =  models.ForeignKey(Language, on_delete=models.CASCADE,blank=False, null=False)
+    topics =  models.ForeignKey(Topic, on_delete=models.CASCADE,blank=True, null=True)
 
     content_panels = Page.content_panels + [
         FieldPanel('contents_type'),
         FieldPanel('featured'),
+        FieldPanel('language'),
+        FieldPanel('topics'),
         FieldPanel('country'),
         FieldPanel('body'),
         ImageChooserPanel('content_image'),
@@ -87,6 +93,8 @@ class InsightsPage(Page):
         APIField('contents_type'),
         APIField('featured'),
         APIField('country'),
+        APIField('language'),
+        APIField('topics'),
         APIField('published_date'),
         APIField('rendered_body'),
         APIField('content_image'),
@@ -196,9 +204,11 @@ class ResourcesPage(Page):
     language = models.CharField(
         max_length=2000, null = True, blank=True
     )
+    lang =  models.ForeignKey(Language, on_delete=models.CASCADE,blank=False, null=False)
     topic = models.CharField(
         max_length=2000, null = True, blank=True
     )
+    topics =  models.ForeignKey(Topic, on_delete=models.CASCADE,blank=True, null=True)
 
     published_date = models.DateField("Published date")
     author = models.CharField(blank=True, max_length=250)
@@ -210,7 +220,9 @@ class ResourcesPage(Page):
     DocumentChooserPanel('document'),
     FieldPanel('link'),
     FieldPanel('language'),
+    FieldPanel('lang'),
     FieldPanel('topic'),
+    FieldPanel('topics'),
     FieldPanel('published_date'),
     FieldPanel('author', classname="full"),
     ]
@@ -222,7 +234,9 @@ class ResourcesPage(Page):
         APIField('document'),
         APIField('link'),
         APIField('language'),
+        APIField('lang'),
         APIField('topic'),
+        APIField('topics'),
         APIField('published_date'),
         APIField('author')
     ]
@@ -285,17 +299,17 @@ class StaticPage(Page):
     body = RichTextField()
     BOOLEAN_OPTIONS = (
         ( 'Yes','Yes'),
-        ( 'Yes', 'No'),
+        ( 'No', 'No'),
     )
     show_in_header_menu =models.CharField(
         max_length=20,
         choices=BOOLEAN_OPTIONS,
-        blank=True,null=True, default= 'No'
+        blank=False,null=False, default= 'No'
     )
     show_in_footer_menu = models.CharField(
         max_length=20,
         choices=BOOLEAN_OPTIONS,
-        blank=True,null=True, default= 'No'
+        blank=False,null=False, default= 'No'
     )
     def rendered_body(self):
         return wagtailcore_tags.richtext(self.body)
