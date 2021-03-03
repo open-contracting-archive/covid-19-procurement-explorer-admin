@@ -61,7 +61,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'content',
+    'content.apps.ContentConfig',
     'country',
     'rest_framework',
     'corsheaders',
@@ -237,3 +237,4 @@ WAGTAIL_SITE_NAME = 'Covid 19 procurement explorer'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = env('MEDIA_URL')
 MAX_UPLOAD_SIZE = "104857600"  # 100 MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000
