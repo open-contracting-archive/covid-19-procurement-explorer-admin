@@ -1256,7 +1256,7 @@ class ProductTableView(APIView):
         if country: filter_args['country__country_code_alpha_2'] = country
         filter_args['goods_services__goods_services_category__isnull'] = False 
         result=[]
-        product_tables =  Tender.objects.filter(**filter_args).values('goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(total=Count('id',distinct=True),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),buyer=Sum('buyer',distinct=True),supplier=Sum('supplier',distinct=True))
+        product_tables =  Tender.objects.filter(**filter_args).values('goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(total=Count('id',distinct=True),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),buyer=Count('buyer',distinct=True),supplier=Count('supplier',distinct=True))
         for product in product_tables:
             data={}
             data['amount_local'] = product['local']
