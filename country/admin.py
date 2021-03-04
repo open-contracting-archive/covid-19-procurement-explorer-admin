@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.conf.urls import url
-from .models import Country, Language, Tender, Supplier, EquityCategory, EquityKeywords, Topic
+from .models import Country, Language, Tender, Supplier, EquityCategory, EquityKeywords, Topic, DataProvider
 from content.models import CountryPartner, DataImport
 
 class EquityInline(admin.TabularInline):
@@ -45,6 +45,10 @@ class DataImportAdmin(admin.ModelAdmin):
     import_status.short_description = 'Import Status'
 
     list_display = ('title','description','country','validated',import_status,)
+
+@admin.register(DataProvider)
+class DataProviderAdmin(admin.ModelAdmin):
+    list_display = ('name','country','website')
 
 @admin.register(CountryPartner)
 class CountryPartnerAdmin(admin.ModelAdmin):
