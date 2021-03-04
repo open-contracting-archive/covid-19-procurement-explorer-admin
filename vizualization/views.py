@@ -14,7 +14,7 @@ from collections import defaultdict
 
 from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, GoodsServicesCategory, Supplier, Buyer, EquityCategory, RedFlag
 import itertools
-from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices
+from country.models import Tender,Country,CovidMonthlyActiveCases, GoodsServices, DataProvider
 from content.models import CountryPartner, InsightsPage, StaticPage, EventsPage
 import itertools, json
 
@@ -1017,24 +1017,50 @@ class CountryPartnerView(APIView):
         country =  self.request.GET.get('country',None)
         if country: filter_args['country__country_code_alpha_2'] = country
         try:
-            country_partner = CountryPartner.objects.filter(**filter_args)
+            data_provider = CountryPartner.objects.filter(**filter_args)
         except Exception as DoesNotExist:
-            country_partner = [{"error": "Country partner doesnot exist for this country"}]
+            data_provider = [{"error": "Country partner doesnot exist for this country"}]
         result=[]
-        if country_partner:
-            for i in country_partner:
+        if data_provider:
+            for i in data_provider:
                 data={}
                 data["name"]= i.name
                 data["description"]= i.description
                 data["email"]= i.email
                 data["website"]= i.website
-                data["logo"]= json.dumps(str(i.logo))
+                data["logo"]= str(i.logo)
                 data["order"]= i.order
-                data["country"]= json.dumps(str(i.country))
+                data["country"]= str(i.country)
                 result.append(data)
         else:
             result ={
                 "error": "Country Partner not found for this country"
+            }
+        return JsonResponse(result,safe=False)
+
+
+class DataProviderView(APIView):
+    def get(self,request):
+        filter_args = {}
+        country =  self.request.GET.get('country',None)
+        if country: filter_args['country__country_code_alpha_2'] = country
+        try:
+            data_provider = DataProvider.objects.filter(**filter_args)
+        except Exception as DoesNotExist:
+            data_provider = [{"error": "Data Provider doesnot exist for this country"}]
+        result=[]
+        if data_provider:
+            for i in data_provider:
+                data={}
+                data["name"]= i.name
+                data["country"]= str(i.country)
+                data["website"]= i.website
+                data["logo"]= str(i.logo)
+                data["remark"]= i.remark
+                result.append(data)
+        else:
+            result ={
+                "error": "Data Provider not found for this country"
             }
         return JsonResponse(result,safe=False)
 
@@ -1256,7 +1282,7 @@ class ProductTableView(APIView):
         if country: filter_args['country__country_code_alpha_2'] = country
         filter_args['goods_services__goods_services_category__isnull'] = False 
         result=[]
-        product_tables =  Tender.objects.filter(**filter_args).values('goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(total=Count('id',distinct=True),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),buyer=Sum('buyer',distinct=True),supplier=Sum('supplier',distinct=True))
+        product_tables =  Tender.objects.filter(**filter_args).values('goods_services__goods_services_category__category_name','goods_services__goods_services_category__id').annotate(total=Count('id',distinct=True),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd'),buyer=Count('buyer',distinct=True),supplier=Count('supplier',distinct=True))
         for product in product_tables:
             data={}
             data['amount_local'] = product['local']

@@ -259,3 +259,18 @@ class TempDataImportTable(models.Model):
     link_to_contract = models.CharField(verbose_name= ('Link to Contract'), max_length=1500, null=True)
     link_to_tender = models.CharField(verbose_name= ('Link to Tender'), max_length=1500, null=True)
     data_source = models.CharField(verbose_name= ('Data Source'), max_length=1500, null=True)
+
+
+class DataProvider(models.Model):
+    alphaSpaces = RegexValidator(r'^[a-zA-Z ]+$', 'Only letters and spaces are allowed in the Country Name')
+    name = models.CharField(verbose_name=_('Name'), null=False, unique=True, max_length=50, validators=[alphaSpaces])
+    country = models.ForeignKey(Country, on_delete=models.CASCADE,blank=False, null=False)    
+    website = models.URLField(max_length = 200)
+    logo = models.ImageField(upload_to='dataprovider/logo', height_field=None, width_field=None, max_length=100)
+    remark = models.TextField(verbose_name=_('Remark'), null=False, unique=True, max_length=500000)
+
+    class Meta:
+        verbose_name_plural = _('Data Providers')
+
+    def __str__(self):
+        return self.name
