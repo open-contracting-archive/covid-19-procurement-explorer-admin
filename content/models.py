@@ -267,7 +267,8 @@ class DataImport(Page):
         blank=False,upload_to="documents", validators=[validate_file_extension])
 
     country =  models.ForeignKey(Country, on_delete=models.CASCADE,blank=False, null=False)
-    validated = models.BooleanField(null=False, blank=True, default=False) 
+    validated = models.BooleanField(null=False, blank=True, default=False)
+    no_of_rows = models.CharField(verbose_name=_('No of rows'), null=True, max_length=10, default=0)
     imported = models.BooleanField(null=False, blank=True, default=False)  
 
     content_panels = Page.content_panels + [
@@ -359,61 +360,10 @@ class CountryPartner(models.Model):
         super(CountryPartner, self).save(*args, **kwargs)
 
 
-@receiver(post_save, sender=DataImport)
-def check_column_available(sender,created ,instance, *args, **kwargs):
-    if created:
-        filename= instance.import_file.name
-        valid_columns =valid_columns =['Contract ID','Procurement procedure code','Classification Code (CPV or other)', 'Quantity, units', 'Price per unit, including VAT', 'Tender value', 'Award value','Contract value','Contract title','Contract description','Number of bidders','Buyer','Buyer ID','Buyer address (as an object)','Supplier','Supplier ID','Supplier address','Contract Status','Contract Status Code','Link to the contract','Link to the tender','Data source']
-        file_path = settings.MEDIA_ROOT+'/'+str(filename)
-        ws = pd.read_excel(file_path,sheet_name='data',header=0)
-        if set(valid_columns).issubset(ws.columns):
-            instance.validated = True
-            instance.save()
-
-@receiver(post_save, sender=DataImport)
-def store_in_temp_table(sender,created, instance, *args, **kwargs):
-    if created:
-        filename= instance.import_file.name
-        file_path = settings.MEDIA_ROOT+'/'+str(filename)
-        try:
-            data_import_id = instance.id
-            ws = pd.read_excel(file_path,sheet_name='data',header=0)
-            country_id = Country.objects.filter(name = instance.country).values('id').get()
-            new_importbatch = ImportBatch(import_type="XLS file", description="Import data of file : "+filename, country_id= country_id['id'], data_import_id=data_import_id)
-            new_importbatch.save()
-            importbatch_id = new_importbatch.id
-            i = 0
-            for row in ws.iterrows():
-                new_tempdata = TempDataImportTable(contract_id = ws['Contract ID'][i],
-                                                    contract_date= ws['Contract date (yyyy-mm-dd)'][i],
-                                                    procurement_procedure= ws['Procurement procedure'][i],
-                                                    procurement_process= ws['Procurement procedure code'][i],
-                                                    goods_services=ws['Goods/Services'][i],
-                                                    cpv_code_clear=ws['Classification Code (CPV or other)'][i],
-                                                    quantity_units=ws['Quantity, units'][i],
-                                                    ppu_including_vat=ws['Price per unit, including VAT'][i],
-                                                    tender_value=ws['Tender value'][i],
-                                                    award_value=ws['Award value'][i],
-                                                    contract_value=ws['Contract value'][i],
-                                                    contract_title=ws['Contract title'][i],
-                                                    contract_description=ws['Contract description'][i],
-                                                    no_of_bidders=ws['Number of bidders'][i],
-                                                    buyer=ws['Buyer'][i],
-                                                    buyer_id=ws['Buyer ID'][i],
-                                                    buyer_address_as_an_object=ws['Buyer address (as an object)'][i],
-                                                    supplier=ws['Supplier'][i],
-                                                    supplier_id=ws['Supplier ID'][i],
-                                                    supplier_address=ws['Supplier address'][i],
-                                                    contract_status=ws['Contract Status'][i],
-                                                    contract_status_code=ws['Contract Status Code'][i],
-                                                    link_to_contract=ws['Link to the contract'][i],
-                                                    link_to_tender=ws['Link to the tender'][i],
-                                                    data_source=ws['Data source'][i],
-                                                    import_batch_id=importbatch_id
-                                                    )
-                new_tempdata.save()
-                i = i+1
-        except Exception as e:
-            print(e)
+# @receiver(post_save, sender=DataImport)
+# def validation_and_temp_table_store(sender,created ,instance, *args, **kwargs):
+#     if created:
+#         print("Data validation and temp table storage task started!")
+#         store_in_temp_table.apply_async(args=(instance,), queue='covid19')
 
 

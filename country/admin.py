@@ -44,7 +44,7 @@ class DataImportAdmin(admin.ModelAdmin):
             )
     import_status.short_description = 'Import Status'
 
-    list_display = ('title','description','country','validated',import_status,)
+    list_display = ('title','description','country','no_of_rows','validated',import_status,)
 
 @admin.register(DataProvider)
 class DataProviderAdmin(admin.ModelAdmin):
