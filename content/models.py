@@ -365,10 +365,3 @@ class CountryPartner(models.Model):
         self.slug = slugify(self.name)
         super(CountryPartner, self).save(*args, **kwargs)
 
-
-# @receiver(post_save, sender=DataImport)
-# def validation_and_temp_table_store(sender,created ,instance, *args, **kwargs):
-#     if created:
-#         print("Data validation and temp table storage task started!")
-#         store_in_temp_table.apply_async(args=(instance,), queue='covid19')
-

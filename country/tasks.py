@@ -2,6 +2,7 @@ import requests
 from requests.exceptions import Timeout
 from django.conf import settings
 from django.db import transaction
+from stringcase import snakecase
 from datetime import datetime
 from celery import Celery
 # from celery import shared_task
@@ -532,8 +533,9 @@ def import_tender_from_batch_id(batch_id,country,currency):
 
             # Get or Create Supplier
             if supplier_id:
-                supplier_id = str(supplier_id).strip()
-                supplier_obj = Supplier.objects.filter(supplier_id=supplier_id).first()
+                supplier_id = str(supplier_id).strip() if supplier_id else " "
+                supplier_name = str(supplier_name).strip() if supplier_name else " "
+                supplier_obj = Supplier.objects.filter(supplier_id=supplier_id,supplier_name = supplier_name).first()
                 if not supplier_obj:
                     supplier_obj = Supplier(
                         supplier_id = supplier_id,
@@ -546,8 +548,9 @@ def import_tender_from_batch_id(batch_id,country,currency):
 
             # Get or Create Buyer
             if buyer_id:
-                buyer_id = str(buyer_id).strip()
-                buyer_obj = Buyer.objects.filter(buyer_id=buyer_id).first()
+                buyer_id = str(buyer_id).strip() if buyer_id else " "
+                buyer_name = str(buyer_name).strip() if buyer_name else " "
+                buyer_obj = Buyer.objects.filter(buyer_id=buyer_id, buyer_name = buyer_name ).first()
                 if not buyer_obj:
                     buyer_obj = Buyer(
                         buyer_id = buyer_id,
@@ -780,37 +783,57 @@ def store_in_temp_table(instance_id):
         new_importbatch = ImportBatch(import_type="XLS file", description="Import data of file : "+filename, country_id= country_id['id'], data_import_id=data_import_id)
         new_importbatch.save()
         importbatch_id = new_importbatch.id
+        procurement_procedure_option = ['Open','Limited','Selective','Direct']
+        contract_status_option = ['Active','Cancelled','Completed']
         i = 0
 
         while (i <= len(ws)):
-            new_tempdata = TempDataImportTable(contract_id = ws['Contract ID'][i],
-                                                contract_date= ws['Contract date (yyyy-mm-dd)'][i],
-                                                procurement_procedure= ws['Procurement procedure'][i],
-                                                procurement_process= ws['Procurement procedure code'][i],
-                                                goods_services=ws['Goods/Services'][i],
-                                                cpv_code_clear=ws['Classification Code (CPV or other)'][i],
-                                                quantity_units=ws['Quantity, units'][i],
-                                                ppu_including_vat=ws['Price per unit, including VAT'][i],
-                                                tender_value=ws['Tender value'][i],
-                                                award_value=ws['Award value'][i],
-                                                contract_value=ws['Contract value'][i],
-                                                contract_title=ws['Contract title'][i],
-                                                contract_description=ws['Contract description'][i],
-                                                no_of_bidders=ws['Number of bidders'][i],
-                                                buyer=ws['Buyer'][i],
-                                                buyer_id=ws['Buyer ID'][i],
-                                                buyer_address_as_an_object=ws['Buyer address (as an object)'][i],
-                                                supplier=ws['Supplier'][i],
-                                                supplier_id=ws['Supplier ID'][i],
-                                                supplier_address=ws['Supplier address'][i],
-                                                contract_status=ws['Contract Status'][i],
-                                                contract_status_code=ws['Contract Status Code'][i],
-                                                link_to_contract=ws['Link to the contract'][i],
-                                                link_to_tender=ws['Link to the tender'][i],
-                                                data_source=ws['Data source'][i],
-                                                import_batch_id=importbatch_id
-                                                )
-            new_tempdata.save()
+            procurement_procedure_value = ws['Procurement procedure'][i]
+            contract_status_value = ws['Contract Status'][i]
+            if contract_status_value in contract_status_option:
+                contract_status_value = snakecase(contract_status_value)
+            
+            elif(contract_status_value == 'Canceled'):
+                contract_status_value = 'cancelled'
+
+            else:
+                contract_status_value = 'not_identified'
+
+            try:
+                nulled = pd.isnull(ws['Contract value'][i])
+                if not nulled:
+                    new_tempdata = TempDataImportTable(
+                                                    contract_id = ws['Contract ID'][i],
+                                                    contract_date= ws['Contract date (yyyy-mm-dd)'][i],
+                                                    procurement_procedure= snakecase(procurement_procedure_value) if  procurement_procedure_value in procurement_procedure_option else 'not_identified',
+                                                    procurement_process= ws['Procurement procedure code'][i],
+                                                    goods_services=ws['Goods/Services'][i],
+                                                    cpv_code_clear=ws['Classification Code (CPV or other)'][i],
+                                                    quantity_units=ws['Quantity, units'][i],
+                                                    ppu_including_vat=ws['Price per unit, including VAT'][i],
+                                                    tender_value=ws['Tender value'][i],
+                                                    award_value=ws['Award value'][i],
+                                                    contract_value=ws['Contract value'][i],
+                                                    contract_title=ws['Contract title'][i],
+                                                    contract_description=ws['Contract description'][i],
+                                                    no_of_bidders=ws['Number of bidders'][i],
+                                                    buyer=ws['Buyer'][i],
+                                                    buyer_id=ws['Buyer ID'][i],
+                                                    buyer_address_as_an_object=ws['Buyer address (as an object)'][i],
+                                                    supplier=ws['Supplier'][i],
+                                                    supplier_id=ws['Supplier ID'][i],
+                                                    supplier_address=ws['Supplier address'][i],
+                                                    contract_status=contract_status_value,
+                                                    contract_status_code=ws['Contract Status Code'][i],
+                                                    link_to_contract=ws['Link to the contract'][i],
+                                                    link_to_tender=ws['Link to the tender'][i],
+                                                    data_source=ws['Data source'][i],
+                                                    import_batch_id=importbatch_id
+                                                    )
+                    new_tempdata.save()
+            except Exception as e:
+                print(e)
+                pass
             i = i+1
     except Exception as e:
         print(e)
