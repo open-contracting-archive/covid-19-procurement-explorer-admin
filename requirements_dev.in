@@ -4,5 +4,6 @@ flake8
 ipdb
 ipython
 isort
+pip-tools
 pylint
 transifex-client

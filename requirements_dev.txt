@@ -63,6 +63,7 @@ click==7.1.2
     #   celery
     #   click-didyoumean
     #   click-repl
+    #   pip-tools
 decorator==4.4.2
     # via
     #   ipython
@@ -206,6 +207,8 @@ pillow==8.0.1
     # via
     #   -r requirements.txt
     #   wagtail
+pip-tools==5.5.0
+    # via -r requirements_dev.in
 prometheus-client==0.8.0
     # via
     #   -r requirements.txt
@@ -360,4 +363,5 @@ zipp==3.4.0
     #   importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
+# pip
 # setuptools
