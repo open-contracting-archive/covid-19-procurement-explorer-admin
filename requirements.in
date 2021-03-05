@@ -1,0 +1,17 @@
+celery
+django
+django-ckeditor
+django-cors-headers
+django-environ
+django-filter
+django-modelcluster
+django-taggit
+djangorestframework
+flower
+gspread
+pandas
+psycopg2
+python-dateutil
+requests
+sentry_sdk
+wagtail

@@ -1,0 +1,8 @@
+-r requirements.txt
+autopep8
+flake8
+ipdb
+ipython
+isort
+pylint
+transifex-client
