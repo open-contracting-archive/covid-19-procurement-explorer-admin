@@ -366,4 +366,3 @@ class CountryPartner(models.Model):
 #         print("Data validation and temp table storage task started!")
 #         store_in_temp_table.apply_async(args=(instance,), queue='covid19')
 
-

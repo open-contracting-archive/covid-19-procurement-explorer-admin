@@ -210,3 +210,8 @@ class DataImportView(APIView):
             
             return HttpResponseRedirect('/admin/content/dataimport')
 
+class DataEditView(APIView):
+    def get(self,request):
+        data_import_id =  self.request.GET.get('data_import_id',None)
+        
+        return HttpResponseRedirect('/admin/country/tempdataimporttable/?import_batch__id__exact='+data_import_id)
