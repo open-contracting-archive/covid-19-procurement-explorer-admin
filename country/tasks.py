@@ -532,8 +532,9 @@ def import_tender_from_batch_id(batch_id,country,currency):
 
             # Get or Create Supplier
             if supplier_id:
-                supplier_id = str(supplier_id).strip()
-                supplier_obj = Supplier.objects.filter(supplier_id=supplier_id).first()
+                supplier_id = str(supplier_id).strip() if supplier_id else " "
+                supplier_name = str(supplier_name).strip() if supplier_name else " "
+                supplier_obj = Supplier.objects.filter(supplier_id=supplier_id,supplier_name = supplier_name).first()
                 if not supplier_obj:
                     supplier_obj = Supplier(
                         supplier_id = supplier_id,
@@ -546,8 +547,9 @@ def import_tender_from_batch_id(batch_id,country,currency):
 
             # Get or Create Buyer
             if buyer_id:
-                buyer_id = str(buyer_id).strip()
-                buyer_obj = Buyer.objects.filter(buyer_id=buyer_id).first()
+                buyer_id = str(buyer_id).strip() if buyer_id else " "
+                buyer_name = str(buyer_name).strip() if buyer_name else " "
+                buyer_obj = Buyer.objects.filter(buyer_id=buyer_id, buyer_name = buyer_name ).first()
                 if not buyer_obj:
                     buyer_obj = Buyer(
                         buyer_id = buyer_id,
