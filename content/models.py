@@ -308,6 +308,10 @@ class StaticPage(Page):
         choices=BOOLEAN_OPTIONS,
         blank=False,null=False, default= 'No'
     )
+    country =  models.ForeignKey(Country,null=True,
+        blank=False,
+        on_delete=models.SET_NULL, default=1,
+        related_name='+')
     show_in_footer_menu = models.CharField(
         max_length=20,
         choices=BOOLEAN_OPTIONS,
@@ -320,6 +324,7 @@ class StaticPage(Page):
         FieldPanel('slug'),
         FieldPanel('body'),
         FieldPanel('language'),
+        FieldPanel('country'),
         FieldPanel('show_in_header_menu'),
         FieldPanel('show_in_footer_menu'),
     ]
@@ -331,6 +336,7 @@ class StaticPage(Page):
         APIField('slug'),
         APIField('rendered_body'),
         APIField('language'),
+        APIField('country'),
         APIField('show_in_header_menu'),
         APIField('show_in_footer_menu'),
     ]
