@@ -138,9 +138,16 @@ class EventsPage(Page):
         max_length=100,
     )
 
+    organisation = models.CharField(
+        max_length=200,
+        null=True,
+        blank=True
+    )
+
     content_panels = Page.content_panels + [
     ImageChooserPanel('event_image'),
     FieldPanel('description'),
+    FieldPanel('organisation'),
     FieldPanel('event_date'),
     FieldPanel('time_from'),
     FieldPanel('time_to'),
@@ -150,6 +157,7 @@ class EventsPage(Page):
     api_fields = [
         APIField('event_image'),
         APIField('rendered_description'),
+        APIField('organisation'),
         APIField('event_date'),
         APIField('time_from'),
         APIField('time_to'),
