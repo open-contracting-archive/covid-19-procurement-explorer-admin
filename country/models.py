@@ -104,7 +104,7 @@ class TenderManager(models.Manager):
         return super().get_queryset().annotate(amount_local=Sum('goods_services__contract_value_local'),amount_usd=Sum('goods_services__contract_value_usd'),red_flag_count=Count('red_flag'),tender_count=Count('id',distinct=True))
 
 class Supplier(models.Model):
-    supplier_id = models.CharField(verbose_name=_('Supplier ID'), max_length=50, null=False, unique=True)
+    supplier_id = models.CharField(verbose_name=_('Supplier ID'), max_length=50, null=True)
     supplier_name = models.CharField(verbose_name=_('Supplier name'), max_length=250, null=True, blank=True,db_index=True)
     supplier_address = models.CharField(verbose_name=_('Supplier address'), max_length=250, null=True, blank=True)
     objects = SupplierManager()
@@ -114,7 +114,7 @@ class Supplier(models.Model):
 
 
 class Buyer(models.Model):
-    buyer_id = models.CharField(verbose_name=_('Buyer ID'), max_length=50, null=False, unique=True)
+    buyer_id = models.CharField(verbose_name=_('Buyer ID'), max_length=50, null=True)
     buyer_name = models.CharField(verbose_name=_('Buyer name'), max_length=250, null=True, blank=True,db_index=True)
     buyer_address = models.CharField(verbose_name=_('Buyer address'), max_length=250, null=True, blank=True)
     objects = BuyerManager()

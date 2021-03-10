@@ -369,7 +369,7 @@ class TenderSerializer(serializers.ModelSerializer):
 
     def get_bidders_no(self,obj):
         try:
-            result =  obj.goods_services.aggregate(bidders=Sum('no_of_bidders'))['bidders']
+            result =  obj.no_of_bidders
             return result 
         except:
             return 0
