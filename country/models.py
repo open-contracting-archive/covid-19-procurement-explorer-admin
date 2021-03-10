@@ -201,6 +201,9 @@ class GoodsServices(models.Model):
     contract_title = models.TextField(verbose_name=_('Contract title'), null=True, blank=True)
     contract_desc = models.TextField(verbose_name=_('Contract description'), null=True, blank=True)
 
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='goods_services', null=True, blank=True)
+    buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name='goods_services', null=True, blank=True)
+
     tender_value_local = models.FloatField(verbose_name=_('Tender value local'), null=True, blank=True)
     tender_value_usd = models.FloatField(verbose_name=_('Tender value USD'),null=True, blank=True)
     award_value_local = models.FloatField(verbose_name=_('Award value local'), null=True, blank=True)

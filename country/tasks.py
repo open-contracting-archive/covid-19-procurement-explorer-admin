@@ -13,7 +13,7 @@ import random
 import dateutil.parser
 import math
 from country.red_flag import RedFlags
-
+from django.db.models import Avg, Count, Min, Sum, Count,Window,Q
 from content.models import DataImport
 from country.models import (
     Country,
@@ -120,8 +120,8 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
 
     try:
         # ws_settings = pd.read_excel(excel_file_path, sheet_name='settings', header=None)
-        ws_data = pd.read_excel(excel_file_path, sheet_name='data', header=0)
-
+        ws_data = pd.read_excel(excel_file_path, sheet_name='data', header=0,na_values = None,na_filter = False)
+        ws_data = ws_data.where(ws_data.notnull(), None)
         # country = ws_settings[2][1]
         # currency = ws_settings[2][2]
         country = country
@@ -153,8 +153,8 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
             contract_title = row['Contract title']
             contract_desc = row['Contract description']
             no_of_bidders = row['Number of bidders'] or None
-            if math.isnan(no_of_bidders):
-                no_of_bidders = None
+            # if math.isnan(no_of_bidders):
+            #     no_of_bidders = None
 
             buyer_id = row['Buyer ID']
             buyer_name = row['Buyer'].strip()
@@ -177,9 +177,12 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
             country_obj = Country.objects.filter(name=country).first()
 
             # Get or Create Supplier
-            if supplier_id:
-                supplier_id = str(supplier_id).strip()
-                supplier_obj = Supplier.objects.filter(supplier_id=supplier_id).first()
+            if supplier_id or supplier_name:
+                if supplier_id:
+                    supplier_id = str(supplier_id).strip()
+                else:
+                    supplier_id=None
+                supplier_obj = Supplier.objects.filter(Q(supplier_name=supplier_name) | Q(supplier_id=supplier_id)).first()
                 if not supplier_obj:
                     supplier_obj = Supplier(
                         supplier_id = supplier_id,
@@ -191,9 +194,12 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
                 supplier_obj = None
 
             # Get or Create Buyer
-            if buyer_id:
-                buyer_id = str(buyer_id).strip()
-                buyer_obj = Buyer.objects.filter(buyer_id=buyer_id).first()
+            if buyer_id or buyer_name:
+                if buyer_id:
+                    buyer_id = str(buyer_id).strip()
+                else:
+                    buyer_id=None
+                buyer_obj = Buyer.objects.filter(Q(buyer_name=buyer_name) | Q(buyer_id=buyer_id)).first()
                 if not buyer_obj:
                     buyer_obj = Buyer(
                         buyer_id = buyer_id,
@@ -253,6 +259,8 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
                     country=country_obj,
                     goods_services_category = goods_services_category_obj,
                     contract = tender_obj,
+                    buyer = buyer_obj,
+                    supplier = supplier_obj,
                     
                     classification_code = classification_code,
                     no_of_bidders = no_of_bidders or None,
@@ -500,9 +508,19 @@ def import_tender_from_batch_id(batch_id,country,currency):
 
             goods_services_category_desc = ''
 
-            tender_value_local = float(row.tender_value)
-            award_value_local = float(row.award_value)
-            contract_value_local = float(row.contract_value)
+            if row.tender_value:
+                tender_value_local = float(row.tender_value)
+            else:
+                tender_value_local = ""
+            if row.award_value:
+                award_value_local = float(row.award_value)
+            else:
+                award_value_local = ""    
+            if row.contract_value:
+                contract_value_local = float(row.contract_value)
+            else:
+                contract_value_local = ""
+
 
             contract_title = row.contract_title
             contract_desc = row.contract_description
@@ -532,7 +550,7 @@ def import_tender_from_batch_id(batch_id,country,currency):
             country_obj = Country.objects.filter(name=country).first()
 
             # Get or Create Supplier
-            if supplier_id:
+            if supplier_id or supplier_name:
                 supplier_id = str(supplier_id).strip() if supplier_id else " "
                 supplier_name = str(supplier_name).strip() if supplier_name else " "
                 supplier_obj = Supplier.objects.filter(supplier_id=supplier_id,supplier_name = supplier_name).first()
@@ -547,7 +565,7 @@ def import_tender_from_batch_id(batch_id,country,currency):
                 supplier_obj = None
 
             # Get or Create Buyer
-            if buyer_id:
+            if buyer_id or buyer_name:
                 buyer_id = str(buyer_id).strip() if buyer_id else " "
                 buyer_name = str(buyer_name).strip() if buyer_name else " "
                 buyer_obj = Buyer.objects.filter(buyer_id=buyer_id, buyer_name = buyer_name ).first()
@@ -610,7 +628,8 @@ def import_tender_from_batch_id(batch_id,country,currency):
                     country=country_obj,
                     goods_services_category = goods_services_category_obj,
                     contract = tender_obj,
-                    
+                    supplier=supplier_obj,
+                    buyer=buyer_obj,
                     classification_code = classification_code,
                     no_of_bidders = no_of_bidders or None,
                     contract_title = contract_title,
@@ -771,7 +790,8 @@ def store_in_temp_table(instance_id):
     filename= instance.import_file.name
     valid_columns =['Contract ID','Procurement procedure code','Classification Code (CPV or other)', 'Quantity, units', 'Price per unit, including VAT', 'Tender value', 'Award value','Contract value','Contract title','Contract description','Number of bidders','Buyer','Buyer ID','Buyer address (as an object)','Supplier','Supplier ID','Supplier address','Contract Status','Contract Status Code','Link to the contract','Link to the tender','Data source']
     file_path = settings.MEDIA_ROOT+'/'+str(filename)
-    ws = pd.read_excel(file_path,sheet_name='data',header=0)
+    ws = pd.read_excel(file_path,sheet_name='data',header=0,na_values = None,na_filter = False)
+    ws = ws.where(ws.notnull(), None)
     if set(valid_columns).issubset(ws.columns):
         instance.validated = True
         instance.no_of_rows = len(ws)
