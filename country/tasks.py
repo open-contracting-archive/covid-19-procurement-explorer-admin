@@ -509,7 +509,7 @@ def import_tender_from_batch_id(batch_id,country,currency):
             if row.no_of_bidders == 'nan':
                 no_of_bidders = 0
             else:
-                no_of_bidders = row.no_of_bid
+                no_of_bidders = row.no_of_bidders
 
             buyer_id = row.buyer_id
             buyer_name = row.buyer
