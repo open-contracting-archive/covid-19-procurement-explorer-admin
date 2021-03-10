@@ -506,7 +506,7 @@ def import_tender_from_batch_id(batch_id,country,currency):
 
             contract_title = row.contract_title
             contract_desc = row.contract_description
-            if row.no_of_bidders == 'nan':
+            if row.no_of_bidders == 'nan' or row.no_of_bidders == 'N/A':
                 no_of_bidders = 0
             else:
                 no_of_bidders = row.no_of_bidders
