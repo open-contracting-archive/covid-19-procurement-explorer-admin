@@ -506,10 +506,10 @@ def import_tender_from_batch_id(batch_id,country,currency):
 
             contract_title = row.contract_title
             contract_desc = row.contract_description
-            if row.no_of_bidders == 'nan' or row.no_of_bidders == 'N/A':
-                no_of_bidders = 0
-            else:
+            if row.no_of_bidders.isdigit():
                 no_of_bidders = row.no_of_bidders
+            else:
+                no_of_bidders = None
 
             buyer_id = row.buyer_id
             buyer_name = row.buyer
