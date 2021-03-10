@@ -269,7 +269,7 @@ class DataImport(Page):
     
     subpage_types = []
     
-    description = models.TextField(verbose_name=_('Description'), null=False, unique=True, max_length=500000)
+    description = models.TextField(verbose_name=_('Description'), null=False, max_length=500000)
 
     import_file = models.FileField(null=True,
         blank=False,upload_to="documents", validators=[validate_file_extension])
@@ -293,6 +293,10 @@ class DataImport(Page):
     settings_panels = []
     promote_panels = []
     preview_modes = []
+
+    def clean(self):
+        super().clean()
+        self.slug = ""
 
     class Meta:  # noqa
         verbose_name = "Data Imports"
