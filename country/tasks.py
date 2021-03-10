@@ -804,7 +804,7 @@ def store_in_temp_table(instance_id):
                 if not nulled:
                     new_tempdata = TempDataImportTable(
                                                     contract_id = ws['Contract ID'][i],
-                                                    contract_date= ws['Contract date (yyyy-mm-dd)'][i],
+                                                    contract_date= ws['Contract date (yyyy-mm-dd)'][i].date(),
                                                     procurement_procedure= snakecase(procurement_procedure_value) if  procurement_procedure_value in procurement_procedure_option else 'not_identified',
                                                     procurement_process= ws['Procurement procedure code'][i],
                                                     goods_services=ws['Goods/Services'][i],
