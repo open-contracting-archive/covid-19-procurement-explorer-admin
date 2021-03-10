@@ -114,7 +114,7 @@ class Supplier(models.Model):
 
 
 class Buyer(models.Model):
-    buyer_id = models.CharField(verbose_name=_('Buyer ID'), max_length=50, null=False, unique=True)
+    buyer_id = models.CharField(verbose_name=_('Buyer ID'), max_length=50, null=False)
     buyer_name = models.CharField(verbose_name=_('Buyer name'), max_length=250, null=True, blank=True,db_index=True)
     buyer_address = models.CharField(verbose_name=_('Buyer address'), max_length=250, null=True, blank=True)
     objects = BuyerManager()
