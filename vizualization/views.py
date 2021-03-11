@@ -301,6 +301,9 @@ class TopSuppliers(APIView):
                         .annotate(count=Count('id'),usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_local')).exclude(usd__isnull=True).order_by('-count')[:10]
         by_number= []
         by_value = []
+        by_buyer = []
+
+        for_buyer = Tender.objects.filter(**filter_args).values('supplier__id','supplier__supplier_name','country__currency','buyer__buyer_id').annotate(count=Count('buyer__buyer_id')).order_by('-count')[:10]
     
         for value in for_value:
             a= {}
@@ -320,8 +323,18 @@ class TopSuppliers(APIView):
             a['supplier_name'] = value['supplier__supplier_name']
             a['tender_count'] = value['count']
             by_number.append(a)
+
+        for value in for_buyer:
+            a= {}
+            a['supplier_id'] = value['supplier__id']
+            a["local_currency_code"] = value['country__currency']
+            a['supplier_name'] = value['supplier__supplier_name']
+            a['buyer_count'] = value['count']
+            by_buyer.append(a)
+
         result={"by_number": by_number,
-                "by_value": by_value}
+                "by_value": by_value,
+                "by_buyer": by_buyer}
         return JsonResponse(result)
 
 
