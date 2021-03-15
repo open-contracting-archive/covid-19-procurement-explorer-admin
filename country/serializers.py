@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from django.db.models import Avg, Count, Min, Sum, Count,Window
-from .models import Country, Language, Tender, Supplier, Buyer, RedFlag
+from .models import Country, Language, Tender, Supplier, Buyer, RedFlag, OverallSummary
 
 
 class ChoiceField(serializers.ChoiceField):
@@ -438,3 +438,9 @@ class TenderSerializer(serializers.ModelSerializer):
         return obj.buyer.buyer_id
 
 
+class OverallStatSummarySerializer(serializers.ModelSerializer):
+    country = CountrySerializer(many=False, read_only=True)
+
+    class Meta:
+        model = OverallSummary
+        fields = '__all__'

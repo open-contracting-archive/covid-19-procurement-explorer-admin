@@ -501,7 +501,7 @@ def import_tender_from_batch_id(batch_id,country,currency):
             contract_id = row.contract_id
             contract_date = row.contract_date
 
-            procurement_procedure = row.procurement_procedure
+            procurement_procedure = row.procurement_procedure.strip().lower()
 
             classification_code = row.cpv_code_clear
             goods_services_category_name = row.goods_services
@@ -537,12 +537,12 @@ def import_tender_from_batch_id(batch_id,country,currency):
             supplier_name = row.supplier
             supplier_address = row.supplier_address
 
-            status = row.contract_status
+            status = row.contract_status.strip().lower()
             if status == 'Terminated' or status =='Canclled':
                 status='canceled'
 
-            link_to_contract = row.contract_status
-            link_to_tender = row.contract_status
+            link_to_contract = row.link_to_contract
+            link_to_tender = row.link_to_tender
             data_source = row.data_source
 
 
@@ -803,29 +803,36 @@ def store_in_temp_table(instance_id):
         new_importbatch = ImportBatch(import_type="XLS file", description="Import data of file : "+filename, country_id= country_id['id'], data_import_id=data_import_id)
         new_importbatch.save()
         importbatch_id = new_importbatch.id
-        procurement_procedure_option = ['Open','Limited','Selective','Direct']
-        contract_status_option = ['Active','Cancelled','Completed']
+        procurement_procedure_option = ['Open','open','Limited','limited','Selective','selective','Direct','direct']
+        contract_status_option = ['Active','active','Cancelled','cancelled','Completed','complete','completed','Terminated','terminated']
         i = 0
 
         while (i <= len(ws)):
-            procurement_procedure_value = ws['Procurement procedure'][i]
-            contract_status_value = ws['Contract Status'][i]
+            procurement_procedure_value = ws['Procurement procedure code'][i].strip().lower()
+            contract_status_value = ws['Contract Status Code'][i].strip().lower()
+            print(procurement_procedure_value)
+            print(contract_status_value)
+
             if contract_status_value in contract_status_option:
-                contract_status_value = snakecase(contract_status_value)
-            
-            elif(contract_status_value == 'Canceled'):
-                contract_status_value = 'cancelled'
-
+                contract_status_lowered_value = contract_status_value.lower()
+                if contract_status_lowered_value == 'terminated':
+                    contract_status_lowered_value = 'completed'
+                if contract_status_lowered_value == 'complete':
+                    contract_status_lowered_value = 'completed'
             else:
-                contract_status_value = 'not_identified'
+                contract_status_lowered_value = 'not_identified'
 
+            if procurement_procedure_value in procurement_procedure_option:
+                procurement_procedure__lowered_value = procurement_procedure_value.lower()
+            else:
+                procurement_procedure__lowered_value = 'not_identified'
             try:
                 nulled = pd.isnull(ws['Contract value'][i])
                 if not nulled:
                     new_tempdata = TempDataImportTable(
                                                     contract_id = ws['Contract ID'][i],
                                                     contract_date= ws['Contract date (yyyy-mm-dd)'][i].date(),
-                                                    procurement_procedure= snakecase(procurement_procedure_value) if  procurement_procedure_value in procurement_procedure_option else 'not_identified',
+                                                    procurement_procedure= procurement_procedure__lowered_value,
                                                     procurement_process= ws['Procurement procedure code'][i],
                                                     goods_services=ws['Goods/Services'][i],
                                                     cpv_code_clear=ws['Classification Code (CPV or other)'][i],
@@ -843,7 +850,7 @@ def store_in_temp_table(instance_id):
                                                     supplier=ws['Supplier'][i],
                                                     supplier_id=ws['Supplier ID'][i],
                                                     supplier_address=ws['Supplier address'][i],
-                                                    contract_status=contract_status_value,
+                                                    contract_status=contract_status_lowered_value,
                                                     contract_status_code=ws['Contract Status Code'][i],
                                                     link_to_contract=ws['Link to the contract'][i],
                                                     link_to_tender=ws['Link to the tender'][i],
@@ -857,3 +864,5 @@ def store_in_temp_table(instance_id):
             i = i+1
     except Exception as e:
         print(e)
+
+
