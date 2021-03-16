@@ -311,6 +311,15 @@ class StaticPage(Page):
     
     language =  models.ForeignKey(Language, on_delete=models.CASCADE,blank=False, null=False)
     body = RichTextField()
+    PAGE_TYPE_OPTIONS = (
+        ( 'static_page','Static Page'),
+        ( 'methodology', 'Methodology'),
+    )
+    static_content_type =models.CharField('Content Type',
+        max_length=100,
+        choices=PAGE_TYPE_OPTIONS,
+        blank=False,null=True,
+    )
     BOOLEAN_OPTIONS = (
         ( 'Yes','Yes'),
         ( 'No', 'No'),
@@ -335,6 +344,7 @@ class StaticPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel('slug'),
         FieldPanel('body'),
+        FieldPanel('static_content_type'),
         FieldPanel('language'),
         FieldPanel('country'),
         FieldPanel('show_in_header_menu'),
@@ -347,6 +357,7 @@ class StaticPage(Page):
     api_fields = [
         APIField('slug'),
         APIField('rendered_body'),
+        APIField('static_content_type'),
         APIField('language'),
         APIField('country'),
         APIField('show_in_header_menu'),
