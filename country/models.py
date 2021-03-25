@@ -92,12 +92,12 @@ class CurrencyConversionCache(models.Model):
 
 class SupplierManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().annotate(amount_local=Sum('tenders__goods_services__contract_value_local'),amount_usd=Sum('tenders__goods_services__contract_value_usd'),country_name=F('tenders__country__name'),red_flag_count=Count('tenders__red_flag',distinct=True),product_category_count=Count('tenders__goods_services__goods_services_category', distinct=True),tender_count=Count('tenders__id',distinct=True),buyer_count=Count('tenders__buyer_id',filter=Q(tenders__buyer_id__isnull=False),distinct=True))
+        return super().get_queryset().annotate(amount_local=Sum('tenders__goods_services__contract_value_local',distinct=True),amount_usd=Sum('tenders__goods_services__contract_value_usd',distinct=True),country_name=F('tenders__country__name'),red_flag_count=Count('tenders__red_flag',distinct=True),product_category_count=Count('tenders__goods_services__goods_services_category', distinct=True),tender_count=Count('tenders__id',distinct=True),buyer_count=Count('tenders__buyer_id',filter=Q(tenders__buyer_id__isnull=False),distinct=True))
 
 
 class BuyerManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().annotate(amount_local=Sum('tenders__goods_services__contract_value_local'),amount_usd=Sum('tenders__goods_services__contract_value_usd'),country_name=F('tenders__country__name'),red_flag_count=Count('tenders__red_flag',distinct=True),product_category_count=Count('tenders__goods_services__goods_services_category', distinct=True),tender_count=Count('tenders__id',distinct=True),supplier_count=Count('tenders__supplier_id',filter=Q(tenders__supplier_id__isnull=False),distinct=True))
+        return super().get_queryset().annotate(amount_local=Sum('tenders__goods_services__contract_value_local',distinct=True),amount_usd=Sum('tenders__goods_services__contract_value_usd',distinct=True),country_name=F('tenders__country__name'),red_flag_count=Count('tenders__red_flag',distinct=True),product_category_count=Count('tenders__goods_services__goods_services_category', distinct=True),tender_count=Count('tenders__id',distinct=True),supplier_count=Count('tenders__supplier_id',filter=Q(tenders__supplier_id__isnull=False),distinct=True))
 
 class TenderManager(models.Manager):
     def get_queryset(self):
@@ -137,6 +137,7 @@ class RedFlag(models.Model):
     title = models.CharField(verbose_name=_('Red Flag Title'), max_length=250, null=True, blank=True,db_index=True)
     description = models.CharField(verbose_name=_('Description'), max_length=300, null=True, blank=True,db_index=True)
     function_name = models.CharField(verbose_name=_('Function Name'), max_length=300, null=True, blank=True,db_index=True)
+    implemented = models.BooleanField(null=True, blank=True, default=False)
 
     def __str__(self):
         return self.title

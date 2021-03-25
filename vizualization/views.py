@@ -1354,7 +1354,7 @@ class FilterParametersStatic(APIView):
         countries = Country.objects.values('id','country_code','name')
         products = GoodsServicesCategory.objects.values('id','category_name')
         equities = EquityCategory.objects.values('id','category_name')
-        red_flags = RedFlag.objects.values('id','title')
+        red_flags = RedFlag.objects.filter(implemented=True).values('id','title')
         result_country =[]
         result_product =[]
         result_equity = []
@@ -1415,6 +1415,10 @@ class FilterParametersStatic(APIView):
                 {
                     "label": "Selective",
                     "value": "selective"
+                }, 
+                {
+                    "label": "Not Identified",
+                    "value": "not_identified"
                 }
                 ]
         result["status"]= [
@@ -1433,6 +1437,10 @@ class FilterParametersStatic(APIView):
                 {
                     "label": "Other",
                     "value": "other"
+                },
+                {
+                    "label": "Not Identified",
+                    "value": "not_identified"
                 }
                 ]
         result['country'] = result_country
@@ -1444,24 +1452,45 @@ class FilterParametersStatic(APIView):
 
 class ProductSpendingComparision(APIView):
     def get(self,request):
-        amount_usd_local =  Tender.objects.annotate(month=TruncMonth('contract_date')).values('country__country_code','country__currency','month','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_usd')).order_by('-month')
-        count =  Tender.objects.annotate(month=TruncMonth('contract_date')).values('country__country_code','country__currency','month','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(count=Count('id')).order_by('-month')
-        # import ipdb; ipdb.set_trace()
-        result = [
-            {
-                "amount_local": i['local'],
-                "amount_usd": i['usd'],
-                "country_code": i['country__country_code'],
-                "currency": i['country__currency'],
-                "month": i['month'].strftime("%Y-%m"),
-                "product_id": i['goods_services__goods_services_category__id'],
-                "product_name": i['goods_services__goods_services_category__category_name']
-            }
-            for i in amount_usd_local
-        ] 
-        for i in range(len(count)):
-            result[i]['tender_count'] = count[i]['count']
-        return JsonResponse(result,safe=False)
+        filter_args = {}
+        product =  self.request.GET.get('product',None)
+        if product:
+            filter_args['goods_services__goods_services_category__id'] = product
+            amount_usd_local =  Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('country__country_code','country__currency','month','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_usd')).order_by('-month')
+            count =  Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('country__country_code','country__currency','month','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(count=Count('id')).order_by('-month')
+            result = [
+                {
+                    "amount_local": i['local'],
+                    "amount_usd": i['usd'],
+                    "country_code": i['country__country_code'],
+                    "currency": i['country__currency'],
+                    "month": i['month'].strftime("%Y-%m"),
+                    "product_id": i['goods_services__goods_services_category__id'],
+                    "product_name": i['goods_services__goods_services_category__category_name']
+                }
+                for i in amount_usd_local
+            ] 
+            for i in range(len(count)):
+                result[i]['tender_count'] = count[i]['count']
+            return JsonResponse(result,safe=False)
+        else:
+            amount_usd_local =  Tender.objects.annotate(month=TruncMonth('contract_date')).values('country__country_code','country__currency','month','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(usd=Sum('goods_services__contract_value_usd'),local=Sum('goods_services__contract_value_usd')).order_by('-month')
+            count =  Tender.objects.annotate(month=TruncMonth('contract_date')).values('country__country_code','country__currency','month','goods_services__goods_services_category__id','goods_services__goods_services_category__category_name').annotate(count=Count('id')).order_by('-month')
+            result = [
+                {
+                    "amount_local": i['local'],
+                    "amount_usd": i['usd'],
+                    "country_code": i['country__country_code'],
+                    "currency": i['country__currency'],
+                    "month": i['month'].strftime("%Y-%m"),
+                    "product_id": i['goods_services__goods_services_category__id'],
+                    "product_name": i['goods_services__goods_services_category__category_name']
+                }
+                for i in amount_usd_local
+            ] 
+            for i in range(len(count)):
+                result[i]['tender_count'] = count[i]['count']
+            return JsonResponse(result,safe=False)
 
 
 class SlugBlogShow(APIView):
@@ -1663,7 +1692,7 @@ class ContractRedFlagsView(APIView):
         if supplier: filter_args = add_filter_args('supplier',supplier,filter_args)
         if buyer: filter_args = add_filter_args('buyer',buyer,filter_args)
         if product: filter_args['goods_services__goods_services_category__id'] = product
-        red_flags = RedFlag.objects.all()
+        red_flags = RedFlag.objects.filter(implemented=True)
         value=[]
         result={"result":value}
         for red_flag in red_flags:
@@ -1683,16 +1712,17 @@ class RedFlagSummaryView(APIView):
         if country: filter_args['country__country_code_alpha_2'] = country
         filter_args['red_flag__isnull']=False
         result=[]
-        equity_summary = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month','red_flag','red_flag__title').annotate(total=Count('id'),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd')).order_by("-month")
+        equity_summary = Tender.objects.filter(**filter_args).annotate(month=TruncMonth('contract_date')).values('month','red_flag','red_flag__title','red_flag__implemented').annotate(total=Count('id'),local=Sum('goods_services__contract_value_local'),usd=Sum('goods_services__contract_value_usd')).order_by("-month")
         for detail in equity_summary:
-            data={}
-            data['amount_local'] = detail['local']
-            data['amount_usd'] = detail['usd']
-            data['red_flag'] = detail['red_flag__title']
-            data['red_flag_id'] = detail['red_flag']
-            data['month'] = detail['month']
-            data['tender_count'] = detail['total']
-            result.append(data)
+            if detail['red_flag__implemented']:
+                data={}
+                data['amount_local'] = detail['local']
+                data['amount_usd'] = detail['usd']
+                data['red_flag'] = detail['red_flag__title']
+                data['red_flag_id'] = detail['red_flag']
+                data['month'] = detail['month']
+                data['tender_count'] = detail['total']
+                result.append(data)
         return JsonResponse(result,safe=False)
 
 class UpcomingEventView(APIView):

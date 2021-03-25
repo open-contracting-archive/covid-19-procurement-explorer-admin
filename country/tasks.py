@@ -585,7 +585,7 @@ def import_tender_from_batch_id(batch_id,country,currency):
             # Get or Create Tender Contract
             if contract_id:
                 contract_id = str(contract_id).strip()
-                tender_obj = Tender.objects.filter(contract_id=contract_id).first()
+                tender_obj = Tender.objects.filter(contract_id=contract_id,contract_date=contract_date,buyer=buyer_obj).first()
                 if not tender_obj:
                     tender_obj = Tender(
                         country=country_obj,

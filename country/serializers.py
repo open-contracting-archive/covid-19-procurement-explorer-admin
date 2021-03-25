@@ -378,28 +378,36 @@ class TenderSerializer(serializers.ModelSerializer):
         result = 0
         try:
             result  = obj.goods_services.aggregate(tender_value_local=Sum('tender_value_local'))['tender_value_local']
+            return result
         except:
+            result = 0
             return result
 
     def get_tender_usd(self,obj):
         result = 0
         try:
             result  = obj.goods_services.aggregate(tender_value_usd=Sum('tender_value_usd'))['tender_value_usd']
+            return result
         except:
+            result = 0
             return result
 
     def get_award_local(self,obj):
         result = 0
         try:
             result  = obj.goods_services.aggregate(award_value_local=Sum('award_value_local'))['award_value_local']
+            return result
         except:
+            result = 0
             return result
 
     def get_award_usd(self,obj):
         result = 0
         try:
             result  = obj.goods_services.aggregate(award_value_usd=Sum('award_value_usd'))['award_value_usd']
+            return result
         except:
+            result = 0
             return result
 
     def get_equity_category(self,obj):

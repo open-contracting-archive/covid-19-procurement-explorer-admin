@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         print('Converting!!!!!!!!')
-        tenders= Tender.objects.all()
+        tenders= Tender.objects.filter(link_to_contract='not_identified')
 
         for tender in tenders:
             print(tender.contract_id)
@@ -19,6 +19,9 @@ class Command(BaseCommand):
             if temp_datas:
                 temp_value = temp_datas[0].procurement_process
                 contract_status = temp_datas[0].contract_status
+                link_to_contract = temp_datas[0].link_to_contract
+                if tender.link_to_contract == 'not_identified':
+                    tender.link_to_contract = link_to_contract
                 if contract_status == 'not_identified':
                     contract_status_code = temp_datas[0].contract_status_code
                     if contract_status_code in ['Cancelled','Terminated','terminated']:
@@ -33,6 +36,8 @@ class Command(BaseCommand):
                     temp_value ='limited'
                 elif temp_value in ['Selective','selective']:
                     temp_value = 'selective'
+                elif temp_value in ['Open','open']:
+                    temp_value = 'open'
                 else:
                     temp_value = 'not_identified'
                 tender.procurement_procedure = temp_value
