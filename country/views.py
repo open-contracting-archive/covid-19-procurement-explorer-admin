@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from country.models import ImportBatch
+from country.tasks import store_in_temp_table
 from vizualization.views import add_filter_args
 
 from .models import Buyer, Country, Language, OverallSummary, Supplier, Tender
@@ -36,6 +37,7 @@ class CountryView(viewsets.ModelViewSet):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
     lookup_field = "slug"
+    extensions_auto_optimize = True
 
     def get_queryset(self):
         queryset = Country.objects.all()
@@ -54,6 +56,7 @@ class LanguageView(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     queryset = Language.objects.all()
     serializer_class = LanguageSerializer
+    extensions_auto_optimize = True
 
 
 class TenderView(viewsets.ModelViewSet):
@@ -75,6 +78,7 @@ class TenderView(viewsets.ModelViewSet):
     filterset_fields = {
         "country__country_code_alpha_2": ["exact"],
     }
+    extensions_auto_optimize = True
 
     def get_queryset(self):
         country = self.request.GET.get("country", None)
@@ -139,6 +143,7 @@ class BuyerView(viewsets.ModelViewSet):
         "amount_local",
     ]
     ordering = ["-id"]
+    extensions_auto_optimize = True
 
     def retrieve(self, request, *args, **kwargs):
         # do your customization here
@@ -187,6 +192,7 @@ class SupplierView(viewsets.ModelViewSet):
         "amount_local",
     ]
     ordering = ["-id"]
+    extensions_auto_optimize = True
 
     def retrieve(self, request, *args, **kwargs):
         # do your customization here
@@ -225,6 +231,7 @@ class OverallStatSummaryView(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     queryset = OverallSummary.objects.all()
     serializer_class = OverallStatSummarySerializer
+    extensions_auto_optimize = True
 
 
 class DataImportView(APIView):
@@ -266,3 +273,21 @@ class DataEditView(APIView):
         data_import_id = self.request.GET.get("data_import_id", None)
 
         return HttpResponseRedirect("/admin/country/tempdataimporttable/?import_batch__id__exact=" + data_import_id)
+
+
+class DataValidateView(APIView):
+    def get(self, request):
+        instance_id = self.request.GET.get("data_import_id", None)
+        if instance_id is not None:
+            try:
+                store_in_temp_table.apply_async(args=(instance_id,), queue="covid19")
+                messages.info(request, "Validation is in progress!! Please wait for a while")
+                return HttpResponseRedirect("/admin/content/dataimport")
+
+            except:
+                messages.error(request, "Your import has failed!")
+                return HttpResponseRedirect("/admin/content/dataimport")
+        else:
+            # messages.error(request, 'Your import failed because it only supports .xlsx and .xls file!')
+            messages.error(request, "Your import failed !!")
+            return HttpResponseRedirect("/admin/content/dataimport")
