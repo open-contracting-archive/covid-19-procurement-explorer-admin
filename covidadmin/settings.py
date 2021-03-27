@@ -14,6 +14,8 @@ import os
 from pathlib import Path
 
 import environ
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 environ.Env.read_env()
 env = environ.Env(
@@ -24,9 +26,6 @@ env = environ.Env(
     FETCH_COVID_DATA_INTERVAL=(int, 10800),
 )
 
-
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 
 sentry_sdk.init(
     dsn=env("SENTRY_DSN"),
