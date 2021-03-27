@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from django.db.models import Avg, Count, Min, Sum, Count,Window
-from .models import Country, Language, Tender, Supplier, Buyer, RedFlag
+from .models import Country, Language, Tender, Supplier, Buyer, RedFlag, OverallSummary
 
 
 class ChoiceField(serializers.ChoiceField):
@@ -369,7 +369,7 @@ class TenderSerializer(serializers.ModelSerializer):
 
     def get_bidders_no(self,obj):
         try:
-            result =  obj.goods_services.aggregate(bidders=Sum('no_of_bidders'))['bidders']
+            result =  obj.no_of_bidders
             return result 
         except:
             return 0
@@ -378,28 +378,36 @@ class TenderSerializer(serializers.ModelSerializer):
         result = 0
         try:
             result  = obj.goods_services.aggregate(tender_value_local=Sum('tender_value_local'))['tender_value_local']
+            return result
         except:
+            result = 0
             return result
 
     def get_tender_usd(self,obj):
         result = 0
         try:
             result  = obj.goods_services.aggregate(tender_value_usd=Sum('tender_value_usd'))['tender_value_usd']
+            return result
         except:
+            result = 0
             return result
 
     def get_award_local(self,obj):
         result = 0
         try:
             result  = obj.goods_services.aggregate(award_value_local=Sum('award_value_local'))['award_value_local']
+            return result
         except:
+            result = 0
             return result
 
     def get_award_usd(self,obj):
         result = 0
         try:
             result  = obj.goods_services.aggregate(award_value_usd=Sum('award_value_usd'))['award_value_usd']
+            return result
         except:
+            result = 0
             return result
 
     def get_equity_category(self,obj):
@@ -438,3 +446,9 @@ class TenderSerializer(serializers.ModelSerializer):
         return obj.buyer.buyer_id
 
 
+class OverallStatSummarySerializer(serializers.ModelSerializer):
+    country = CountrySerializer(many=False, read_only=True)
+
+    class Meta:
+        model = OverallSummary
+        fields = '__all__'

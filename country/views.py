@@ -9,8 +9,8 @@ from rest_framework.pagination import PageNumberPagination, LimitOffsetPaginatio
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Count, Min, Sum, Count,Window
-from .models import Country, Language, Tender,Supplier,Buyer
-from .serializers import CountrySerializer, LanguageSerializer, TenderSerializer ,SupplierSerializer,BuyerSerializer
+from .models import Country, Language, Tender,Supplier,Buyer,OverallSummary
+from .serializers import CountrySerializer, LanguageSerializer, TenderSerializer ,SupplierSerializer,BuyerSerializer,OverallStatSummarySerializer
 from vizualization.views import add_filter_args
 from django_filters import rest_framework as filters
 from django.contrib.postgres.search import SearchVector
@@ -177,6 +177,11 @@ class SupplierView(viewsets.ModelViewSet):
         return queryset
 
 
+class OverallStatSummaryView(viewsets.ModelViewSet):
+    pagination_class = PageNumberPagination
+    queryset = OverallSummary.objects.all()
+    serializer_class = OverallStatSummarySerializer
+
 class DataImportView(APIView):
     def get(self,request):
         country =  self.request.GET.get('country',None)
@@ -210,3 +215,8 @@ class DataImportView(APIView):
             
             return HttpResponseRedirect('/admin/content/dataimport')
 
+class DataEditView(APIView):
+    def get(self,request):
+        data_import_id =  self.request.GET.get('data_import_id',None)
+        
+        return HttpResponseRedirect('/admin/country/tempdataimporttable/?import_batch__id__exact='+data_import_id)

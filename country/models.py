@@ -92,19 +92,19 @@ class CurrencyConversionCache(models.Model):
 
 class SupplierManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().annotate(amount_local=Sum('tenders__goods_services__contract_value_local'),amount_usd=Sum('tenders__goods_services__contract_value_usd'),country_name=F('tenders__country__name'),red_flag_count=Count('tenders__red_flag',distinct=True),product_category_count=Count('tenders__goods_services__goods_services_category', distinct=True),tender_count=Count('tenders__id',distinct=True),buyer_count=Count('tenders__buyer_id',filter=Q(tenders__buyer_id__isnull=False),distinct=True))
+        return super().get_queryset().annotate(amount_local=Sum('tenders__goods_services__contract_value_local',distinct=True),amount_usd=Sum('tenders__goods_services__contract_value_usd',distinct=True),country_name=F('tenders__country__name'),red_flag_count=Count('tenders__red_flag',distinct=True),product_category_count=Count('tenders__goods_services__goods_services_category', distinct=True),tender_count=Count('tenders__id',distinct=True),buyer_count=Count('tenders__buyer_id',filter=Q(tenders__buyer_id__isnull=False),distinct=True))
 
 
 class BuyerManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().annotate(amount_local=Sum('tenders__goods_services__contract_value_local'),amount_usd=Sum('tenders__goods_services__contract_value_usd'),country_name=F('tenders__country__name'),red_flag_count=Count('tenders__red_flag',distinct=True),product_category_count=Count('tenders__goods_services__goods_services_category', distinct=True),tender_count=Count('tenders__id',distinct=True),supplier_count=Count('tenders__supplier_id',filter=Q(tenders__supplier_id__isnull=False),distinct=True))
+        return super().get_queryset().annotate(amount_local=Sum('tenders__goods_services__contract_value_local',distinct=True),amount_usd=Sum('tenders__goods_services__contract_value_usd',distinct=True),country_name=F('tenders__country__name'),red_flag_count=Count('tenders__red_flag',distinct=True),product_category_count=Count('tenders__goods_services__goods_services_category', distinct=True),tender_count=Count('tenders__id',distinct=True),supplier_count=Count('tenders__supplier_id',filter=Q(tenders__supplier_id__isnull=False),distinct=True))
 
 class TenderManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().annotate(amount_local=Sum('goods_services__contract_value_local'),amount_usd=Sum('goods_services__contract_value_usd'),red_flag_count=Count('red_flag'),tender_count=Count('id',distinct=True))
 
 class Supplier(models.Model):
-    supplier_id = models.CharField(verbose_name=_('Supplier ID'), max_length=50, null=False, unique=True)
+    supplier_id = models.CharField(verbose_name=_('Supplier ID'), max_length=50, null=True)
     supplier_name = models.CharField(verbose_name=_('Supplier name'), max_length=250, null=True, blank=True,db_index=True)
     supplier_address = models.CharField(verbose_name=_('Supplier address'), max_length=250, null=True, blank=True)
     objects = SupplierManager()
@@ -114,7 +114,7 @@ class Supplier(models.Model):
 
 
 class Buyer(models.Model):
-    buyer_id = models.CharField(verbose_name=_('Buyer ID'), max_length=50, null=False, unique=True)
+    buyer_id = models.CharField(verbose_name=_('Buyer ID'), max_length=50, null=True)
     buyer_name = models.CharField(verbose_name=_('Buyer name'), max_length=250, null=True, blank=True,db_index=True)
     buyer_address = models.CharField(verbose_name=_('Buyer address'), max_length=250, null=True, blank=True)
     objects = BuyerManager()
@@ -137,6 +137,7 @@ class RedFlag(models.Model):
     title = models.CharField(verbose_name=_('Red Flag Title'), max_length=250, null=True, blank=True,db_index=True)
     description = models.CharField(verbose_name=_('Description'), max_length=300, null=True, blank=True,db_index=True)
     function_name = models.CharField(verbose_name=_('Function Name'), max_length=300, null=True, blank=True,db_index=True)
+    implemented = models.BooleanField(null=True, blank=True, default=False)
 
     def __str__(self):
         return self.title
@@ -201,6 +202,9 @@ class GoodsServices(models.Model):
     contract_title = models.TextField(verbose_name=_('Contract title'), null=True, blank=True)
     contract_desc = models.TextField(verbose_name=_('Contract description'), null=True, blank=True)
 
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='goods_services', null=True, blank=True)
+    buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name='goods_services', null=True, blank=True)
+
     tender_value_local = models.FloatField(verbose_name=_('Tender value local'), null=True, blank=True)
     tender_value_usd = models.FloatField(verbose_name=_('Tender value USD'),null=True, blank=True)
     award_value_local = models.FloatField(verbose_name=_('Award value local'), null=True, blank=True)
@@ -231,6 +235,8 @@ class ImportBatch(models.Model):
     import_type=models.CharField(verbose_name= ('Import Type'), max_length=150, null=False)
     description=models.CharField(verbose_name= ('Description'), max_length=500, null=False)
     data_import_id = models.IntegerField(null=True)
+    def __str__(self):
+        return f'Import batch id: {str(self.id)}'
 
 class TempDataImportTable(models.Model):
     import_batch = models.ForeignKey(ImportBatch, on_delete=models.CASCADE, related_name='import_batch',null=True)
@@ -260,6 +266,8 @@ class TempDataImportTable(models.Model):
     link_to_tender = models.CharField(verbose_name= ('Link to Tender'), max_length=1500, null=True)
     data_source = models.CharField(verbose_name= ('Data Source'), max_length=1500, null=True)
 
+    def __str__(self):
+        return self.contract_id
 
 class DataProvider(models.Model):
     alphaSpaces = RegexValidator(r'^[a-zA-Z ]+$', 'Only letters and spaces are allowed in the Country Name')
@@ -274,3 +282,14 @@ class DataProvider(models.Model):
 
     def __str__(self):
         return self.name
+
+
+
+class OverallSummary(models.Model):
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='overall_summary')
+    statistic = models.JSONField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.statistic

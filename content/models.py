@@ -138,9 +138,16 @@ class EventsPage(Page):
         max_length=100,
     )
 
+    organisation = models.CharField(
+        max_length=200,
+        null=True,
+        blank=True
+    )
+
     content_panels = Page.content_panels + [
     ImageChooserPanel('event_image'),
     FieldPanel('description'),
+    FieldPanel('organisation'),
     FieldPanel('event_date'),
     FieldPanel('time_from'),
     FieldPanel('time_to'),
@@ -150,6 +157,7 @@ class EventsPage(Page):
     api_fields = [
         APIField('event_image'),
         APIField('rendered_description'),
+        APIField('organisation'),
         APIField('event_date'),
         APIField('time_from'),
         APIField('time_to'),
@@ -261,13 +269,14 @@ class DataImport(Page):
     
     subpage_types = []
     
-    description = models.TextField(verbose_name=_('Description'), null=False, unique=True, max_length=500000)
+    description = models.TextField(verbose_name=_('Description'), null=False, max_length=500000)
 
     import_file = models.FileField(null=True,
         blank=False,upload_to="documents", validators=[validate_file_extension])
 
     country =  models.ForeignKey(Country, on_delete=models.CASCADE,blank=False, null=False)
-    validated = models.BooleanField(null=False, blank=True, default=False) 
+    validated = models.BooleanField(null=False, blank=True, default=False)
+    no_of_rows = models.CharField(verbose_name=_('No of rows'), null=True, max_length=10, default=0)
     imported = models.BooleanField(null=False, blank=True, default=False)  
 
     content_panels = Page.content_panels + [
@@ -285,6 +294,10 @@ class DataImport(Page):
     promote_panels = []
     preview_modes = []
 
+    def clean(self):
+        super().clean()
+        self.slug = ""
+
     class Meta:  # noqa
         verbose_name = "Data Imports"
         verbose_name_plural = "Data Imports"
@@ -298,6 +311,15 @@ class StaticPage(Page):
     
     language =  models.ForeignKey(Language, on_delete=models.CASCADE,blank=False, null=False)
     body = RichTextField()
+    PAGE_TYPE_OPTIONS = (
+        ( 'static_page','Static Page'),
+        ( 'methodology', 'Methodology'),
+    )
+    static_content_type =models.CharField('Content Type',
+        max_length=100,
+        choices=PAGE_TYPE_OPTIONS,
+        blank=False,null=True,
+    )
     BOOLEAN_OPTIONS = (
         ( 'Yes','Yes'),
         ( 'No', 'No'),
@@ -307,6 +329,10 @@ class StaticPage(Page):
         choices=BOOLEAN_OPTIONS,
         blank=False,null=False, default= 'No'
     )
+    country =  models.ForeignKey(Country,null=True,
+        blank=False,
+        on_delete=models.SET_NULL, default=1,
+        related_name='+')
     show_in_footer_menu = models.CharField(
         max_length=20,
         choices=BOOLEAN_OPTIONS,
@@ -318,7 +344,9 @@ class StaticPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel('slug'),
         FieldPanel('body'),
+        FieldPanel('static_content_type'),
         FieldPanel('language'),
+        FieldPanel('country'),
         FieldPanel('show_in_header_menu'),
         FieldPanel('show_in_footer_menu'),
     ]
@@ -329,7 +357,9 @@ class StaticPage(Page):
     api_fields = [
         APIField('slug'),
         APIField('rendered_body'),
+        APIField('static_content_type'),
         APIField('language'),
+        APIField('country'),
         APIField('show_in_header_menu'),
         APIField('show_in_footer_menu'),
     ]
@@ -357,63 +387,4 @@ class CountryPartner(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super(CountryPartner, self).save(*args, **kwargs)
-
-
-@receiver(post_save, sender=DataImport)
-def check_column_available(sender,created ,instance, *args, **kwargs):
-    if created:
-        filename= instance.import_file.name
-        valid_columns =valid_columns =['Contract ID','Procurement procedure code','Classification Code (CPV or other)', 'Quantity, units', 'Price per unit, including VAT', 'Tender value', 'Award value','Contract value','Contract title','Contract description','Number of bidders','Buyer','Buyer ID','Buyer address (as an object)','Supplier','Supplier ID','Supplier address','Contract Status','Contract Status Code','Link to the contract','Link to the tender','Data source']
-        file_path = settings.MEDIA_ROOT+'/'+str(filename)
-        ws = pd.read_excel(file_path,sheet_name='data',header=0)
-        if set(valid_columns).issubset(ws.columns):
-            instance.validated = True
-            instance.save()
-
-@receiver(post_save, sender=DataImport)
-def store_in_temp_table(sender,created, instance, *args, **kwargs):
-    if created:
-        filename= instance.import_file.name
-        file_path = settings.MEDIA_ROOT+'/'+str(filename)
-        try:
-            data_import_id = instance.id
-            ws = pd.read_excel(file_path,sheet_name='data',header=0)
-            country_id = Country.objects.filter(name = instance.country).values('id').get()
-            new_importbatch = ImportBatch(import_type="XLS file", description="Import data of file : "+filename, country_id= country_id['id'], data_import_id=data_import_id)
-            new_importbatch.save()
-            importbatch_id = new_importbatch.id
-            i = 0
-            for row in ws.iterrows():
-                new_tempdata = TempDataImportTable(contract_id = ws['Contract ID'][i],
-                                                    contract_date= ws['Contract date (yyyy-mm-dd)'][i],
-                                                    procurement_procedure= ws['Procurement procedure'][i],
-                                                    procurement_process= ws['Procurement procedure code'][i],
-                                                    goods_services=ws['Goods/Services'][i],
-                                                    cpv_code_clear=ws['Classification Code (CPV or other)'][i],
-                                                    quantity_units=ws['Quantity, units'][i],
-                                                    ppu_including_vat=ws['Price per unit, including VAT'][i],
-                                                    tender_value=ws['Tender value'][i],
-                                                    award_value=ws['Award value'][i],
-                                                    contract_value=ws['Contract value'][i],
-                                                    contract_title=ws['Contract title'][i],
-                                                    contract_description=ws['Contract description'][i],
-                                                    no_of_bidders=ws['Number of bidders'][i],
-                                                    buyer=ws['Buyer'][i],
-                                                    buyer_id=ws['Buyer ID'][i],
-                                                    buyer_address_as_an_object=ws['Buyer address (as an object)'][i],
-                                                    supplier=ws['Supplier'][i],
-                                                    supplier_id=ws['Supplier ID'][i],
-                                                    supplier_address=ws['Supplier address'][i],
-                                                    contract_status=ws['Contract Status'][i],
-                                                    contract_status_code=ws['Contract Status Code'][i],
-                                                    link_to_contract=ws['Link to the contract'][i],
-                                                    link_to_tender=ws['Link to the tender'][i],
-                                                    data_source=ws['Data source'][i],
-                                                    import_batch_id=importbatch_id
-                                                    )
-                new_tempdata.save()
-                i = i+1
-        except Exception as e:
-            print(e)
-
 
