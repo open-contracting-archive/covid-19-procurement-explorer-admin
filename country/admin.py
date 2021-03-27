@@ -60,9 +60,9 @@ class DataImportAdmin(admin.ModelAdmin):
         title = self.validated
 
         if title:
-            return format_html(f"""<img src="/static/admin/img/icon-yes.svg" alt="True">""")
+            return format_html("""<img src="/static/admin/img/icon-yes.svg" alt="True">""")
         else:
-            return format_html(f"""<img src="/static/admin/img/icon-no.svg" alt="False">""")
+            return format_html("""<img src="/static/admin/img/icon-no.svg" alt="False">""")
 
     custom_title.short_description = "Format validation"
 
