@@ -1083,7 +1083,7 @@ def country_contract_excel(country):
                         columns = 0
                         for key, value in data.items():
                             value = value if value else " "
-                            if value == None:
+                            if value is None:
                                 value = ""
                             worksheet.write(row, columns, value)
                             columns += 1
@@ -1236,7 +1236,7 @@ def country_contract_excel(country):
                     columns = 0
                     for key, value in data.items():
                         value = value if value else " "
-                        if value == None:
+                        if value is None:
                             value = ""
                         worksheet.write(row, columns, value)
                         columns += 1

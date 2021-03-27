@@ -285,11 +285,11 @@ class GlobalOverView(APIView):
                 b["country"] = j.name
                 b["country_code"] = j.country_code_alpha_2
                 b["country_continent"] = j.continent
-                if tender["goods_services__contract_value_usd__sum"] == None:
+                if tender["goods_services__contract_value_usd__sum"] is None:
                     tender_val = 0
                 else:
                     tender_val = tender["goods_services__contract_value_usd__sum"]
-                if tender_count == None:
+                if tender_count is None:
                     contract_val = 0
                 else:
                     contract_val = tender_count
@@ -938,7 +938,7 @@ class CountryMapView(APIView):
         except Exception as DoesNotExist:
             final = {"result": "Invalid Alpha Code"}
             return JsonResponse(final)
-        if country != None and country_instance != None:
+        if country is not None and country_instance is not None:
             tender_instance = Tender.objects.filter(country__country_code_alpha_2=country).aggregate(
                 total_usd=Sum("goods_services__contract_value_usd"),
                 total_local=Sum("goods_services__contract_value_local"),
@@ -2180,11 +2180,11 @@ class BuyerTrendView(APIView):
                 b["country_code"] = j.country_code_alpha_2
                 b["country_continent"] = j.continent
                 buyer_count = tender["total_buyer_count"]
-                if tender["amount_usd"] == None:
+                if tender["amount_usd"] is None:
                     tender_val = 0
                 else:
                     tender_val = tender["amount_usd"]
-                if buyer_count == None:
+                if buyer_count is None:
                     buyer_val = 0
                 else:
                     buyer_val = buyer_count
@@ -2244,11 +2244,11 @@ class SupplierTrendView(APIView):
                 b["country_code"] = j.country_code_alpha_2
                 b["country_continent"] = j.continent
                 supplier_count = tender["total_supplier_count"]
-                if tender["amount_usd"] == None:
+                if tender["amount_usd"] is None:
                     tender_val = 0
                 else:
                     tender_val = tender["amount_usd"]
-                if supplier_count == None:
+                if supplier_count is None:
                     supplier_val = 0
                 else:
                     supplier_val = supplier_count
@@ -2310,11 +2310,11 @@ class DirectOpenContractTrendView(APIView):
                 b["country"] = j.name
                 b["country_code"] = j.country_code_alpha_2
                 b["country_continent"] = j.continent
-                if tender["goods_services__contract_value_usd__sum"] == None:
+                if tender["goods_services__contract_value_usd__sum"] is None:
                     tender_val = 0
                 else:
                     tender_val = tender["goods_services__contract_value_usd__sum"]
-                if tender_count == None:
+                if tender_count is None:
                     contract_val = 0
                 else:
                     contract_val = tender_count
