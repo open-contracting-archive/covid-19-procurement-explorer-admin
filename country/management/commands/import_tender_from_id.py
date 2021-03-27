@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+
 from country.models import Country
 from country.tasks import import_tender_from_batch_id
 

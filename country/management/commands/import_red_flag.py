@@ -1,11 +1,7 @@
 from django.core.management.base import BaseCommand
+
 from country.models import Tender
-from country.tasks import (
-    process_redflag,
-    clear_redflag,
-    process_redflag7,
-    process_redflag6,
-)
+from country.tasks import clear_redflag, process_redflag, process_redflag6, process_redflag7
 
 
 class Command(BaseCommand):

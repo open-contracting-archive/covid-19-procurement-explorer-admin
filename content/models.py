@@ -1,22 +1,23 @@
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from ckeditor.fields import RichTextField
 from django.core.validators import RegexValidator
+from django.db import models
 from django.template.defaultfilters import slugify
 from django.utils.timezone import now
+from django.utils.translation import ugettext_lazy as _
 from modelcluster.fields import ParentalKey
 from modelcluster.tags import ClusterTaggableManager
-
+from taggit.models import Tag as TaggitTag
+from taggit.models import TaggedItemBase
 from wagtail.admin.edit_handlers import FieldPanel
-from wagtail.images.edit_handlers import ImageChooserPanel
-from wagtail.documents.edit_handlers import DocumentChooserPanel
 from wagtail.api import APIField
-from ckeditor.fields import RichTextField
 from wagtail.core.models import Page
 from wagtail.core.templatetags import wagtailcore_tags
+from wagtail.documents.edit_handlers import DocumentChooserPanel
+from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.search import index
-from taggit.models import TaggedItemBase, Tag as TaggitTag
 
 from country.models import Country, Language, Topic
+
 from .validators import validate_file_extension
 
 

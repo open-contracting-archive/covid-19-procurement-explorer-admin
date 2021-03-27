@@ -1,6 +1,7 @@
-from rest_framework import serializers
 from django.db.models import Sum
-from .models import Country, Language, Tender, Supplier, Buyer, RedFlag, OverallSummary
+from rest_framework import serializers
+
+from .models import Buyer, Country, Language, OverallSummary, RedFlag, Supplier, Tender
 
 
 class ChoiceField(serializers.ChoiceField):

@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
-from country.models import GoodsServices
 from django.db.models import Q
+
+from country.models import GoodsServices
 from country.tasks import process_currency_conversion
 
 

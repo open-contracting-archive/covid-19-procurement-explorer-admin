@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
-from country.models import Tender, TempDataImportTable
+
+from country.models import TempDataImportTable, Tender
 
 
 class Command(BaseCommand):

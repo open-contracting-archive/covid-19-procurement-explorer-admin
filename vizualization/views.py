@@ -1,26 +1,26 @@
-from rest_framework.views import APIView
 import datetime
+import itertools
+from collections import defaultdict
+
 import dateutil.relativedelta
 from django.db.models import Count, Sum
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
-from collections import defaultdict
+from rest_framework.views import APIView
 
+from content.models import CountryPartner, EventsPage, InsightsPage, StaticPage
 from country.models import (
-    Tender,
+    Buyer,
     Country,
     CovidMonthlyActiveCases,
+    DataProvider,
+    EquityCategory,
     GoodsServices,
     GoodsServicesCategory,
-    Supplier,
-    Buyer,
-    EquityCategory,
     RedFlag,
+    Supplier,
+    Tender,
 )
-import itertools
-from country.models import Tender, Country, CovidMonthlyActiveCases, GoodsServices, DataProvider
-from content.models import CountryPartner, InsightsPage, StaticPage, EventsPage
-import itertools
 
 
 def add_filter_args(filter_type, filter_value, filter_args):

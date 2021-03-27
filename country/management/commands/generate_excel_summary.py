@@ -1,8 +1,10 @@
-from django.core.management.base import BaseCommand
-from country.models import Country, Tender, OverallSummary
-from django.db.models import Count, Sum, Q
-import xlsxwriter
 import socket
+
+import xlsxwriter
+from django.core.management.base import BaseCommand
+from django.db.models import Count, Q, Sum
+
+from country.models import Country, OverallSummary, Tender
 
 
 class Command(BaseCommand):

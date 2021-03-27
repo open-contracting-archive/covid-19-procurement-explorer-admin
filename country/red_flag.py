@@ -1,5 +1,6 @@
-from .models import Tender
 from django.db.models import Sum
+
+from .models import Tender
 
 
 class RedFlags:

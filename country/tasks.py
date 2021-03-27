@@ -1,35 +1,38 @@
-import requests
-from requests.exceptions import Timeout
-from django.conf import settings
+import math
+import os
+import sys
+import traceback
 from datetime import datetime
-from celery import Celery
+from pathlib import Path
+
+import dateutil.parser
 
 # from celery import shared_task
 import gspread
-import sys, traceback
 import pandas as pd
-import dateutil.parser
-import math
-from country.red_flag import RedFlags
-from django.db.models import Sum, Q
-from content.models import DataImport
+import requests
 import xlsxwriter
-import os
-from pathlib import Path
+from celery import Celery
+from django.conf import settings
+from django.db.models import Q, Sum
+from requests.exceptions import Timeout
+
+from content.models import DataImport
 from country.models import (
-    Country,
-    GoodsServicesCategory,
-    GoodsServices,
     Buyer,
-    Supplier,
-    Tender,
+    Country,
     CurrencyConversionCache,
-    EquityKeywords,
     EquityCategory,
-    RedFlag,
-    TempDataImportTable,
+    EquityKeywords,
+    GoodsServices,
+    GoodsServicesCategory,
     ImportBatch,
+    RedFlag,
+    Supplier,
+    TempDataImportTable,
+    Tender,
 )
+from country.red_flag import RedFlags
 
 app = Celery()
 

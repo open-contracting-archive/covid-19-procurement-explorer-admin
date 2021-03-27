@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
-from country.models import Country
 
+from country.models import Country
 from country.tasks import fetch_equity_data
 
 

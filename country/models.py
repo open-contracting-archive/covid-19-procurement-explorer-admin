@@ -1,9 +1,9 @@
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
-from django.template.defaultfilters import slugify
-from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.postgres.fields import ArrayField
-from django.db.models import Count, Sum, Q, F
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.db import models
+from django.db.models import Count, F, Q, Sum
+from django.template.defaultfilters import slugify
+from django.utils.translation import ugettext_lazy as _
 
 
 class Country(models.Model):

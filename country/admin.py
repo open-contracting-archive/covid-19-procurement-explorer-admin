@@ -1,18 +1,20 @@
 from django.contrib import admin
 from django.utils.html import format_html
+
+from content.models import CountryPartner, DataImport
+
 from .models import (
     Country,
-    Language,
-    Tender,
-    Supplier,
+    DataProvider,
     EquityCategory,
     EquityKeywords,
-    Topic,
-    DataProvider,
-    TempDataImportTable,
     ImportBatch,
+    Language,
+    Supplier,
+    TempDataImportTable,
+    Tender,
+    Topic,
 )
-from content.models import CountryPartner, DataImport
 
 
 class EquityInline(admin.TabularInline):
