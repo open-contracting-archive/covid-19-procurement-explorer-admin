@@ -10,7 +10,7 @@ class Command(BaseCommand):
         tenders = Tender.objects.all()
         for tender in tenders:
             id = tender.id
-            a = clear_redflag.apply_async(args=(id,), queue="covid19")
+            clear_redflag.apply_async(args=(id,), queue="covid19")
 
         print("All cleared !!")
         print("Processing Red Flag in tender !!")
@@ -20,8 +20,8 @@ class Command(BaseCommand):
         )
         for tender in tender_instance:
             id = tender["id"]
-            b = process_redflag7.apply_async(args=(id, tender), queue="covid19")
-            c = process_redflag6.apply_async(args=(id, tender), queue="covid19")
+            process_redflag7.apply_async(args=(id, tender), queue="covid19")
+            process_redflag6.apply_async(args=(id, tender), queue="covid19")
 
         for tender in tenders:
             id = tender.id
