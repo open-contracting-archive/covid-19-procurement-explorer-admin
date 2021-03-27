@@ -155,8 +155,6 @@ soupsieve==2.0.1
     # via beautifulsoup4
 sqlparse==0.4.1
     # via django
-stringcase==1.2.0
-    # via -r requirements.in
 tablib[xls,xlsx]==2.0.0
     # via wagtail
 tornado==6.1
