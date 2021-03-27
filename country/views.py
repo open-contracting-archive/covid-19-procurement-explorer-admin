@@ -45,7 +45,7 @@ class CountryView(viewsets.ModelViewSet):
     def choices(self, request):
         countries = Country.objects.all().order_by("name")
         serializer = self.get_serializer(countries, many=True)
-        country_id_and_name = [{"id": country["id"], "name": _(icountry["name"])} for country in serializer.data]
+        country_id_and_name = [{"id": country["id"], "name": _(country["name"])} for country in serializer.data]
 
         return Response(country_id_and_name)
 
