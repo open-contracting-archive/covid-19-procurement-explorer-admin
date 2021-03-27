@@ -294,6 +294,8 @@ sqlparse==0.4.1
     # via
     #   -r requirements.txt
     #   django
+stringcase==1.2.0
+    # via -r requirements.txt
 tablib[xls,xlsx]==2.0.0
     # via
     #   -r requirements.txt
