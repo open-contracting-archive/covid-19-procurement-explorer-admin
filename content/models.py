@@ -94,7 +94,7 @@ class InsightsPage(Page):
         APIField("news_date"),
     ]
 
-    class Meta:  # noqa
+    class Meta:
         verbose_name = "News & Blog"
         verbose_name_plural = "News &  Blog"
 
@@ -149,7 +149,7 @@ class EventsPage(Page):
         APIField("location"),
     ]
 
-    class Meta:  # noqa
+    class Meta:
         verbose_name = "Event"
         verbose_name_plural = "Event"
 
@@ -223,7 +223,7 @@ class ResourcesPage(Page):
         APIField("author"),
     ]
 
-    class Meta:  # noqa
+    class Meta:
         verbose_name = "Library"
         verbose_name_plural = "Library"
 
@@ -274,7 +274,7 @@ class DataImport(Page):
         super().clean()
         self.slug = ""
 
-    class Meta:  # noqa
+    class Meta:
         verbose_name = "Data Imports"
         verbose_name_plural = "Data Imports"
 
@@ -337,7 +337,7 @@ class StaticPage(Page):
         APIField("show_in_footer_menu"),
     ]
 
-    class Meta:  # noqa
+    class Meta:
         verbose_name = "Static Page"
         verbose_name_plural = "Static Page"
 
