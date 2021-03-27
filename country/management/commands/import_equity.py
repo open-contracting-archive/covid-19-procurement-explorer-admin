@@ -1,8 +1,6 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
-import gspread
-from country.models import Country, Tender, EquityCategory, EquityKeywords
+
+from country.models import Country, EquityCategory, EquityKeywords
 
 
 class Command(BaseCommand):

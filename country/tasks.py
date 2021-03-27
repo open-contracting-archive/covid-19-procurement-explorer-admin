@@ -1,38 +1,38 @@
-import requests
-from requests.exceptions import Timeout
-from django.conf import settings
-from django.db import transaction
-from stringcase import snakecase
+import math
+import os
+import sys
+import traceback
 from datetime import datetime
-from celery import Celery
+from pathlib import Path
+
+import dateutil.parser
 
 # from celery import shared_task
 import gspread
-import sys, traceback
 import pandas as pd
-import random
-import dateutil.parser
-import math
-from country.red_flag import RedFlags
-from django.db.models import Avg, Count, Min, Sum, Count, Window, Q
-from content.models import DataImport
+import requests
 import xlsxwriter
-import os
-from pathlib import Path
+from celery import Celery
+from django.conf import settings
+from django.db.models import Q, Sum
+from requests.exceptions import Timeout
+
+from content.models import DataImport
 from country.models import (
-    Country,
-    GoodsServicesCategory,
-    GoodsServices,
     Buyer,
-    Supplier,
-    Tender,
+    Country,
     CurrencyConversionCache,
-    EquityKeywords,
     EquityCategory,
-    RedFlag,
-    TempDataImportTable,
+    EquityKeywords,
+    GoodsServices,
+    GoodsServicesCategory,
     ImportBatch,
+    RedFlag,
+    Supplier,
+    TempDataImportTable,
+    Tender,
 )
+from country.red_flag import RedFlags
 
 app = Celery()
 
@@ -85,7 +85,8 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
         access_key = settings.FIXER_IO_API_KEY
         try:
             r = requests.get(
-                f"https://data.fixer.io/api/{conversion_date}?access_key={access_key}&base={source_currency}&symbols={dst_currency}",
+                f"https://data.fixer.io/api/{conversion_date}?access_key={access_key}&base={source_currency}"
+                f"&symbols={dst_currency}",
                 timeout=20,
             )
             # {
@@ -131,7 +132,7 @@ def save_tender_excel_to_db(excel_file_path, country, currency):
         # currency = ws_settings[2][2]
         country = country
         currency = currency
-    except Exception:
+    except:
         traceback.print_exc(file=sys.stdout)
         return True
 
@@ -291,7 +292,7 @@ def save_tender_excel_to_db(excel_file_path, country, currency):
                 )
 
             total_rows_imported_count += 1
-        except Exception:
+        except:
             # transaction.rollback()
 
             contract_id = row["Contract ID"]
@@ -304,20 +305,15 @@ def save_tender_excel_to_db(excel_file_path, country, currency):
 
 
 def save_tender_data_to_db(gs_sheet_url):
-    contract_ids = []
-    duplicate_contract_ids = []
-
     gc = gspread.service_account(filename=settings.GOOGLE_SHEET_CREDENTIALS_JSON)
     covid_sheets = gc.open_by_url(gs_sheet_url)
 
     try:
         worksheet_settings = covid_sheets.worksheet("settings")
-        worksheet_codelist = covid_sheets.worksheet("codelist")
         worksheet_data = covid_sheets.worksheet("data")
 
         # Get country and currency from worksheet:settings
         country = worksheet_settings.cell(2, 3).value
-        currency = worksheet_settings.cell(3, 3).value
 
         data_all = worksheet_data.get_all_records()
 
@@ -335,9 +331,7 @@ def save_tender_data_to_db(gs_sheet_url):
         for index, row in enumerate(data):
             # with transaction.atomic():
             try:
-                #### TODO: Check if row already exists in database
-                ##
-                ##
+                # TODO: Check if row already exists in database
 
                 # Get Country
                 country_obj = Country.objects.filter(name=country).first()
@@ -456,7 +450,7 @@ def save_tender_data_to_db(gs_sheet_url):
                     )
 
                 total_rows_imported_count += 1
-            except Exception:
+            except:
                 # transaction.rollback()
 
                 contract_id = row["Contract ID"]
@@ -477,13 +471,12 @@ def save_tender_data_to_db(gs_sheet_url):
 def import_tender_from_batch_id(batch_id, country, currency):
     print(f"import_tender_data from Batch_id {batch_id}")
     total_rows_imported_count = 0
-    errors = []
 
     try:
         temp_data = TempDataImportTable.objects.filter(import_batch_id=batch_id)
         country = country
         currency = currency
-    except Exception:
+    except:
         traceback.print_exc(file=sys.stdout)
         return True
 
@@ -646,7 +639,7 @@ def import_tender_from_batch_id(batch_id, country, currency):
                 )
 
             total_rows_imported_count += 1
-        except Exception:
+        except:
             # transaction.rollback()
 
             contract_id = row.contract_id
@@ -782,9 +775,9 @@ def process_redflag7(id, tender):
     concentration = Tender.objects.filter(
         buyer__buyer_name=tender["buyer__buyer_name"], supplier__supplier_name=tender["supplier__supplier_name"]
     )
-    if (
-        len(concentration) > 10
-    ):  # supplier who has signed X(10) percent or more of their contracts with the same buyer (wins tenders from the same buyer);
+    # supplier who has signed X(10) percent or more of their contracts with the same buyer
+    # (wins tenders from the same buyer)
+    if len(concentration) > 10:
         for i in concentration:
             obj = Tender.objects.get(id=i.id)
             obj.red_flag.add(flag7_obj)
@@ -1082,7 +1075,7 @@ def country_contract_excel(country):
                         columns = 0
                         for key, value in data.items():
                             value = value if value else " "
-                            if value == None:
+                            if value is None:
                                 value = ""
                             worksheet.write(row, columns, value)
                             columns += 1
@@ -1235,7 +1228,7 @@ def country_contract_excel(country):
                     columns = 0
                     for key, value in data.items():
                         value = value if value else " "
-                        if value == None:
+                        if value is None:
                             value = ""
                         worksheet.write(row, columns, value)
                         columns += 1

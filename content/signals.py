@@ -1,6 +1,7 @@
-from content.models import DataImport
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+from content.models import DataImport
 from country.tasks import store_in_temp_table
 
 

@@ -1,10 +1,10 @@
-from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
-import datetime
-from country.models import Country, CovidMonthlyActiveCases
 import calendar
+import datetime
+
 import requests
+from django.core.management.base import BaseCommand
+
+from country.models import Country, CovidMonthlyActiveCases
 
 
 class Command(BaseCommand):

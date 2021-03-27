@@ -1,10 +1,7 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
-import gspread
-from country.models import Country, Tender, EquityCategory, EquityKeywords
 
-from country.tasks import import_tender_data, fetch_equity_data
+from country.models import Country
+from country.tasks import fetch_equity_data
 
 
 class Command(BaseCommand):
@@ -16,9 +13,9 @@ class Command(BaseCommand):
         print(f"Fetching equity data for {country_name}")
         if country_name:
             try:
-                country_instance = Country.objects.get(name=country_name)
-                r = fetch_equity_data.apply_async(args=(country_name,), queue="covid19")
-                print(print("Created task: import_equity_data"))
+                if Country.objects.filter(name=country_name).exists():
+                    fetch_equity_data.apply_async(args=(country_name,), queue="covid19")
+                    print(print("Created task: import_equity_data"))
             except Exception as e:
                 print(e)
 

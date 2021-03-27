@@ -1,7 +1,6 @@
-from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
 import gspread
+from django.conf import settings
+from django.core.management.base import BaseCommand
 
 from country.models import Country
 from country.tasks import import_tender_data
@@ -22,19 +21,16 @@ class Command(BaseCommand):
 
         try:
             worksheet_settings = covid_sheets.worksheet("settings")
-            worksheet_codelist = covid_sheets.worksheet("codelist")
-            worksheet_data = covid_sheets.worksheet("data")
 
             # Get country and currency from worksheet:settings
             country = worksheet_settings.cell(2, 3).value
-            currency = worksheet_settings.cell(3, 3).value
 
             # Check if country exists in our database
             result = Country.objects.filter(name=country).first()
             if not result:
                 print(f'Country "{country}" does not exists in our database.')
             else:
-                r = import_tender_data.apply_async(args=(gs_sheet_url,), queue="covid19")
+                import_tender_data.apply_async(args=(gs_sheet_url,), queue="covid19")
                 print("Created task: import_tender_data")
         except Exception as e:
             print(e)

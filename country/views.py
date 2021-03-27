@@ -1,33 +1,28 @@
-from django.shortcuts import render
-from django.utils import translation
-from rest_framework import viewsets, permissions
+from django.contrib import messages
+from django.core import management
+from django.db.models import Sum
+from django.http.response import HttpResponseRedirect
+from django.utils.translation import ugettext_lazy as _
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.utils.translation import ugettext_lazy as _
-from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
-from rest_framework.filters import OrderingFilter
-from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Avg, Count, Min, Sum, Count, Window
-from .models import Country, Language, Tender, Supplier, Buyer, OverallSummary
+
+from content.models import ImportBatch
+from vizualization.views import add_filter_args
+
+from .models import Buyer, Country, Language, OverallSummary, Supplier, Tender
 from .serializers import (
+    BuyerSerializer,
     CountrySerializer,
     LanguageSerializer,
-    TenderSerializer,
-    SupplierSerializer,
-    BuyerSerializer,
     OverallStatSummarySerializer,
+    SupplierSerializer,
+    TenderSerializer,
 )
-from vizualization.views import add_filter_args
-from django_filters import rest_framework as filters
-from django.contrib.postgres.search import SearchVector
-from django.core import management
-from django.conf import settings
-from django.contrib import messages
-from django.http.response import HttpResponseRedirect
-import os
-from django.core.exceptions import MultipleObjectsReturned
-from content.models import ImportBatch
 
 
 class TenderPagination(PageNumberPagination):
@@ -50,7 +45,7 @@ class CountryView(viewsets.ModelViewSet):
     def choices(self, request):
         countries = Country.objects.all().order_by("name")
         serializer = self.get_serializer(countries, many=True)
-        country_id_and_name = [{"id": country["id"], "name": _(icountry["name"])} for country in serializer.data]
+        country_id_and_name = [{"id": country["id"], "name": _(country["name"])} for country in serializer.data]
 
         return Response(country_id_and_name)
 
@@ -263,7 +258,8 @@ class DataImportView(APIView):
         else:
             messages.error(
                 request,
-                "Your data import file is not validated, please upload file with all necessary headers and try importing again.",
+                "Your data import file is not validated, please upload file with all necessary headers and try "
+                "importing again.",
             )
 
             return HttpResponseRedirect("/admin/content/dataimport")

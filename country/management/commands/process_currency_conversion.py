@@ -1,10 +1,8 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
-import gspread
-from country.models import Country, Tender, EquityCategory, EquityKeywords, GoodsServices
 from django.db.models import Q
-from country.tasks import import_tender_data, fetch_equity_data, convert_local_to_usd, process_currency_conversion
+
+from country.models import GoodsServices
+from country.tasks import process_currency_conversion
 
 
 class Command(BaseCommand):
@@ -20,7 +18,7 @@ class Command(BaseCommand):
             id = tender.id
             contract_value_local = tender.contract_value_local
             award_value_local = tender.award_value_local
-            r = process_currency_conversion.apply_async(
+            process_currency_conversion.apply_async(
                 args=(tender_value_local, award_value_local, contract_value_local, tender_date, currency, id),
                 queue="covid19",
             )

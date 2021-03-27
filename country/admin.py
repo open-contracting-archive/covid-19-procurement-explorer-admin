@@ -1,20 +1,20 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.urls import reverse
-from django.conf.urls import url
+
+from content.models import CountryPartner, DataImport
+
 from .models import (
     Country,
-    Language,
-    Tender,
-    Supplier,
+    DataProvider,
     EquityCategory,
     EquityKeywords,
-    Topic,
-    DataProvider,
-    TempDataImportTable,
     ImportBatch,
+    Language,
+    Supplier,
+    TempDataImportTable,
+    Tender,
+    Topic,
 )
-from content.models import CountryPartner, DataImport
 
 
 class EquityInline(admin.TabularInline):
@@ -60,9 +60,9 @@ class DataImportAdmin(admin.ModelAdmin):
         title = self.validated
 
         if title:
-            return format_html(f"""<img src="/static/admin/img/icon-yes.svg" alt="True">""")
+            return format_html("""<img src="/static/admin/img/icon-yes.svg" alt="True">""")
         else:
-            return format_html(f"""<img src="/static/admin/img/icon-no.svg" alt="False">""")
+            return format_html("""<img src="/static/admin/img/icon-no.svg" alt="False">""")
 
     custom_title.short_description = "Format validation"
 
@@ -73,17 +73,18 @@ class DataImportAdmin(admin.ModelAdmin):
         data_import_id = str(self.page_ptr_id)
         if self.imported:
             return format_html(
-                f"""<img src="/static/admin/img/icon-yes.svg" alt="True"><a class="button" disabled="True">Imported</a>&nbsp;"""
+                """<img src="/static/admin/img/icon-yes.svg" alt="True">"""
+                """<a class="button" disabled="True">Imported</a>&nbsp;"""
             )
         else:
             return format_html(
-                f"""<a class="button" href="/data_import?country={country}&data_import_id={data_import_id}&validated={validated}">Import</a>&nbsp;"""
+                f"""<a class="button" href="/data_import?country={country}&data_import_id={data_import_id}"""
+                f"""&validated={validated}">Import</a>&nbsp;"""
             )
 
     import_status.short_description = "Import Status"
 
     def import_actions(self):
-        country = str(self.country)
         data_import_id = str(self.page_ptr_id)
         importbatch = ImportBatch.objects.get(data_import_id=data_import_id)
         file_source = f"/media/{self.import_file}"

@@ -1,9 +1,6 @@
-from wagtail.contrib.modeladmin.options import (
-    ModelAdmin,
-    modeladmin_register,
-)
+from wagtail.contrib.modeladmin.options import ModelAdmin, modeladmin_register
 
-from .models import InsightsPage, EventsPage, ResourcesPage, StaticPage, DataImport
+from .models import DataImport, EventsPage, InsightsPage, ResourcesPage, StaticPage
 
 
 class InsightsPageAdmin(ModelAdmin):

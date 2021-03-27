@@ -10,9 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import os
 from pathlib import Path
-import environ, os
 
+import environ
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 environ.Env.read_env()
 env = environ.Env(
@@ -23,9 +26,6 @@ env = environ.Env(
     FETCH_COVID_DATA_INTERVAL=(int, 10800),
 )
 
-
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 
 sentry_sdk.init(
     dsn=env("SENTRY_DSN"),

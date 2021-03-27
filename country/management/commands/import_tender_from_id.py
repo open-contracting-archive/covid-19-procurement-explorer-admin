@@ -1,9 +1,7 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
+
 from country.models import Country
 from country.tasks import import_tender_from_batch_id
-import pandas as pd
 
 
 class Command(BaseCommand):
@@ -26,7 +24,7 @@ class Command(BaseCommand):
             if not result:
                 print(f'Country "{country}" does not exists in our database.')
             else:
-                r = import_tender_from_batch_id.apply_async(args=(batch_id, country, currency), queue="covid19")
+                import_tender_from_batch_id.apply_async(args=(batch_id, country, currency), queue="covid19")
                 print("Created task: import_tender_from_batch_id")
         except Exception as e:
             print(e)

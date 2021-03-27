@@ -1,34 +1,26 @@
-from django.shortcuts import render
-from rest_framework import viewsets
-from rest_framework.views import APIView
-from .serializers import TenderSerializer
-import operator
-from functools import reduce
 import datetime
-import dateutil.relativedelta
-from django.db.models import Avg, Count, Min, Sum, Count, Window
-from django.db.models.functions import TruncMonth
-from django.http import JsonResponse
-import math
+import itertools
 from collections import defaultdict
 
+import dateutil.relativedelta
+from django.db.models import Count, Sum
+from django.db.models.functions import TruncMonth
+from django.http import JsonResponse
+from rest_framework.views import APIView
+
+from content.models import CountryPartner, EventsPage, InsightsPage, StaticPage
 from country.models import (
-    Tender,
+    Buyer,
     Country,
     CovidMonthlyActiveCases,
+    DataProvider,
+    EquityCategory,
     GoodsServices,
     GoodsServicesCategory,
-    Supplier,
-    Buyer,
-    EquityCategory,
     RedFlag,
+    Supplier,
+    Tender,
 )
-import itertools
-from country.models import Tender, Country, CovidMonthlyActiveCases, GoodsServices, DataProvider
-from content.models import CountryPartner, InsightsPage, StaticPage, EventsPage
-import itertools, json
-
-from wagtail.core.models import Page
 
 
 def add_filter_args(filter_type, filter_value, filter_args):
@@ -49,9 +41,7 @@ class TotalSpendingsView(APIView):
         country = self.request.GET.get("country", None)
         buyer = self.request.GET.get("buyer")
         supplier = self.request.GET.get("supplier")
-        today = datetime.datetime.now()
-        one_month_earlier = today + dateutil.relativedelta.relativedelta(months=-1)
-        earlier = one_month_earlier.replace(day=1).date()
+
         filter_args = {}
         exclude_args = {}
         exclude_args["status"] = "canceled"
@@ -151,9 +141,7 @@ class TotalContractsView(APIView):
         country = self.request.GET.get("country", None)
         buyer = self.request.GET.get("buyer")
         supplier = self.request.GET.get("supplier")
-        today = datetime.datetime.now()
-        one_month_earlier = today + dateutil.relativedelta.relativedelta(months=-1)
-        earlier = one_month_earlier.replace(day=1).date()
+
         open_count = 0
         selective_count = 0
         direct_count = 0
@@ -214,9 +202,7 @@ class AverageBidsView(APIView):
         """
         country = self.request.GET.get("country", None)
         buyer = self.request.GET.get("buyer")
-        current_time = datetime.datetime.now()
-        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=-1)
-        previous_month = previous_month_date.replace(day=1).date()
+
         filter_args = {}
         if country:
             filter_args["country__country_code_alpha_2"] = country
@@ -293,11 +279,11 @@ class GlobalOverView(APIView):
                 b["country"] = j.name
                 b["country_code"] = j.country_code_alpha_2
                 b["country_continent"] = j.continent
-                if tender["goods_services__contract_value_usd__sum"] == None:
+                if tender["goods_services__contract_value_usd__sum"] is None:
                     tender_val = 0
                 else:
                     tender_val = tender["goods_services__contract_value_usd__sum"]
-                if tender_count == None:
+                if tender_count is None:
                     contract_val = 0
                 else:
                     contract_val = tender_count
@@ -690,7 +676,7 @@ class QuantityCorrelation(APIView):
                     if j["active_cases_count"] and j["death_count"]:
                         active_case_count += j["active_cases_count"]
                         death_count += j["death_count"]
-            except Exception:
+            except:
                 active_case_count = 0
                 death_count = 0
             a = {}
@@ -715,10 +701,6 @@ class MonopolizationView(APIView):
             filter_args["country__country_code_alpha_2"] = country
         if buyer:
             filter_args = add_filter_args("buyer", buyer, filter_args)
-
-        current_time = datetime.datetime.now()
-        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=-1)
-        previous_month = previous_month_date.replace(day=1).date()
 
         # Month wise average of number of bids for contracts
         monthwise_data = (
@@ -943,10 +925,10 @@ class CountryMapView(APIView):
         country = self.request.GET.get("country", None)
         try:
             country_instance = Country.objects.get(country_code_alpha_2=country)
-        except Exception as DoesNotExist:
+        except:
             final = {"result": "Invalid Alpha Code"}
             return JsonResponse(final)
-        if country != None and country_instance != None:
+        if country is not None and country_instance is not None:
             tender_instance = Tender.objects.filter(country__country_code_alpha_2=country).aggregate(
                 total_usd=Sum("goods_services__contract_value_usd"),
                 total_local=Sum("goods_services__contract_value_local"),
@@ -1291,7 +1273,6 @@ class EquityIndicatorView(APIView):
             filter_args["country__country_code_alpha_2"] = country
         if buyer:
             filter_args = add_filter_args("buyer", buyer, filter_args)
-        result = []
         if country:
             try:
                 country_instance = Country.objects.get(country_code_alpha_2=country)
@@ -1328,7 +1309,7 @@ class EquityIndicatorView(APIView):
                     },
                 ]
                 return JsonResponse(data, safe=False)
-            except Exception as DoesNotExist:
+            except:
                 results = [{"error": "Invalid country_code"}]
                 return JsonResponse(results, safe=False)
         else:
@@ -1411,7 +1392,7 @@ class ProductTimelineView(APIView):
                     data["tender_count"] = tender["count"]
                     result.append(data)
                 return JsonResponse(result, safe=False)
-            except Exception as DoesNotExist:
+            except:
                 result = [{"error": "Invalid country_code"}]
                 return JsonResponse(result, safe=False)
         else:
@@ -1443,7 +1424,7 @@ class ProductTimelineView(APIView):
                     data["tender_count"] = tender["count"]
                     result.append(data)
                 return JsonResponse(result, safe=False)
-            except Exception as DoesNotExist:
+            except:
                 result = [{"error": "Invalid country_code"}]
                 return JsonResponse(result, safe=False)
             return JsonResponse(data, safe=False)
@@ -1571,7 +1552,7 @@ class SupplierProfileView(APIView):
             data["country_code"] = supplier_detail[0]["country__country_code_alpha_2"]
             data["country_name"] = supplier_detail[0]["country__name"]
             return JsonResponse(data, safe=False)
-        except Exception as e:
+        except:
             data["error"] = "Enter valid ID"
             return JsonResponse(data, safe=False)
 
@@ -1601,7 +1582,7 @@ class BuyerProfileView(APIView):
             data["country_code"] = buyer_detail[0]["country__country_code_alpha_2"]
             data["country_name"] = buyer_detail[0]["country__name"]
             return JsonResponse(data, safe=False)
-        except Exception as e:
+        except:
             data["error"] = "Enter valid ID"
             return JsonResponse(data, safe=False)
 
@@ -1614,7 +1595,7 @@ class CountryPartnerView(APIView):
             filter_args["country__country_code_alpha_2"] = country
         try:
             data_provider = CountryPartner.objects.filter(**filter_args)
-        except Exception as DoesNotExist:
+        except:
             data_provider = [{"error": "Country partner doesnot exist for this country"}]
         result = []
         if data_provider:
@@ -1641,7 +1622,7 @@ class DataProviderView(APIView):
             filter_args["country__country_code_alpha_2"] = country
         try:
             data_provider = DataProvider.objects.filter(**filter_args)
-        except Exception as DoesNotExist:
+        except:
             data_provider = [{"error": "Data Provider doesnot exist for this country"}]
         result = []
         if data_provider:
@@ -1843,7 +1824,7 @@ class FilterParams(APIView):
 
             return JsonResponse(result, safe=False)
 
-        except Exception as DoesNotExist:
+        except:
             result = [{"error": "No buyer and supplier data available"}]
             return JsonResponse(result, safe=False)
 
@@ -1940,7 +1921,7 @@ class FilterParametersSuppliers(APIView):
                     data["country_code"] = "USD"
                 result.append(data)
             return JsonResponse(result, safe=False)
-        except Exception as DoesNotExist:
+        except:
             result = [{"error": "Country code doest not exists"}]
             return JsonResponse(result, safe=False)
 
@@ -1970,14 +1951,13 @@ class FilterParametersBuyers(APIView):
                     data["country_code"] = "USD"
                 result.append(data)
             return JsonResponse(result, safe=False)
-        except Exception as DoesNotExist:
+        except:
             result = [{"error": "Country code doest not exists"}]
             return JsonResponse(result, safe=False)
 
 
 class FilterParametersStatic(APIView):
     def get(self, request):
-        filter_args = {}
         countries = Country.objects.values("id", "country_code", "name")
         products = GoodsServicesCategory.objects.values("id", "category_name")
         equities = EquityCategory.objects.values("id", "category_name")
@@ -2133,7 +2113,7 @@ class SlugBlogShow(APIView):
                 result["country_id"] = results[0]["country_id"]
                 result["content_image_id"] = results[0]["content_image_id"]
 
-        except Exception as DoesNotExist:
+        except:
             result = [{"error": "Content doest not exists"}]
         return JsonResponse(result, safe=False)
 
@@ -2148,7 +2128,7 @@ class SlugStaticPageShow(APIView):
                 result["page_type"] = results[0]["page_type"]
                 result["body"] = results[0]["body"]
 
-        except Exception as DoesNotExist:
+        except:
             result = [{"error": "Content doest not exists"}]
 
         return JsonResponse(result, safe=False)
@@ -2188,11 +2168,11 @@ class BuyerTrendView(APIView):
                 b["country_code"] = j.country_code_alpha_2
                 b["country_continent"] = j.continent
                 buyer_count = tender["total_buyer_count"]
-                if tender["amount_usd"] == None:
+                if tender["amount_usd"] is None:
                     tender_val = 0
                 else:
                     tender_val = tender["amount_usd"]
-                if buyer_count == None:
+                if buyer_count is None:
                     buyer_val = 0
                 else:
                     buyer_val = buyer_count
@@ -2252,11 +2232,11 @@ class SupplierTrendView(APIView):
                 b["country_code"] = j.country_code_alpha_2
                 b["country_continent"] = j.continent
                 supplier_count = tender["total_supplier_count"]
-                if tender["amount_usd"] == None:
+                if tender["amount_usd"] is None:
                     tender_val = 0
                 else:
                     tender_val = tender["amount_usd"]
-                if supplier_count == None:
+                if supplier_count is None:
                     supplier_val = 0
                 else:
                     supplier_val = supplier_count
@@ -2318,11 +2298,11 @@ class DirectOpenContractTrendView(APIView):
                 b["country"] = j.name
                 b["country_code"] = j.country_code_alpha_2
                 b["country_continent"] = j.continent
-                if tender["goods_services__contract_value_usd__sum"] == None:
+                if tender["goods_services__contract_value_usd__sum"] is None:
                     tender_val = 0
                 else:
                     tender_val = tender["goods_services__contract_value_usd__sum"]
-                if tender_count == None:
+                if tender_count is None:
                     contract_val = 0
                 else:
                     contract_val = tender_count

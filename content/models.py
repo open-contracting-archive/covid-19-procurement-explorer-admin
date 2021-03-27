@@ -1,30 +1,23 @@
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from ckeditor.fields import RichTextField
 from django.core.validators import RegexValidator
+from django.db import models
 from django.template.defaultfilters import slugify
 from django.utils.timezone import now
-from django.db.models.signals import post_save, pre_save
-from django.dispatch import receiver
-from django.conf import settings
-from django.core.signals import request_finished
+from django.utils.translation import ugettext_lazy as _
 from modelcluster.fields import ParentalKey
 from modelcluster.tags import ClusterTaggableManager
-import pandas as pd
-
+from taggit.models import Tag as TaggitTag
+from taggit.models import TaggedItemBase
 from wagtail.admin.edit_handlers import FieldPanel
-from wagtail.admin.menu import MenuItem
-from wagtail.images.edit_handlers import ImageChooserPanel
-from wagtail.documents.edit_handlers import DocumentChooserPanel
 from wagtail.api import APIField
-from ckeditor.fields import RichTextField
 from wagtail.core.models import Page
-from wagtail.documents.models import Document
-from wagtail.core.models import Orderable
 from wagtail.core.templatetags import wagtailcore_tags
+from wagtail.documents.edit_handlers import DocumentChooserPanel
+from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.search import index
-from taggit.models import TaggedItemBase, Tag as TaggitTag
 
-from country.models import Country, Language, TempDataImportTable, ImportBatch, Topic
+from country.models import Country, Language, Topic
+
 from .validators import validate_file_extension
 
 
@@ -101,7 +94,7 @@ class InsightsPage(Page):
         APIField("news_date"),
     ]
 
-    class Meta:  # noqa
+    class Meta:
         verbose_name = "News & Blog"
         verbose_name_plural = "News &  Blog"
 
@@ -156,7 +149,7 @@ class EventsPage(Page):
         APIField("location"),
     ]
 
-    class Meta:  # noqa
+    class Meta:
         verbose_name = "Event"
         verbose_name_plural = "Event"
 
@@ -230,7 +223,7 @@ class ResourcesPage(Page):
         APIField("author"),
     ]
 
-    class Meta:  # noqa
+    class Meta:
         verbose_name = "Library"
         verbose_name_plural = "Library"
 
@@ -281,7 +274,7 @@ class DataImport(Page):
         super().clean()
         self.slug = ""
 
-    class Meta:  # noqa
+    class Meta:
         verbose_name = "Data Imports"
         verbose_name_plural = "Data Imports"
 
@@ -344,7 +337,7 @@ class StaticPage(Page):
         APIField("show_in_footer_menu"),
     ]
 
-    class Meta:  # noqa
+    class Meta:
         verbose_name = "Static Page"
         verbose_name_plural = "Static Page"
 

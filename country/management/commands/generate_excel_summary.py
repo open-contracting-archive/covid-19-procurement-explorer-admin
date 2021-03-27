@@ -1,10 +1,10 @@
-from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
-from country.models import Country, Tender, RedFlag, OverallSummary
-from django.db.models import Avg, Count, Min, Sum, Count, Window, Q
-import xlsxwriter
 import socket
+
+import xlsxwriter
+from django.core.management.base import BaseCommand
+from django.db.models import Count, Q, Sum
+
+from country.models import Country, OverallSummary, Tender
 
 
 class Command(BaseCommand):

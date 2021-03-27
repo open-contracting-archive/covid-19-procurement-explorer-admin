@@ -1,7 +1,6 @@
+import dateutil.parser
 from django import template
 from django.template.defaultfilters import stringfilter
-import datetime
-import dateutil.parser
 
 register = template.Library()
 
