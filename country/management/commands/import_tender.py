@@ -33,7 +33,7 @@ class Command(BaseCommand):
             if not result:
                 print(f'Country "{country}" does not exists in our database.')
             else:
-                r = import_tender_data.apply_async(args=(gs_sheet_url,), queue="covid19")
+                import_tender_data.apply_async(args=(gs_sheet_url,), queue="covid19")
                 print("Created task: import_tender_data")
         except Exception as e:
             print(e)

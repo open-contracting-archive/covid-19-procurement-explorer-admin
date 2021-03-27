@@ -25,6 +25,6 @@ class Command(BaseCommand):
 
         for tender in tenders:
             id = tender.id
-            r = process_redflag.apply_async(args=(id,), queue="covid19")
+            process_redflag.apply_async(args=(id,), queue="covid19")
             print("Created task for id :" + str(id))
         return "Done!!"

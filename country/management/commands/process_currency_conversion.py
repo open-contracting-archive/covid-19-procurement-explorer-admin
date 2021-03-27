@@ -18,7 +18,7 @@ class Command(BaseCommand):
             id = tender.id
             contract_value_local = tender.contract_value_local
             award_value_local = tender.award_value_local
-            r = process_currency_conversion.apply_async(
+            process_currency_conversion.apply_async(
                 args=(tender_value_local, award_value_local, contract_value_local, tender_date, currency, id),
                 queue="covid19",
             )

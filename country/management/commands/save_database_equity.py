@@ -14,7 +14,7 @@ class Command(BaseCommand):
         if country_name:
             try:
                 country_instance = Country.objects.get(name=country_name)
-                r = fetch_equity_data.apply_async(args=(country_name,), queue="covid19")
+                fetch_equity_data.apply_async(args=(country_name,), queue="covid19")
                 print(print("Created task: import_equity_data"))
             except Exception as e:
                 print(e)

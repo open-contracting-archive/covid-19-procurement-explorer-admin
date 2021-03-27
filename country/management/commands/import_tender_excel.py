@@ -28,7 +28,7 @@ class Command(BaseCommand):
             if not result:
                 print(f'Country "{country}" does not exists in our database.')
             else:
-                r = import_tender_data_excel.apply_async(args=(excel_file_path, country, currency), queue="covid19")
+                import_tender_data_excel.apply_async(args=(excel_file_path, country, currency), queue="covid19")
                 print("Created task: import_tender_data")
         except Exception as e:
             print(e)
