@@ -22,6 +22,8 @@ asgiref==3.2.10
     #   django
 astroid==2.4.2
     # via pylint
+attrs==20.3.0
+    # via pytest
 backcall==0.2.0
     # via ipython
 beautifulsoup4==4.8.2
@@ -156,6 +158,10 @@ importlib-metadata==2.0.0
     #   -r requirements.txt
     #   flake8
     #   kombu
+    #   pluggy
+    #   pytest
+iniconfig==1.1.1
+    # via pytest
 ipdb==0.13.4
     # via -r requirements_dev.in
 ipython-genutils==0.2.0
@@ -202,6 +208,8 @@ openpyxl==3.0.5
     # via
     #   -r requirements.txt
     #   tablib
+packaging==20.9
+    # via pytest
 pandas==1.1.5
     # via -r requirements.txt
 parso==0.7.1
@@ -218,6 +226,8 @@ pillow==8.1.2
     #   wagtail
 pip-tools==5.5.0
     # via -r requirements_dev.in
+pluggy==0.13.1
+    # via pytest
 prometheus-client==0.8.0
     # via
     #   -r requirements.txt
@@ -231,6 +241,8 @@ psycopg2==2.8.6
     # via -r requirements.txt
 ptyprocess==0.6.0
     # via pexpect
+py==1.10.0
+    # via pytest
 pyasn1-modules==0.2.8
     # via
     #   -r requirements.txt
@@ -247,6 +259,10 @@ pyflakes==2.2.0
 pygments==2.7.2
     # via ipython
 pylint==2.6.0
+    # via -r requirements_dev.in
+pyparsing==2.4.7
+    # via packaging
+pytest==6.2.2
     # via -r requirements_dev.in
 python-dateutil==2.8.1
     # via
@@ -315,6 +331,7 @@ toml==0.10.2
     # via
     #   black
     #   pylint
+    #   pytest
 tornado==6.1
     # via
     #   -r requirements.txt

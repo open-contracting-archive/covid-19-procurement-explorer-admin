@@ -15,4 +15,5 @@ python-dateutil
 requests
 sentry_sdk
 stringcase
+xlsxwriter
 wagtail

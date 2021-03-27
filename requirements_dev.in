@@ -6,4 +6,5 @@ ipython
 isort
 pip-tools
 pylint
+pytest
 transifex-client
