@@ -94,7 +94,7 @@ django-treebeard==4.3.1
     # via
     #   -r requirements.txt
     #   wagtail
-django==3.1.2
+django==3.1.7
     # via
     #   -r requirements.txt
     #   django-cors-headers
@@ -203,7 +203,7 @@ pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-pillow==8.0.1
+pillow==8.1.2
     # via
     #   -r requirements.txt
     #   wagtail
