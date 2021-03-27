@@ -1,14 +1,6 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
-import gspread
-from country.models import Country, Tender, EquityCategory, EquityKeywords, GoodsServices, RedFlag
-from django.db.models import Q
+from country.models import Tender
 from country.tasks import (
-    import_tender_data,
-    fetch_equity_data,
-    convert_local_to_usd,
-    process_currency_conversion,
     process_redflag,
     clear_redflag,
     process_redflag7,

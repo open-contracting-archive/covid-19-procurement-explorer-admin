@@ -1,10 +1,7 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
-import gspread
-from country.models import Country, Tender, EquityCategory, EquityKeywords, GoodsServices
+from country.models import GoodsServices
 from django.db.models import Q
-from country.tasks import import_tender_data, fetch_equity_data, convert_local_to_usd, process_currency_conversion
+from country.tasks import process_currency_conversion
 
 
 class Command(BaseCommand):

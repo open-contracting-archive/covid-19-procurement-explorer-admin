@@ -1,15 +1,9 @@
-from django.shortcuts import render
-from rest_framework import viewsets
 from rest_framework.views import APIView
-from .serializers import TenderSerializer
-import operator
-from functools import reduce
 import datetime
 import dateutil.relativedelta
-from django.db.models import Avg, Count, Min, Sum, Count, Window
+from django.db.models import Count, Sum
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
-import math
 from collections import defaultdict
 
 from country.models import (
@@ -26,9 +20,7 @@ from country.models import (
 import itertools
 from country.models import Tender, Country, CovidMonthlyActiveCases, GoodsServices, DataProvider
 from content.models import CountryPartner, InsightsPage, StaticPage, EventsPage
-import itertools, json
-
-from wagtail.core.models import Page
+import itertools
 
 
 def add_filter_args(filter_type, filter_value, filter_args):

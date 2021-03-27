@@ -3,28 +3,20 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.validators import RegexValidator
 from django.template.defaultfilters import slugify
 from django.utils.timezone import now
-from django.db.models.signals import post_save, pre_save
-from django.dispatch import receiver
-from django.conf import settings
-from django.core.signals import request_finished
 from modelcluster.fields import ParentalKey
 from modelcluster.tags import ClusterTaggableManager
-import pandas as pd
 
 from wagtail.admin.edit_handlers import FieldPanel
-from wagtail.admin.menu import MenuItem
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.documents.edit_handlers import DocumentChooserPanel
 from wagtail.api import APIField
 from ckeditor.fields import RichTextField
 from wagtail.core.models import Page
-from wagtail.documents.models import Document
-from wagtail.core.models import Orderable
 from wagtail.core.templatetags import wagtailcore_tags
 from wagtail.search import index
 from taggit.models import TaggedItemBase, Tag as TaggitTag
 
-from country.models import Country, Language, TempDataImportTable, ImportBatch, Topic
+from country.models import Country, Language, Topic
 from .validators import validate_file_extension
 
 

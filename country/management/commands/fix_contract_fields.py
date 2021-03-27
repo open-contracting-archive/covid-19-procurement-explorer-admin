@@ -1,9 +1,5 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
-from country.models import Country, Tender, RedFlag, OverallSummary, TempDataImportTable
-from django.db.models import Avg, Count, Min, Sum, Count, Window, Q
-import xlsxwriter
+from country.models import Tender, TempDataImportTable
 
 
 class Command(BaseCommand):

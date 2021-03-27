@@ -1,5 +1,5 @@
 from .models import Tender
-from django.db.models import Avg, Count, Min, Sum, Count, Window
+from django.db.models import Sum
 
 
 class RedFlags:

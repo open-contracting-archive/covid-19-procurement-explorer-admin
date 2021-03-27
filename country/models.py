@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.template.defaultfilters import slugify
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.postgres.fields import ArrayField
-from django.db.models import Avg, Count, Min, Sum, Window, Q, F
+from django.db.models import Count, Sum, Q, F
 
 
 class Country(models.Model):

@@ -1,9 +1,6 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
 from country.models import Country
 from country.tasks import import_tender_from_batch_id
-import pandas as pd
 
 
 class Command(BaseCommand):

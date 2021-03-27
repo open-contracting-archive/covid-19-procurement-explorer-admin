@@ -1,10 +1,7 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
-import gspread
-from country.models import Country, Tender, EquityCategory, EquityKeywords
+from country.models import Country
 
-from country.tasks import import_tender_data, fetch_equity_data
+from country.tasks import fetch_equity_data
 
 
 class Command(BaseCommand):

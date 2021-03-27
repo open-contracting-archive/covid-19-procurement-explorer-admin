@@ -1,8 +1,6 @@
 import requests
 from requests.exceptions import Timeout
 from django.conf import settings
-from django.db import transaction
-from stringcase import snakecase
 from datetime import datetime
 from celery import Celery
 
@@ -10,11 +8,10 @@ from celery import Celery
 import gspread
 import sys, traceback
 import pandas as pd
-import random
 import dateutil.parser
 import math
 from country.red_flag import RedFlags
-from django.db.models import Avg, Count, Min, Sum, Count, Window, Q
+from django.db.models import Sum, Q
 from content.models import DataImport
 import xlsxwriter
 import os

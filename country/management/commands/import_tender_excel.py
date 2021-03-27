@@ -1,11 +1,7 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.conf import settings
-import gspread
 
 from country.models import Country
-from country.tasks import import_tender_data, import_tender_data_excel
-import pandas as pd
+from country.tasks import import_tender_data_excel
 
 
 class Command(BaseCommand):
