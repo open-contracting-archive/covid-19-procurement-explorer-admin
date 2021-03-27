@@ -336,9 +336,7 @@ def save_tender_data_to_db(gs_sheet_url):
         for index, row in enumerate(data):
             # with transaction.atomic():
             try:
-                #### TODO: Check if row already exists in database
-                ##
-                ##
+                # TODO: Check if row already exists in database
 
                 # Get Country
                 country_obj = Country.objects.filter(name=country).first()
