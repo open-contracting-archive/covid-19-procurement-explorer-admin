@@ -7,17 +7,17 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wagtailcore', '0059_apply_collection_ordering'),
-        ('wagtailforms', '0004_add_verbose_name_plural'),
-        ('contenttypes', '0002_remove_content_type_name'),
+        ("wagtailcore", "0059_apply_collection_ordering"),
+        ("wagtailforms", "0004_add_verbose_name_plural"),
+        ("contenttypes", "0002_remove_content_type_name"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('wagtailredirects', '0006_redirect_increase_max_length'),
-        ('content', '0006_delete_homepage'),
+        ("wagtailredirects", "0006_redirect_increase_max_length"),
+        ("content", "0006_delete_homepage"),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='Collection',
-            new_name='Contents',
+            old_name="Collection",
+            new_name="Contents",
         ),
     ]

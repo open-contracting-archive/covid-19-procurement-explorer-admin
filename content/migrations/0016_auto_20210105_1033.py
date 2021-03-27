@@ -7,19 +7,19 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0015_delete_countrypartner'),
-        ('content', '0015_auto_20210105_0713'),
+        ("country", "0015_delete_countrypartner"),
+        ("content", "0015_auto_20210105_0713"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='countrypartner',
-            name='country',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='country.country'),
+            model_name="countrypartner",
+            name="country",
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="country.country"),
         ),
         migrations.AddField(
-            model_name='countrypartner',
-            name='order',
+            model_name="countrypartner",
+            name="order",
             field=models.IntegerField(max_length=100, null=True),
         ),
     ]

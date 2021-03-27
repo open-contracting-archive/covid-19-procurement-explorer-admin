@@ -7,13 +7,13 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0029_auto_20210126_1627'),
+        ("content", "0029_auto_20210126_1627"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='insightspage',
-            name='news_date',
-            field=models.DateField(default=django.utils.timezone.now, verbose_name='News published date'),
+            model_name="insightspage",
+            name="news_date",
+            field=models.DateField(default=django.utils.timezone.now, verbose_name="News published date"),
         ),
     ]

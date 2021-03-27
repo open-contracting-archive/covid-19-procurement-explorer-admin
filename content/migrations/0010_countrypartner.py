@@ -7,19 +7,31 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0009_staticpage'),
+        ("content", "0009_staticpage"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='CountryPartner',
+            name="CountryPartner",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, unique=True, validators=[django.core.validators.RegexValidator('^[a-zA-Z ]+$', 'Only letters and spaces are allowed in the Country Name')], verbose_name='Name')),
-                ('description', models.CharField(max_length=50, unique=True, verbose_name='Name')),
-                ('email', models.EmailField(max_length=254, unique=True)),
-                ('website', models.URLField()),
-                ('logo', models.ImageField(upload_to=None)),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=50,
+                        unique=True,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                "^[a-zA-Z ]+$", "Only letters and spaces are allowed in the Country Name"
+                            )
+                        ],
+                        verbose_name="Name",
+                    ),
+                ),
+                ("description", models.CharField(max_length=50, unique=True, verbose_name="Name")),
+                ("email", models.EmailField(max_length=254, unique=True)),
+                ("website", models.URLField()),
+                ("logo", models.ImageField(upload_to=None)),
             ],
         ),
     ]

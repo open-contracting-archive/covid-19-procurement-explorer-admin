@@ -7,13 +7,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0039_merge_20210302_0515'),
+        ("content", "0039_merge_20210302_0515"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dataimport',
-            name='no_of_rows',
-            field=models.CharField(default=0, max_length=10, null=True, verbose_name='No of rows'),
+            model_name="dataimport",
+            name="no_of_rows",
+            field=models.CharField(default=0, max_length=10, null=True, verbose_name="No of rows"),
         ),
     ]

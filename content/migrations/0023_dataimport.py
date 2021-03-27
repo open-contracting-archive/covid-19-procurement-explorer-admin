@@ -8,24 +8,43 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wagtailcore', '0059_apply_collection_ordering'),
-        ('country', '0018_auto_20210119_1121'),
-        ('wagtaildocs', '0010_document_file_hash'),
-        ('content', '0022_auto_20210121_0635'),
+        ("wagtailcore", "0059_apply_collection_ordering"),
+        ("country", "0018_auto_20210119_1121"),
+        ("wagtaildocs", "0010_document_file_hash"),
+        ("content", "0022_auto_20210121_0635"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DataImport',
+            name="DataImport",
             fields=[
-                ('page_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.page')),
-                ('description', ckeditor.fields.RichTextField()),
-                ('country', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='country.country')),
-                ('import_file', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='wagtaildocs.document')),
+                (
+                    "page_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="wagtailcore.page",
+                    ),
+                ),
+                ("description", ckeditor.fields.RichTextField()),
+                ("country", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="country.country")),
+                (
+                    "import_file",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to="wagtaildocs.document",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
-            bases=('wagtailcore.page',),
+            bases=("wagtailcore.page",),
         ),
     ]

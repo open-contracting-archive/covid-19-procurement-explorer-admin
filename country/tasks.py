@@ -5,6 +5,7 @@ from django.db import transaction
 from stringcase import snakecase
 from datetime import datetime
 from celery import Celery
+
 # from celery import shared_task
 import gspread
 import sys, traceback
@@ -13,9 +14,9 @@ import random
 import dateutil.parser
 import math
 from country.red_flag import RedFlags
-from django.db.models import Avg, Count, Min, Sum, Count,Window,Q
+from django.db.models import Avg, Count, Min, Sum, Count, Window, Q
 from content.models import DataImport
-import xlsxwriter 
+import xlsxwriter
 import os
 from pathlib import Path
 from country.models import (
@@ -23,20 +24,20 @@ from country.models import (
     GoodsServicesCategory,
     GoodsServices,
     Buyer,
-    Supplier, 
-    Tender, 
+    Supplier,
+    Tender,
     CurrencyConversionCache,
     EquityKeywords,
     EquityCategory,
     RedFlag,
     TempDataImportTable,
-    ImportBatch
+    ImportBatch,
 )
 
 app = Celery()
 
 
-@app.task(name='fetch_covid_data')
+@app.task(name="fetch_covid_data")
 def fetch_covid_data():
     countries = Country.objects.all()
 
@@ -45,14 +46,14 @@ def fetch_covid_data():
 
         if country_code:
             try:
-                r = requests.get(f'https://covid-api.com/api/reports?iso={country_code}', timeout=20)
+                r = requests.get(f"https://covid-api.com/api/reports?iso={country_code}", timeout=20)
                 if r.status_code in [200]:
                     # if country_code is invalid r.json() is {'data': []}
-                    covid_data = r.json()['data']
+                    covid_data = r.json()["data"]
 
                     if covid_data:
-                        covid_cases_total = sum([province['confirmed'] for province in covid_data])
-                        covid_deaths_total = sum([province['deaths'] for province in covid_data])
+                        covid_cases_total = sum([province["confirmed"] for province in covid_data])
+                        covid_deaths_total = sum([province["deaths"] for province in covid_data])
 
                         country.covid_cases_total = covid_cases_total
                         country.covid_deaths_total = covid_deaths_total
@@ -62,30 +63,31 @@ def fetch_covid_data():
                 continue
 
 
-def convert_local_to_usd(conversion_date, source_currency, source_value, dst_currency='USD'):
-    if type(conversion_date)==str:
+def convert_local_to_usd(conversion_date, source_currency, source_value, dst_currency="USD"):
+    if type(conversion_date) == str:
         conversion_date = dateutil.parser.parse(conversion_date).date()
 
     if not source_value or not source_currency or not conversion_date:
-    # Missing Date: "" value has an invalid date format. It must be in YYYY-MM-DD format.
+        # Missing Date: "" value has an invalid date format. It must be in YYYY-MM-DD format.
         return 0
 
     result = CurrencyConversionCache.objects.filter(
-        conversion_date=conversion_date,
-        source_currency=source_currency,
-        dst_currency=dst_currency
-        ).first()
+        conversion_date=conversion_date, source_currency=source_currency, dst_currency=dst_currency
+    ).first()
 
     if result:
-        print('Found conversion data in database')
+        print("Found conversion data in database")
         conversion_rate = result.conversion_rate
-        dst_value = round(source_value*conversion_rate,2)
+        dst_value = round(source_value * conversion_rate, 2)
         return dst_value
     else:
-        print('Fetching conversion data from fixer.io')
+        print("Fetching conversion data from fixer.io")
         access_key = settings.FIXER_IO_API_KEY
         try:
-            r = requests.get(f'https://data.fixer.io/api/{conversion_date}?access_key={access_key}&base={source_currency}&symbols={dst_currency}', timeout=20)
+            r = requests.get(
+                f"https://data.fixer.io/api/{conversion_date}?access_key={access_key}&base={source_currency}&symbols={dst_currency}",
+                timeout=20,
+            )
             # {
             #     "success": true,
             #     "timestamp": 1387929599,
@@ -98,9 +100,9 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
             # }
             if r.status_code in [200]:
                 fixer_data = r.json()
-                if fixer_data['success']:
-                    conversion_rate = fixer_data['rates'][dst_currency]
-                    dst_value = round(source_value*conversion_rate, 2)
+                if fixer_data["success"]:
+                    conversion_rate = fixer_data["rates"][dst_currency]
+                    dst_value = round(source_value * conversion_rate, 2)
 
                     c = CurrencyConversionCache(
                         source_currency=source_currency,
@@ -108,7 +110,7 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
                         dst_currency=dst_currency,
                         # dst_value=dst_value,
                         conversion_date=conversion_date,
-                        conversion_rate=conversion_rate
+                        conversion_rate=conversion_rate,
                     )
                     c.save()
 
@@ -117,13 +119,13 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
             return None
 
 
-def save_tender_excel_to_db(excel_file_path,country,currency):
+def save_tender_excel_to_db(excel_file_path, country, currency):
     total_rows_imported_count = 0
     errors = []
 
     try:
         # ws_settings = pd.read_excel(excel_file_path, sheet_name='settings', header=None)
-        ws_data = pd.read_excel(excel_file_path, sheet_name='data', header=0,na_values = None,na_filter = False)
+        ws_data = pd.read_excel(excel_file_path, sheet_name="data", header=0, na_values=None, na_filter=False)
         ws_data = ws_data.where(ws_data.notnull(), None)
         # country = ws_settings[2][1]
         # currency = ws_settings[2][2]
@@ -135,46 +137,45 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
 
     for index, row in ws_data.iterrows():
         try:
-            print(index,'...')
-            contract_id = row['Contract ID']
-            contract_date = row['Contract date (yyyy-mm-dd)'].date()
+            print(index, "...")
+            contract_id = row["Contract ID"]
+            contract_date = row["Contract date (yyyy-mm-dd)"].date()
 
-            procurement_procedure = row['Procurement procedure code']
+            procurement_procedure = row["Procurement procedure code"]
 
-            classification_code = row['Classification Code (CPV or other)'] or ''
-            goods_services_category_name = row['Goods/Services'].strip()
+            classification_code = row["Classification Code (CPV or other)"] or ""
+            goods_services_category_name = row["Goods/Services"].strip()
             if type(goods_services_category_name) == int or type(goods_services_category_name) == float:
                 if math.isnan(goods_services_category_name):
-                    goods_services_category_name = 'Other'
+                    goods_services_category_name = "Other"
 
-            goods_services_category_desc = ''
+            goods_services_category_desc = ""
 
-            tender_value_local = row['Tender value'] or None
-            award_value_local = row['Award value'] or None
-            contract_value_local = row['Contract value'] or None
+            tender_value_local = row["Tender value"] or None
+            award_value_local = row["Award value"] or None
+            contract_value_local = row["Contract value"] or None
 
-            contract_title = row['Contract title']
-            contract_desc = row['Contract description']
-            no_of_bidders = row['Number of bidders'] or None
+            contract_title = row["Contract title"]
+            contract_desc = row["Contract description"]
+            no_of_bidders = row["Number of bidders"] or None
             # if math.isnan(no_of_bidders):
             #     no_of_bidders = None
 
-            buyer_id = row['Buyer ID']
-            buyer_name = row['Buyer'].strip()
-            buyer_address = row['Buyer address (as an object)']
+            buyer_id = row["Buyer ID"]
+            buyer_name = row["Buyer"].strip()
+            buyer_address = row["Buyer address (as an object)"]
 
-            supplier_id = row['Supplier ID']
-            supplier_name = row['Supplier'].strip()
-            supplier_address = row['Supplier address']
+            supplier_id = row["Supplier ID"]
+            supplier_name = row["Supplier"].strip()
+            supplier_address = row["Supplier address"]
 
-            status = row['Contract Status Code']
-            if status == 'Terminated' or status =='Canclled':
-                status='canceled'
+            status = row["Contract Status Code"]
+            if status == "Terminated" or status == "Canclled":
+                status = "canceled"
 
-            link_to_contract = row['Link to the contract']
-            link_to_tender = row['Link to the tender']
-            data_source = row['Data source']
-
+            link_to_contract = row["Link to the contract"]
+            link_to_tender = row["Link to the tender"]
+            data_source = row["Data source"]
 
             # Get Country
             country_obj = Country.objects.filter(name=country).first()
@@ -184,13 +185,15 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
                 if supplier_id:
                     supplier_id = str(supplier_id).strip()
                 else:
-                    supplier_id=None
-                supplier_obj = Supplier.objects.filter(Q(supplier_name=supplier_name) | Q(supplier_id=supplier_id)).first()
+                    supplier_id = None
+                supplier_obj = Supplier.objects.filter(
+                    Q(supplier_name=supplier_name) | Q(supplier_id=supplier_id)
+                ).first()
                 if not supplier_obj:
                     supplier_obj = Supplier(
-                        supplier_id = supplier_id,
-                        supplier_name = supplier_name,
-                        supplier_address = supplier_address,
+                        supplier_id=supplier_id,
+                        supplier_name=supplier_name,
+                        supplier_address=supplier_address,
                     )
                     supplier_obj.save()
             else:
@@ -201,13 +204,13 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
                 if buyer_id:
                     buyer_id = str(buyer_id).strip()
                 else:
-                    buyer_id=None
+                    buyer_id = None
                 buyer_obj = Buyer.objects.filter(Q(buyer_name=buyer_name) | Q(buyer_id=buyer_id)).first()
                 if not buyer_obj:
                     buyer_obj = Buyer(
-                        buyer_id = buyer_id,
-                        buyer_name = buyer_name,
-                        buyer_address = buyer_address,
+                        buyer_id=buyer_id,
+                        buyer_name=buyer_name,
+                        buyer_address=buyer_address,
                     )
                     buyer_obj.save()
             else:
@@ -222,7 +225,6 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
                         country=country_obj,
                         supplier=supplier_obj,
                         buyer=buyer_obj,
-
                         contract_id=contract_id,
                         contract_date=contract_date,
                         procurement_procedure=procurement_procedure,
@@ -230,7 +232,6 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
                         link_to_contract=link_to_contract,
                         link_to_tender=link_to_tender,
                         data_source=data_source,
-
                         # for viz api compatibility only; remove these later
                         contract_title=contract_title,
                         contract_value_local=contract_value_local or None,
@@ -243,35 +244,34 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
 
             # Get or Create GoodsServicesCategory
             if goods_services_category_name:
-                goods_services_category_obj = GoodsServicesCategory.objects.filter(category_name=goods_services_category_name).first()
+                goods_services_category_obj = GoodsServicesCategory.objects.filter(
+                    category_name=goods_services_category_name
+                ).first()
                 if not goods_services_category_obj:
                     goods_services_category_obj = GoodsServicesCategory(
-                        category_name = goods_services_category_name,
-                        category_desc = goods_services_category_desc
+                        category_name=goods_services_category_name, category_desc=goods_services_category_desc
                     )
                     goods_services_category_obj.save()
             else:
                 goods_services_category_obj = None
 
-
             # Create GoodsServices...
 
             if tender_obj:
-            # ...only if there is a contract that it can be associated with
+                # ...only if there is a contract that it can be associated with
                 goods_services_obj = GoodsServices(
                     country=country_obj,
-                    goods_services_category = goods_services_category_obj,
-                    contract = tender_obj,
-                    buyer = buyer_obj,
-                    supplier = supplier_obj,
-                    
-                    classification_code = classification_code,
-                    no_of_bidders = no_of_bidders or None,
-                    contract_title = contract_title,
-                    contract_desc = contract_desc,
-                    tender_value_local = tender_value_local or None,
-                    award_value_local = award_value_local or None,
-                    contract_value_local = contract_value_local or None,
+                    goods_services_category=goods_services_category_obj,
+                    contract=tender_obj,
+                    buyer=buyer_obj,
+                    supplier=supplier_obj,
+                    classification_code=classification_code,
+                    no_of_bidders=no_of_bidders or None,
+                    contract_title=contract_title,
+                    contract_desc=contract_desc,
+                    tender_value_local=tender_value_local or None,
+                    award_value_local=award_value_local or None,
+                    contract_value_local=contract_value_local or None,
                 )
                 goods_services_obj.save()
 
@@ -281,30 +281,27 @@ def save_tender_excel_to_db(excel_file_path,country,currency):
                 conversion_date = contract_date
                 source_currency = country_obj.currency
                 source_values = {
-                    'tender_value_local': tender_value_local or None,
-                    'award_value_local': award_value_local or None,
-                    'contract_value_local': contract_value_local or None,
+                    "tender_value_local": tender_value_local or None,
+                    "award_value_local": award_value_local or None,
+                    "contract_value_local": contract_value_local or None,
                 }
                 goods_services_row_id = goods_services_obj.id
-                local_currency_to_usd.apply_async(args=(
-                    goods_services_row_id,
-                    conversion_date,
-                    source_currency,
-                    source_values
-                    ), queue='covid19')
+                local_currency_to_usd.apply_async(
+                    args=(goods_services_row_id, conversion_date, source_currency, source_values), queue="covid19"
+                )
 
             total_rows_imported_count += 1
         except Exception:
             # transaction.rollback()
 
-            contract_id = row['Contract ID']
-            errors.append((index,contract_id))
-            print('------------------------------')
-            print(f'Error importing row {index}, contract id {contract_id}')
-            print(f'{row}\n')
+            contract_id = row["Contract ID"]
+            errors.append((index, contract_id))
+            print("------------------------------")
+            print(f"Error importing row {index}, contract id {contract_id}")
+            print(f"{row}\n")
             traceback.print_exc(file=sys.stdout)
-            print('------------------------------')
-    
+            print("------------------------------")
+
 
 def save_tender_data_to_db(gs_sheet_url):
     contract_ids = []
@@ -314,20 +311,20 @@ def save_tender_data_to_db(gs_sheet_url):
     covid_sheets = gc.open_by_url(gs_sheet_url)
 
     try:
-        worksheet_settings = covid_sheets.worksheet('settings')
-        worksheet_codelist = covid_sheets.worksheet('codelist')
-        worksheet_data = covid_sheets.worksheet('data')
+        worksheet_settings = covid_sheets.worksheet("settings")
+        worksheet_codelist = covid_sheets.worksheet("codelist")
+        worksheet_data = covid_sheets.worksheet("data")
 
         # Get country and currency from worksheet:settings
-        country = worksheet_settings.cell(2,3).value
-        currency = worksheet_settings.cell(3,3).value
+        country = worksheet_settings.cell(2, 3).value
+        currency = worksheet_settings.cell(3, 3).value
 
         data_all = worksheet_data.get_all_records()
 
         data = []
-        for i in data_all:    
-            if not i['Contract ID'] and not i['Contract date (yyyy-mm-dd)'] and not i['Contract value']:
-            # detect end of rows
+        for i in data_all:
+            if not i["Contract ID"] and not i["Contract date (yyyy-mm-dd)"] and not i["Contract value"]:
+                # detect end of rows
                 break
             else:
                 data.append(i)
@@ -337,161 +334,153 @@ def save_tender_data_to_db(gs_sheet_url):
 
         for index, row in enumerate(data):
             # with transaction.atomic():
-                try:
-                    #### TODO: Check if row already exists in database
-                    ##
-                    ##
+            try:
+                #### TODO: Check if row already exists in database
+                ##
+                ##
 
+                # Get Country
+                country_obj = Country.objects.filter(name=country).first()
 
-                    # Get Country
-                    country_obj = Country.objects.filter(name=country).first()
+                # Get or Create Supplier
+                supplier_id = row["Supplier ID"]
+                supplier_name = row["Supplier"]
+                supplier_address = row["Supplier address"]
 
-                    # Get or Create Supplier
-                    supplier_id = row['Supplier ID']
-                    supplier_name = row['Supplier']
-                    supplier_address = row['Supplier address']
-
-                    if supplier_id:
-                        supplier_id = str(supplier_id).strip()
-                        supplier_obj = Supplier.objects.filter(supplier_id=supplier_id).first()
-                        if not supplier_obj:
-                            supplier_obj = Supplier(
-                                supplier_id = supplier_id,
-                                supplier_name = supplier_name,
-                                supplier_address = supplier_address,
-                            )
-                            supplier_obj.save()
-                    else:
-                        supplier_obj = None
-
-                    # Get or Create Buyer
-                    buyer_id = row['Buyer ID']
-                    buyer_name = row['Buyer']
-                    buyer_address = row['Buyer address (as an object)']
-
-                    if buyer_id:
-                        buyer_id = str(buyer_id).strip()
-                        buyer_obj = Buyer.objects.filter(buyer_id=buyer_id).first()
-                        if not buyer_obj:
-                            buyer_obj = Buyer(
-                                buyer_id = buyer_id,
-                                buyer_name = buyer_name,
-                                buyer_address = buyer_address,
-                            )
-                            buyer_obj.save()
-                    else:
-                        buyer_obj = None
-
-
-                    # Get or Create Tender Contract
-                    contract_id = row['Contract ID']
-
-                    if contract_id:
-                        contract_id = str(contract_id).strip()
-                        tender_obj = Tender.objects.filter(contract_id=contract_id).first()
-                        if not tender_obj:
-                            tender_obj = Tender(
-                                country=country_obj,
-                                supplier=supplier_obj,
-                                buyer=buyer_obj,
-
-                                contract_id=row['Contract ID'],
-                                contract_date=row['Contract date (yyyy-mm-dd)'],
-                                procurement_procedure=row['Procurement procedure code'],
-                                status=row['Contract Status Code'],
-                                link_to_contract=row['Link to the contract'],
-                                link_to_tender=row['Link to the tender'],
-                                data_source=row['Data source'],
-
-                                # for viz api compatibility only; remove these later
-                                contract_title=row['Contract title'],
-                                contract_value_local=row['Contract value'] or None,
-                                contract_desc=row['Contract description'],
-                                no_of_bidders=row['Number of bidders'] or None,
-                            )
-                            tender_obj.save()
-                    else:
-                        tender_obj = None
-
-                    # Get or Create GoodsServicesCategory
-                    goods_services_category_name = row['Goods/Services'].strip()
-                    goods_services_category_desc = ''
-
-                    if goods_services_category_name:
-                        goods_services_category_obj = GoodsServicesCategory.objects.filter(category_name=goods_services_category_name).first()
-                        if not goods_services_category_obj:
-                            goods_services_category_obj = GoodsServicesCategory(
-                                category_name = goods_services_category_name,
-                                category_desc = goods_services_category_desc
-                            )
-                            goods_services_category_obj.save()
-                    else:
-                        goods_services_category_obj = None
-
-
-                    # Create GoodsServices...
-
-                    if tender_obj:
-                    # ...only if there is a contract that it can be associated with
-                        goods_services_obj = GoodsServices(
-                            country=country_obj,
-                            goods_services_category = goods_services_category_obj,
-                            contract = tender_obj,
-                            
-                            classification_code = row['Classification Code (CPV or other)'],
-                            no_of_bidders = row['Number of bidders'] or None,
-                            contract_title = row['Contract title'],
-                            contract_desc = row['Contract description'],
-                            tender_value_local = row['Tender value'] or None,
-                            award_value_local = row['Award value'] or None,
-                            contract_value_local = row['Contract value'] or None,
+                if supplier_id:
+                    supplier_id = str(supplier_id).strip()
+                    supplier_obj = Supplier.objects.filter(supplier_id=supplier_id).first()
+                    if not supplier_obj:
+                        supplier_obj = Supplier(
+                            supplier_id=supplier_id,
+                            supplier_name=supplier_name,
+                            supplier_address=supplier_address,
                         )
-                        goods_services_obj.save()
+                        supplier_obj.save()
+                else:
+                    supplier_obj = None
 
-                        print(tender_obj.id, goods_services_obj.id)
+                # Get or Create Buyer
+                buyer_id = row["Buyer ID"]
+                buyer_name = row["Buyer"]
+                buyer_address = row["Buyer address (as an object)"]
 
-                        # Execute local currency to USD conversion celery tasks
-                        conversion_date = row['Contract date (yyyy-mm-dd)']
-                        source_currency = country_obj.currency
-                        source_values = {
-                            'tender_value_local': row['Tender value'] or None,
-                            'award_value_local': row['Award value'] or None,
-                            'contract_value_local': row['Contract value'] or None,
-                        }
-                        goods_services_row_id = goods_services_obj.id
-                        local_currency_to_usd.apply_async(args=(
-                            goods_services_row_id,
-                            conversion_date,
-                            source_currency,
-                            source_values
-                            ), queue='covid19')
+                if buyer_id:
+                    buyer_id = str(buyer_id).strip()
+                    buyer_obj = Buyer.objects.filter(buyer_id=buyer_id).first()
+                    if not buyer_obj:
+                        buyer_obj = Buyer(
+                            buyer_id=buyer_id,
+                            buyer_name=buyer_name,
+                            buyer_address=buyer_address,
+                        )
+                        buyer_obj.save()
+                else:
+                    buyer_obj = None
 
-                    total_rows_imported_count += 1
-                except Exception:
-                    # transaction.rollback()
+                # Get or Create Tender Contract
+                contract_id = row["Contract ID"]
 
-                    contract_id = row['Contract ID']
-                    errors.append((index,contract_id))
-                    print('------------------------------')
-                    print(f'Error importing row {index}, contract id {contract_id}')
-                    print(f'{row}\n')
-                    traceback.print_exc(file=sys.stdout)
-                    print('------------------------------')
+                if contract_id:
+                    contract_id = str(contract_id).strip()
+                    tender_obj = Tender.objects.filter(contract_id=contract_id).first()
+                    if not tender_obj:
+                        tender_obj = Tender(
+                            country=country_obj,
+                            supplier=supplier_obj,
+                            buyer=buyer_obj,
+                            contract_id=row["Contract ID"],
+                            contract_date=row["Contract date (yyyy-mm-dd)"],
+                            procurement_procedure=row["Procurement procedure code"],
+                            status=row["Contract Status Code"],
+                            link_to_contract=row["Link to the contract"],
+                            link_to_tender=row["Link to the tender"],
+                            data_source=row["Data source"],
+                            # for viz api compatibility only; remove these later
+                            contract_title=row["Contract title"],
+                            contract_value_local=row["Contract value"] or None,
+                            contract_desc=row["Contract description"],
+                            no_of_bidders=row["Number of bidders"] or None,
+                        )
+                        tender_obj.save()
+                else:
+                    tender_obj = None
 
-        print(f'Total rows imported: {total_rows_imported_count}')
+                # Get or Create GoodsServicesCategory
+                goods_services_category_name = row["Goods/Services"].strip()
+                goods_services_category_desc = ""
+
+                if goods_services_category_name:
+                    goods_services_category_obj = GoodsServicesCategory.objects.filter(
+                        category_name=goods_services_category_name
+                    ).first()
+                    if not goods_services_category_obj:
+                        goods_services_category_obj = GoodsServicesCategory(
+                            category_name=goods_services_category_name, category_desc=goods_services_category_desc
+                        )
+                        goods_services_category_obj.save()
+                else:
+                    goods_services_category_obj = None
+
+                # Create GoodsServices...
+
+                if tender_obj:
+                    # ...only if there is a contract that it can be associated with
+                    goods_services_obj = GoodsServices(
+                        country=country_obj,
+                        goods_services_category=goods_services_category_obj,
+                        contract=tender_obj,
+                        classification_code=row["Classification Code (CPV or other)"],
+                        no_of_bidders=row["Number of bidders"] or None,
+                        contract_title=row["Contract title"],
+                        contract_desc=row["Contract description"],
+                        tender_value_local=row["Tender value"] or None,
+                        award_value_local=row["Award value"] or None,
+                        contract_value_local=row["Contract value"] or None,
+                    )
+                    goods_services_obj.save()
+
+                    print(tender_obj.id, goods_services_obj.id)
+
+                    # Execute local currency to USD conversion celery tasks
+                    conversion_date = row["Contract date (yyyy-mm-dd)"]
+                    source_currency = country_obj.currency
+                    source_values = {
+                        "tender_value_local": row["Tender value"] or None,
+                        "award_value_local": row["Award value"] or None,
+                        "contract_value_local": row["Contract value"] or None,
+                    }
+                    goods_services_row_id = goods_services_obj.id
+                    local_currency_to_usd.apply_async(
+                        args=(goods_services_row_id, conversion_date, source_currency, source_values), queue="covid19"
+                    )
+
+                total_rows_imported_count += 1
+            except Exception:
+                # transaction.rollback()
+
+                contract_id = row["Contract ID"]
+                errors.append((index, contract_id))
+                print("------------------------------")
+                print(f"Error importing row {index}, contract id {contract_id}")
+                print(f"{row}\n")
+                traceback.print_exc(file=sys.stdout)
+                print("------------------------------")
+
+        print(f"Total rows imported: {total_rows_imported_count}")
         print(errors)
     except Exception as e:
         print(e)
 
 
-@app.task(name='import_tender_from_batch_id')
-def import_tender_from_batch_id(batch_id,country,currency):
-    print(f'import_tender_data from Batch_id {batch_id}')
+@app.task(name="import_tender_from_batch_id")
+def import_tender_from_batch_id(batch_id, country, currency):
+    print(f"import_tender_data from Batch_id {batch_id}")
     total_rows_imported_count = 0
     errors = []
 
     try:
-        temp_data = TempDataImportTable.objects.filter(import_batch_id = batch_id)
+        temp_data = TempDataImportTable.objects.filter(import_batch_id=batch_id)
         country = country
         currency = currency
     except Exception:
@@ -500,7 +489,7 @@ def import_tender_from_batch_id(batch_id,country,currency):
 
     for row in temp_data:
         try:
-            print(row,'...')
+            print(row, "...")
             contract_id = row.contract_id
             contract_date = row.contract_date
 
@@ -509,7 +498,7 @@ def import_tender_from_batch_id(batch_id,country,currency):
             classification_code = row.cpv_code_clear
             goods_services_category_name = row.goods_services
 
-            goods_services_category_desc = ''
+            goods_services_category_desc = ""
 
             if row.tender_value:
                 tender_value_local = float(row.tender_value)
@@ -518,12 +507,11 @@ def import_tender_from_batch_id(batch_id,country,currency):
             if row.award_value:
                 award_value_local = float(row.award_value)
             else:
-                award_value_local = ""    
+                award_value_local = ""
             if row.contract_value:
                 contract_value_local = float(row.contract_value)
             else:
                 contract_value_local = ""
-
 
             contract_title = row.contract_title
             contract_desc = row.contract_description
@@ -541,13 +529,12 @@ def import_tender_from_batch_id(batch_id,country,currency):
             supplier_address = row.supplier_address
 
             status = row.contract_status.strip().lower()
-            if status == 'Terminated' or status =='Canclled':
-                status='canceled'
+            if status == "Terminated" or status == "Canclled":
+                status = "canceled"
 
             link_to_contract = row.link_to_contract
             link_to_tender = row.link_to_tender
             data_source = row.data_source
-
 
             # Get Country
             country_obj = Country.objects.filter(name=country).first()
@@ -556,12 +543,12 @@ def import_tender_from_batch_id(batch_id,country,currency):
             if supplier_id or supplier_name:
                 supplier_id = str(supplier_id).strip() if supplier_id else " "
                 supplier_name = str(supplier_name).strip() if supplier_name else " "
-                supplier_obj = Supplier.objects.filter(supplier_id=supplier_id,supplier_name = supplier_name).first()
+                supplier_obj = Supplier.objects.filter(supplier_id=supplier_id, supplier_name=supplier_name).first()
                 if not supplier_obj:
                     supplier_obj = Supplier(
-                        supplier_id = supplier_id,
-                        supplier_name = supplier_name,
-                        supplier_address = supplier_address,
+                        supplier_id=supplier_id,
+                        supplier_name=supplier_name,
+                        supplier_address=supplier_address,
                     )
                     supplier_obj.save()
             else:
@@ -571,12 +558,12 @@ def import_tender_from_batch_id(batch_id,country,currency):
             if buyer_id or buyer_name:
                 buyer_id = str(buyer_id).strip() if buyer_id else " "
                 buyer_name = str(buyer_name).strip() if buyer_name else " "
-                buyer_obj = Buyer.objects.filter(buyer_id=buyer_id, buyer_name = buyer_name ).first()
+                buyer_obj = Buyer.objects.filter(buyer_id=buyer_id, buyer_name=buyer_name).first()
                 if not buyer_obj:
                     buyer_obj = Buyer(
-                        buyer_id = buyer_id,
-                        buyer_name = buyer_name,
-                        buyer_address = buyer_address,
+                        buyer_id=buyer_id,
+                        buyer_name=buyer_name,
+                        buyer_address=buyer_address,
                     )
                     buyer_obj.save()
             else:
@@ -585,13 +572,14 @@ def import_tender_from_batch_id(batch_id,country,currency):
             # Get or Create Tender Contract
             if contract_id:
                 contract_id = str(contract_id).strip()
-                tender_obj = Tender.objects.filter(contract_id=contract_id,contract_date=contract_date,buyer=buyer_obj).first()
+                tender_obj = Tender.objects.filter(
+                    contract_id=contract_id, contract_date=contract_date, buyer=buyer_obj
+                ).first()
                 if not tender_obj:
                     tender_obj = Tender(
                         country=country_obj,
                         supplier=supplier_obj,
                         buyer=buyer_obj,
-
                         contract_id=contract_id,
                         contract_date=contract_date,
                         procurement_procedure=procurement_procedure,
@@ -599,7 +587,6 @@ def import_tender_from_batch_id(batch_id,country,currency):
                         link_to_contract=link_to_contract,
                         link_to_tender=link_to_tender,
                         data_source=data_source,
-
                         # for viz api compatibility only; remove these later
                         contract_title=contract_title,
                         contract_value_local=contract_value_local or None,
@@ -612,34 +599,34 @@ def import_tender_from_batch_id(batch_id,country,currency):
 
             # Get or Create GoodsServicesCategory
             if goods_services_category_name:
-                goods_services_category_obj = GoodsServicesCategory.objects.filter(category_name=goods_services_category_name).first()
+                goods_services_category_obj = GoodsServicesCategory.objects.filter(
+                    category_name=goods_services_category_name
+                ).first()
                 if not goods_services_category_obj:
                     goods_services_category_obj = GoodsServicesCategory(
-                        category_name = goods_services_category_name,
-                        category_desc = goods_services_category_desc
+                        category_name=goods_services_category_name, category_desc=goods_services_category_desc
                     )
                     goods_services_category_obj.save()
             else:
                 goods_services_category_obj = None
 
-
             # Create GoodsServices...
 
             if tender_obj:
-            # ...only if there is a contract that it can be associated with
+                # ...only if there is a contract that it can be associated with
                 goods_services_obj = GoodsServices(
                     country=country_obj,
-                    goods_services_category = goods_services_category_obj,
-                    contract = tender_obj,
+                    goods_services_category=goods_services_category_obj,
+                    contract=tender_obj,
                     supplier=supplier_obj,
                     buyer=buyer_obj,
-                    classification_code = classification_code,
-                    no_of_bidders = no_of_bidders or None,
-                    contract_title = contract_title,
-                    contract_desc = contract_desc,
-                    tender_value_local = tender_value_local or None,
-                    award_value_local = award_value_local or None,
-                    contract_value_local = contract_value_local or None,
+                    classification_code=classification_code,
+                    no_of_bidders=no_of_bidders or None,
+                    contract_title=contract_title,
+                    contract_desc=contract_desc,
+                    tender_value_local=tender_value_local or None,
+                    award_value_local=award_value_local or None,
+                    contract_value_local=contract_value_local or None,
                 )
                 goods_services_obj.save()
 
@@ -649,17 +636,14 @@ def import_tender_from_batch_id(batch_id,country,currency):
                 conversion_date = contract_date
                 source_currency = country_obj.currency
                 source_values = {
-                    'tender_value_local': tender_value_local or None,
-                    'award_value_local': award_value_local or None,
-                    'contract_value_local': contract_value_local or None,
+                    "tender_value_local": tender_value_local or None,
+                    "award_value_local": award_value_local or None,
+                    "contract_value_local": contract_value_local or None,
                 }
                 goods_services_row_id = goods_services_obj.id
-                local_currency_to_usd.apply_async(args=(
-                    goods_services_row_id,
-                    conversion_date,
-                    source_currency,
-                    source_values
-                    ), queue='covid19')
+                local_currency_to_usd.apply_async(
+                    args=(goods_services_row_id, conversion_date, source_currency, source_values), queue="covid19"
+                )
 
             total_rows_imported_count += 1
         except Exception:
@@ -667,39 +651,45 @@ def import_tender_from_batch_id(batch_id,country,currency):
 
             contract_id = row.contract_id
             # errors.append((index,contract_id))
-            print('------------------------------')
-            print(f'Error importing row, contract id {contract_id}')
-            print(f'{row}\n')
+            print("------------------------------")
+            print(f"Error importing row, contract id {contract_id}")
+            print(f"{row}\n")
             traceback.print_exc(file=sys.stdout)
-            print('------------------------------')
+            print("------------------------------")
 
     data_import_id = ImportBatch.objects.get(id=batch_id).data_import_id
     DataImport.objects.filter(page_ptr_id=data_import_id).update(imported=True)
 
 
-@app.task(name='import_tender_data')
+@app.task(name="import_tender_data")
 def import_tender_data(gs_sheet_url):
-    print(f'import_tender_data from {gs_sheet_url}')
+    print(f"import_tender_data from {gs_sheet_url}")
     save_tender_data_to_db(gs_sheet_url)
 
 
-@app.task(name='import_tender_data_excel')
-def import_tender_data_excel(excel_file_path,country,currency):
-    print(f'import_tender_data from {excel_file_path}')
-    save_tender_excel_to_db(excel_file_path,country,currency)
+@app.task(name="import_tender_data_excel")
+def import_tender_data_excel(excel_file_path, country, currency):
+    print(f"import_tender_data from {excel_file_path}")
+    save_tender_excel_to_db(excel_file_path, country, currency)
 
 
-@app.task(name='local_currency_to_usd')
+@app.task(name="local_currency_to_usd")
 def local_currency_to_usd(goods_services_row_id, conversion_date, source_currency, source_values):
     # source_values = {
     #     'tender_value_local': row['Tender value'],
     #     'award_value_local': row['Award value'],
     #     'contract_value_local': row['Contract value']
     # }
-    
-    dst_tender_value = convert_local_to_usd(conversion_date, source_currency, source_values['tender_value_local'], dst_currency='USD')
-    dst_award_value = convert_local_to_usd(conversion_date, source_currency, source_values['award_value_local'], dst_currency='USD')
-    dst_contract_value = convert_local_to_usd(conversion_date, source_currency, source_values['contract_value_local'], dst_currency='USD')
+
+    dst_tender_value = convert_local_to_usd(
+        conversion_date, source_currency, source_values["tender_value_local"], dst_currency="USD"
+    )
+    dst_award_value = convert_local_to_usd(
+        conversion_date, source_currency, source_values["award_value_local"], dst_currency="USD"
+    )
+    dst_contract_value = convert_local_to_usd(
+        conversion_date, source_currency, source_values["contract_value_local"], dst_currency="USD"
+    )
 
     r = GoodsServices.objects.filter(id=goods_services_row_id).first()
     if r:
@@ -708,7 +698,8 @@ def local_currency_to_usd(goods_services_row_id, conversion_date, source_currenc
         r.contract_value_usd = dst_contract_value or None
         r.save()
 
-@app.task(name='fetch_equity_data')
+
+@app.task(name="fetch_equity_data")
 def fetch_equity_data(country):
     country_instance = Country.objects.get(name=country)
     tenders = Tender.objects.filter(country=country_instance)
@@ -719,81 +710,134 @@ def fetch_equity_data(country):
             print(good_service.id)
             for keyword in keywords:
                 keyword_value = keyword.keyword
-                if keyword_value in good_service.contract_title.strip() or keyword_value in good_service.contract_desc.strip():
+                if (
+                    keyword_value in good_service.contract_title.strip()
+                    or keyword_value in good_service.contract_desc.strip()
+                ):
                     category = keyword.equity_category.category_name
                     print(category)
                     instance = EquityCategory.objects.get(category_name=category)
                     tender.equity_category.add(instance)
 
 
-@app.task(name='process_currency_conversion')
-def process_currency_conversion(tender_value_local,award_value_local,contract_value_local,tender_date,currency,id):
-    tender_value_usd = convert_local_to_usd(source_value=tender_value_local,conversion_date=tender_date,source_currency=currency) if tender_value_local else None
-    award_value_usd = convert_local_to_usd(source_value=award_value_local,conversion_date=tender_date,source_currency=currency) if award_value_local else None
-    contract_value_usd = convert_local_to_usd(source_value=contract_value_local,conversion_date=tender_date,source_currency=currency) if contract_value_local else None
-    print(f'started processing... {id}: {tender_value_usd}, {award_value_usd}, {contract_value_usd}')
+@app.task(name="process_currency_conversion")
+def process_currency_conversion(
+    tender_value_local, award_value_local, contract_value_local, tender_date, currency, id
+):
+    tender_value_usd = (
+        convert_local_to_usd(source_value=tender_value_local, conversion_date=tender_date, source_currency=currency)
+        if tender_value_local
+        else None
+    )
+    award_value_usd = (
+        convert_local_to_usd(source_value=award_value_local, conversion_date=tender_date, source_currency=currency)
+        if award_value_local
+        else None
+    )
+    contract_value_usd = (
+        convert_local_to_usd(source_value=contract_value_local, conversion_date=tender_date, source_currency=currency)
+        if contract_value_local
+        else None
+    )
+    print(f"started processing... {id}: {tender_value_usd}, {award_value_usd}, {contract_value_usd}")
     if tender_value_usd or award_value_usd or contract_value_usd:
         tender = GoodsServices.objects.get(id=id)
         tender.tender_value_usd = tender_value_usd
         tender.award_value_usd = award_value_usd
         tender.contract_value_usd = contract_value_usd
         tender.save()
-        print('Converted goodsservices id:'+ str(tender.id))
-    print(f'end of {id}')
+        print("Converted goodsservices id:" + str(tender.id))
+    print(f"end of {id}")
 
 
-@app.task(name='process_redflag')
+@app.task(name="process_redflag")
 def process_redflag(id):
     tender = Tender.objects.get(id=id)
     red_flag = RedFlags()
-    flag1 = getattr(red_flag, 'flag1')(id)
-    flag4 = getattr(red_flag, 'flag4')(id)
-    flag8 = getattr(red_flag, 'flag8')(id)
+    flag1 = getattr(red_flag, "flag1")(id)
+    flag4 = getattr(red_flag, "flag4")(id)
+    flag8 = getattr(red_flag, "flag8")(id)
     if flag1:
-        flag1_obj = RedFlag.objects.get(function_name='flag1')
+        flag1_obj = RedFlag.objects.get(function_name="flag1")
         tender.red_flag.add(flag1_obj)
     if flag4:
-        flag4_obj = RedFlag.objects.get(function_name='flag4')
+        flag4_obj = RedFlag.objects.get(function_name="flag4")
         tender.red_flag.add(flag4_obj)
     if flag8:
-        flag8_obj = RedFlag.objects.get(function_name='flag8')
+        flag8_obj = RedFlag.objects.get(function_name="flag8")
         tender.red_flag.add(flag8_obj)
-    print(f'end of {id}')
+    print(f"end of {id}")
 
 
-@app.task(name='clear_redflag')
+@app.task(name="clear_redflag")
 def clear_redflag(id):
     tender = Tender.objects.get(id=id)
     tender.red_flag.clear()
-    print(f'end of {id}')
+    print(f"end of {id}")
 
-@app.task(name='process_red_flag7')
-def process_redflag7(id,tender):
-    flag7_obj = RedFlag.objects.get(function_name='flag7')
-    concentration = Tender.objects.filter(buyer__buyer_name=tender['buyer__buyer_name'],supplier__supplier_name=tender['supplier__supplier_name'])
-    if len(concentration) > 10:    # supplier who has signed X(10) percent or more of their contracts with the same buyer (wins tenders from the same buyer);
+
+@app.task(name="process_red_flag7")
+def process_redflag7(id, tender):
+    flag7_obj = RedFlag.objects.get(function_name="flag7")
+    concentration = Tender.objects.filter(
+        buyer__buyer_name=tender["buyer__buyer_name"], supplier__supplier_name=tender["supplier__supplier_name"]
+    )
+    if (
+        len(concentration) > 10
+    ):  # supplier who has signed X(10) percent or more of their contracts with the same buyer (wins tenders from the same buyer);
         for i in concentration:
             obj = Tender.objects.get(id=i.id)
             obj.red_flag.add(flag7_obj)
 
-@app.task(name='process_red_flag6')
-def process_redflag6(id,tender):
-    flag6_obj = RedFlag.objects.get(function_name='flag6')
-    a = Tender.objects.values('buyer__buyer_name').filter(supplier__supplier_name=tender['supplier__supplier_name'],supplier__supplier_address=tender['supplier__supplier_address']).distinct('buyer__buyer_name')
+
+@app.task(name="process_red_flag6")
+def process_redflag6(id, tender):
+    flag6_obj = RedFlag.objects.get(function_name="flag6")
+    a = (
+        Tender.objects.values("buyer__buyer_name")
+        .filter(
+            supplier__supplier_name=tender["supplier__supplier_name"],
+            supplier__supplier_address=tender["supplier__supplier_address"],
+        )
+        .distinct("buyer__buyer_name")
+    )
     if len(a) > 2:
-        if a[0]['buyer__buyer_name']==a[1]['buyer__buyer_name']:
+        if a[0]["buyer__buyer_name"] == a[1]["buyer__buyer_name"]:
             for obj in a:
                 objs = Tender.objects.get(id=obj.id)
                 objs.red_flag.add(flag6_obj)
 
 
-@app.task(name='store_in_temp_table')
+@app.task(name="store_in_temp_table")
 def store_in_temp_table(instance_id):
     instance = DataImport.objects.get(id=instance_id)
-    filename= instance.import_file.name
-    valid_columns =['Contract ID','Procurement procedure code','Classification Code (CPV or other)', 'Quantity, units', 'Price per unit, including VAT', 'Tender value', 'Award value','Contract value','Contract title','Contract description','Number of bidders','Buyer','Buyer ID','Buyer address (as an object)','Supplier','Supplier ID','Supplier address','Contract Status','Contract Status Code','Link to the contract','Link to the tender','Data source']
-    file_path = settings.MEDIA_ROOT+'/'+str(filename)
-    ws = pd.read_excel(file_path,sheet_name='data',header=0,na_values = None,na_filter = False)
+    filename = instance.import_file.name
+    valid_columns = [
+        "Contract ID",
+        "Procurement procedure code",
+        "Classification Code (CPV or other)",
+        "Quantity, units",
+        "Price per unit, including VAT",
+        "Tender value",
+        "Award value",
+        "Contract value",
+        "Contract title",
+        "Contract description",
+        "Number of bidders",
+        "Buyer",
+        "Buyer ID",
+        "Buyer address (as an object)",
+        "Supplier",
+        "Supplier ID",
+        "Supplier address",
+        "Contract Status",
+        "Contract Status Code",
+        "Link to the contract",
+        "Link to the tender",
+        "Data source",
+    ]
+    file_path = settings.MEDIA_ROOT + "/" + str(filename)
+    ws = pd.read_excel(file_path, sheet_name="data", header=0, na_values=None, na_filter=False)
     ws = ws.where(ws.notnull(), None)
     if set(valid_columns).issubset(ws.columns):
         instance.validated = True
@@ -802,110 +846,196 @@ def store_in_temp_table(instance_id):
 
     try:
         data_import_id = instance.id
-        country_id = Country.objects.filter(name = instance.country).values('id').get()
-        new_importbatch = ImportBatch(import_type="XLS file", description="Import data of file : "+filename, country_id= country_id['id'], data_import_id=data_import_id)
+        country_id = Country.objects.filter(name=instance.country).values("id").get()
+        new_importbatch = ImportBatch(
+            import_type="XLS file",
+            description="Import data of file : " + filename,
+            country_id=country_id["id"],
+            data_import_id=data_import_id,
+        )
         new_importbatch.save()
         importbatch_id = new_importbatch.id
-        procurement_procedure_option = ['Open','open','Limited','limited','Selective','selective','Direct','direct']
-        contract_status_option = ['Active','active','Cancelled','cancelled','Completed','complete','completed','Terminated','terminated']
+        procurement_procedure_option = [
+            "Open",
+            "open",
+            "Limited",
+            "limited",
+            "Selective",
+            "selective",
+            "Direct",
+            "direct",
+        ]
+        contract_status_option = [
+            "Active",
+            "active",
+            "Cancelled",
+            "cancelled",
+            "Completed",
+            "complete",
+            "completed",
+            "Terminated",
+            "terminated",
+        ]
         i = 0
 
-        while (i <= len(ws)):
-            procurement_procedure_value = ws['Procurement procedure code'][i].strip().lower()
-            contract_status_value = ws['Contract Status Code'][i].strip().lower()
+        while i <= len(ws):
+            procurement_procedure_value = ws["Procurement procedure code"][i].strip().lower()
+            contract_status_value = ws["Contract Status Code"][i].strip().lower()
             print(procurement_procedure_value)
             print(contract_status_value)
 
             if contract_status_value in contract_status_option:
                 contract_status_lowered_value = contract_status_value.lower()
-                if contract_status_lowered_value == 'terminated':
-                    contract_status_lowered_value = 'completed'
-                if contract_status_lowered_value == 'complete':
-                    contract_status_lowered_value = 'completed'
+                if contract_status_lowered_value == "terminated":
+                    contract_status_lowered_value = "completed"
+                if contract_status_lowered_value == "complete":
+                    contract_status_lowered_value = "completed"
             else:
-                contract_status_lowered_value = 'not_identified'
+                contract_status_lowered_value = "not_identified"
 
             if procurement_procedure_value in procurement_procedure_option:
                 procurement_procedure__lowered_value = procurement_procedure_value.lower()
             else:
-                procurement_procedure__lowered_value = 'not_identified'
+                procurement_procedure__lowered_value = "not_identified"
             try:
-                nulled = pd.isnull(ws['Contract value'][i])
+                nulled = pd.isnull(ws["Contract value"][i])
                 if not nulled:
                     new_tempdata = TempDataImportTable(
-                                                    contract_id = ws['Contract ID'][i],
-                                                    contract_date= ws['Contract date (yyyy-mm-dd)'][i].date(),
-                                                    procurement_procedure= procurement_procedure__lowered_value,
-                                                    procurement_process= ws['Procurement procedure code'][i],
-                                                    goods_services=ws['Goods/Services'][i],
-                                                    cpv_code_clear=ws['Classification Code (CPV or other)'][i],
-                                                    quantity_units=ws['Quantity, units'][i],
-                                                    ppu_including_vat=ws['Price per unit, including VAT'][i],
-                                                    tender_value=ws['Tender value'][i],
-                                                    award_value=ws['Award value'][i],
-                                                    contract_value=ws['Contract value'][i],
-                                                    contract_title=ws['Contract title'][i],
-                                                    contract_description=ws['Contract description'][i],
-                                                    no_of_bidders=ws['Number of bidders'][i],
-                                                    buyer=ws['Buyer'][i],
-                                                    buyer_id=ws['Buyer ID'][i],
-                                                    buyer_address_as_an_object=ws['Buyer address (as an object)'][i],
-                                                    supplier=ws['Supplier'][i],
-                                                    supplier_id=ws['Supplier ID'][i],
-                                                    supplier_address=ws['Supplier address'][i],
-                                                    contract_status=contract_status_lowered_value,
-                                                    contract_status_code=ws['Contract Status Code'][i],
-                                                    link_to_contract=ws['Link to the contract'][i],
-                                                    link_to_tender=ws['Link to the tender'][i],
-                                                    data_source=ws['Data source'][i],
-                                                    import_batch_id=importbatch_id
-                                                    )
+                        contract_id=ws["Contract ID"][i],
+                        contract_date=ws["Contract date (yyyy-mm-dd)"][i].date(),
+                        procurement_procedure=procurement_procedure__lowered_value,
+                        procurement_process=ws["Procurement procedure code"][i],
+                        goods_services=ws["Goods/Services"][i],
+                        cpv_code_clear=ws["Classification Code (CPV or other)"][i],
+                        quantity_units=ws["Quantity, units"][i],
+                        ppu_including_vat=ws["Price per unit, including VAT"][i],
+                        tender_value=ws["Tender value"][i],
+                        award_value=ws["Award value"][i],
+                        contract_value=ws["Contract value"][i],
+                        contract_title=ws["Contract title"][i],
+                        contract_description=ws["Contract description"][i],
+                        no_of_bidders=ws["Number of bidders"][i],
+                        buyer=ws["Buyer"][i],
+                        buyer_id=ws["Buyer ID"][i],
+                        buyer_address_as_an_object=ws["Buyer address (as an object)"][i],
+                        supplier=ws["Supplier"][i],
+                        supplier_id=ws["Supplier ID"][i],
+                        supplier_address=ws["Supplier address"][i],
+                        contract_status=contract_status_lowered_value,
+                        contract_status_code=ws["Contract Status Code"][i],
+                        link_to_contract=ws["Link to the contract"][i],
+                        link_to_tender=ws["Link to the tender"][i],
+                        data_source=ws["Data source"][i],
+                        import_batch_id=importbatch_id,
+                    )
                     new_tempdata.save()
             except Exception as e:
                 print(e)
                 pass
-            i = i+1
+            i = i + 1
     except Exception as e:
         print(e)
 
 
-@app.task(name='country_contract_excel')
+@app.task(name="country_contract_excel")
 def country_contract_excel(country):
-    if(not country):
-        countries = Country.objects.all().exclude(country_code_alpha_2='gl')
+    if not country:
+        countries = Country.objects.all().exclude(country_code_alpha_2="gl")
         for country in countries:
             country_name = country.name
-            file_path = f'media/export/{country_name}_summary.xlsx'
+            file_path = f"media/export/{country_name}_summary.xlsx"
             if not os.path.exists(file_path):
                 Path(file_path).touch()
 
-            workbook = xlsxwriter.Workbook(file_path) 
-            worksheet = workbook.add_worksheet() 
+            workbook = xlsxwriter.Workbook(file_path)
+            worksheet = workbook.add_worksheet()
             row = 0
             column = 0
-            column_names = ["Contract ID","Contract Date","Procurement Procedure","Status","No of bidders","Contract title", "Contract description","Buyer ID","Buyer Name","Buyer Address","Supplier ID","Supplier Name","Supplier Address","Contract value (USD)","Contract value (local)","Award value (USD)","Award value (local)","Tender value (USD)","Tender value (local)", "Product Category","Equity Category","Link to Contract","Link to tender","Data Source"]
+            column_names = [
+                "Contract ID",
+                "Contract Date",
+                "Procurement Procedure",
+                "Status",
+                "No of bidders",
+                "Contract title",
+                "Contract description",
+                "Buyer ID",
+                "Buyer Name",
+                "Buyer Address",
+                "Supplier ID",
+                "Supplier Name",
+                "Supplier Address",
+                "Contract value (USD)",
+                "Contract value (local)",
+                "Award value (USD)",
+                "Award value (local)",
+                "Tender value (USD)",
+                "Tender value (local)",
+                "Product Category",
+                "Equity Category",
+                "Link to Contract",
+                "Link to tender",
+                "Data Source",
+            ]
             for item in column_names:
                 worksheet.write(row, column, item)
-                column+=1
+                column += 1
 
-            # Data exporting start here  
-            print(f'Contract Excel Exporting of {country_name} has started')
-            
+            # Data exporting start here
+            print(f"Contract Excel Exporting of {country_name} has started")
+
             data = {}
-            reports = Tender.objects.filter(country__country_code_alpha_2=country.country_code_alpha_2).values('id','contract_id','contract_date','procurement_procedure','status','link_to_contract','link_to_tender','data_source','no_of_bidders','contract_title','equity_category','contract_desc','buyer_id','supplier_id','goods_services__goods_services_category__category_name').annotate(contract_usd=Sum('goods_services__contract_value_usd'),contract_local=Sum('goods_services__contract_value_local'), award_local=Sum('goods_services__award_value_local'), award_usd=Sum('goods_services__award_value_usd'),tender_local=Sum('goods_services__tender_value_local'), tender_usd=Sum('goods_services__tender_value_usd'))
-            if(reports):
+            reports = (
+                Tender.objects.filter(country__country_code_alpha_2=country.country_code_alpha_2)
+                .values(
+                    "id",
+                    "contract_id",
+                    "contract_date",
+                    "procurement_procedure",
+                    "status",
+                    "link_to_contract",
+                    "link_to_tender",
+                    "data_source",
+                    "no_of_bidders",
+                    "contract_title",
+                    "equity_category",
+                    "contract_desc",
+                    "buyer_id",
+                    "supplier_id",
+                    "goods_services__goods_services_category__category_name",
+                )
+                .annotate(
+                    contract_usd=Sum("goods_services__contract_value_usd"),
+                    contract_local=Sum("goods_services__contract_value_local"),
+                    award_local=Sum("goods_services__award_value_local"),
+                    award_usd=Sum("goods_services__award_value_usd"),
+                    tender_local=Sum("goods_services__tender_value_local"),
+                    tender_usd=Sum("goods_services__tender_value_usd"),
+                )
+            )
+            if reports:
                 for report in reports:
-                    buyer = Buyer.objects.filter(id= report['buyer_id']).values('buyer_id','buyer_name','buyer_address').first()
-                    buyer_id=buyer['buyer_id'] if (buyer) else ''
-                    buyer_name = buyer['buyer_name'] if (buyer) else ''
-                    buyer_address = buyer['buyer_address'] if (buyer) else ''
+                    buyer = (
+                        Buyer.objects.filter(id=report["buyer_id"])
+                        .values("buyer_id", "buyer_name", "buyer_address")
+                        .first()
+                    )
+                    buyer_id = buyer["buyer_id"] if (buyer) else ""
+                    buyer_name = buyer["buyer_name"] if (buyer) else ""
+                    buyer_address = buyer["buyer_address"] if (buyer) else ""
 
-                    supplier = Supplier.objects.filter(id= report['supplier_id']).values('supplier_id','supplier_name','supplier_address').first()
-                    supplier_id=supplier['supplier_id'] if (supplier) else ''
-                    supplier_name = supplier['supplier_name'] if (supplier) else ''
-                    supplier_address = supplier['supplier_address'] if (supplier) else ''
-                    
-                    productcategories = GoodsServices.objects.filter(contract_id = report['id']).values('goods_services_category__category_name')
+                    supplier = (
+                        Supplier.objects.filter(id=report["supplier_id"])
+                        .values("supplier_id", "supplier_name", "supplier_address")
+                        .first()
+                    )
+                    supplier_id = supplier["supplier_id"] if (supplier) else ""
+                    supplier_name = supplier["supplier_name"] if (supplier) else ""
+                    supplier_address = supplier["supplier_address"] if (supplier) else ""
+
+                    productcategories = GoodsServices.objects.filter(contract_id=report["id"]).values(
+                        "goods_services_category__category_name"
+                    )
                     product_categorylist = []
                     equity_categorylist = []
 
@@ -914,147 +1044,206 @@ def country_contract_excel(country):
 
                         for category in equitycategories:
                             equity_categorylist.append(category.category_name)
-                        equitycategories =str(','.join(set(equity_categorylist)))
+                        equitycategories = str(",".join(set(equity_categorylist)))
                     except:
-                        equity_categorylist =[]
-                        equitycategories=''
-                        
+                        equity_categorylist = []
+                        equitycategories = ""
+
                     for category in productcategories:
-                        product_categorylist.append(category['goods_services_category__category_name'])
+                        product_categorylist.append(category["goods_services_category__category_name"])
 
                     try:
-                        data['contract_id'] = report['contract_id']
-                        data['contract_date'] = str(report['contract_date'])
-                        data['procurement_procedure'] = report['procurement_procedure']
-                        data['data_source'] = report['data_source']
-                        data['no_of_bidders'] = report['no_of_bidders']
-                        data['contract_title'] = report['contract_title']
-                        data['contract_desc'] = report['contract_desc']
-                        data['buyer_id'] = buyer_id
-                        data['buyer_name'] = buyer_name
-                        data['buyer_address'] = buyer_address
-                        data['supplier_id'] = supplier_id
-                        data['supplier_name'] = supplier_name
-                        data['supplier_address'] = supplier_address
-                        data['contract_value_usd'] = report['contract_usd']
-                        data['contract_value_local'] = report['contract_local']
-                        data['award_value_usd'] = report['award_usd']
-                        data['award_value_local'] = report['award_local']
-                        data['tender_value_usd'] = report['tender_usd']
-                        data['tender_value_local'] = report['tender_local']
-                        data['product_categories'] = str(','.join(set(product_categorylist)))
-                        data['equity_categories'] = equitycategories
-                        data['status'] = report['status']
-                        data['link_to_contract'] = report['link_to_contract']
-                        data['link_to_tender'] = report['link_to_tender']
-                        
+                        data["contract_id"] = report["contract_id"]
+                        data["contract_date"] = str(report["contract_date"])
+                        data["procurement_procedure"] = report["procurement_procedure"]
+                        data["data_source"] = report["data_source"]
+                        data["no_of_bidders"] = report["no_of_bidders"]
+                        data["contract_title"] = report["contract_title"]
+                        data["contract_desc"] = report["contract_desc"]
+                        data["buyer_id"] = buyer_id
+                        data["buyer_name"] = buyer_name
+                        data["buyer_address"] = buyer_address
+                        data["supplier_id"] = supplier_id
+                        data["supplier_name"] = supplier_name
+                        data["supplier_address"] = supplier_address
+                        data["contract_value_usd"] = report["contract_usd"]
+                        data["contract_value_local"] = report["contract_local"]
+                        data["award_value_usd"] = report["award_usd"]
+                        data["award_value_local"] = report["award_local"]
+                        data["tender_value_usd"] = report["tender_usd"]
+                        data["tender_value_local"] = report["tender_local"]
+                        data["product_categories"] = str(",".join(set(product_categorylist)))
+                        data["equity_categories"] = equitycategories
+                        data["status"] = report["status"]
+                        data["link_to_contract"] = report["link_to_contract"]
+                        data["link_to_tender"] = report["link_to_tender"]
+
                         row += 1
                         columns = 0
-                        for key,value in data.items():
-                            value = value if value else ' '
+                        for key, value in data.items():
+                            value = value if value else " "
                             if value == None:
-                                value=""
+                                value = ""
                             worksheet.write(row, columns, value)
                             columns += 1
                     except Exception as e:
                         print(e)
-                print(f'Contract Excel Exporting of {country_name} has been successful with {row} no of rows')
+                print(f"Contract Excel Exporting of {country_name} has been successful with {row} no of rows")
             else:
-                print(f'{country_name} doesnt have data')
-            
-            workbook.close() 
-            print('............')
+                print(f"{country_name} doesnt have data")
+
+            workbook.close()
+            print("............")
 
     else:
-        country_name = Country.objects.filter(country_code_alpha_2 = country).first().name
-        file_path = f'media/export/{country_name}_summary.xlsx'
+        country_name = Country.objects.filter(country_code_alpha_2=country).first().name
+        file_path = f"media/export/{country_name}_summary.xlsx"
         if not os.path.exists(file_path):
             Path(file_path).touch()
 
-        workbook = xlsxwriter.Workbook(file_path) 
-        worksheet = workbook.add_worksheet() 
+        workbook = xlsxwriter.Workbook(file_path)
+        worksheet = workbook.add_worksheet()
         row = 0
         column = 0
-        column_names = ["Contract ID","Contract Date","Procurement Procedure","Status","No of bidders","Contract title", "Contract description","Buyer ID","Buyer Name","Buyer Address","Supplier ID","Supplier Name","Supplier Address","Contract value (USD)","Contract value (local)","Award value (USD)","Award value (local)","Tender value (USD)","Tender value (local)", "Product Category","Equity Category","Link to Contract","Link to tender","Data Source"]
+        column_names = [
+            "Contract ID",
+            "Contract Date",
+            "Procurement Procedure",
+            "Status",
+            "No of bidders",
+            "Contract title",
+            "Contract description",
+            "Buyer ID",
+            "Buyer Name",
+            "Buyer Address",
+            "Supplier ID",
+            "Supplier Name",
+            "Supplier Address",
+            "Contract value (USD)",
+            "Contract value (local)",
+            "Award value (USD)",
+            "Award value (local)",
+            "Tender value (USD)",
+            "Tender value (local)",
+            "Product Category",
+            "Equity Category",
+            "Link to Contract",
+            "Link to tender",
+            "Data Source",
+        ]
         for item in column_names:
             worksheet.write(row, column, item)
-            column+=1
+            column += 1
 
-        # Data exporting start here  
-        print(f'Contract Excel Exporting of {country_name} has started')
-        
+        # Data exporting start here
+        print(f"Contract Excel Exporting of {country_name} has started")
+
         data = {}
-        reports = Tender.objects.filter(country__country_code_alpha_2=country).values('id','contract_id','contract_date','procurement_procedure','status','link_to_contract','link_to_tender','data_source','no_of_bidders','contract_title','contract_desc','buyer_id','supplier_id','goods_services__goods_services_category__category_name').annotate(contract_usd=Sum('goods_services__contract_value_usd'),contract_local=Sum('goods_services__contract_value_local'), award_local=Sum('goods_services__award_value_local'), award_usd=Sum('goods_services__award_value_usd'),tender_local=Sum('goods_services__tender_value_local'), tender_usd=Sum('goods_services__tender_value_usd'))
-        
-        if(reports):
-            for report in reports:
-                buyer = Buyer.objects.filter(id= report['buyer_id']).values('buyer_id','buyer_name','buyer_address').first()
-                buyer_id=buyer['buyer_id'] if (buyer) else ''
-                buyer_name = buyer['buyer_name'] if (buyer) else ''
-                buyer_address = buyer['buyer_address'] if (buyer) else ''
+        reports = (
+            Tender.objects.filter(country__country_code_alpha_2=country)
+            .values(
+                "id",
+                "contract_id",
+                "contract_date",
+                "procurement_procedure",
+                "status",
+                "link_to_contract",
+                "link_to_tender",
+                "data_source",
+                "no_of_bidders",
+                "contract_title",
+                "contract_desc",
+                "buyer_id",
+                "supplier_id",
+                "goods_services__goods_services_category__category_name",
+            )
+            .annotate(
+                contract_usd=Sum("goods_services__contract_value_usd"),
+                contract_local=Sum("goods_services__contract_value_local"),
+                award_local=Sum("goods_services__award_value_local"),
+                award_usd=Sum("goods_services__award_value_usd"),
+                tender_local=Sum("goods_services__tender_value_local"),
+                tender_usd=Sum("goods_services__tender_value_usd"),
+            )
+        )
 
-                supplier = Supplier.objects.filter(id= report['supplier_id']).values('supplier_id','supplier_name','supplier_address').first()
-                supplier_id=supplier['supplier_id'] if (supplier) else ''
-                supplier_name = supplier['supplier_name'] if (supplier) else ''
-                supplier_address = supplier['supplier_address'] if (supplier) else ''
-                
-                productcategories = GoodsServices.objects.filter(contract_id = report['id']).values('goods_services_category__category_name')
+        if reports:
+            for report in reports:
+                buyer = (
+                    Buyer.objects.filter(id=report["buyer_id"])
+                    .values("buyer_id", "buyer_name", "buyer_address")
+                    .first()
+                )
+                buyer_id = buyer["buyer_id"] if (buyer) else ""
+                buyer_name = buyer["buyer_name"] if (buyer) else ""
+                buyer_address = buyer["buyer_address"] if (buyer) else ""
+
+                supplier = (
+                    Supplier.objects.filter(id=report["supplier_id"])
+                    .values("supplier_id", "supplier_name", "supplier_address")
+                    .first()
+                )
+                supplier_id = supplier["supplier_id"] if (supplier) else ""
+                supplier_name = supplier["supplier_name"] if (supplier) else ""
+                supplier_address = supplier["supplier_address"] if (supplier) else ""
+
+                productcategories = GoodsServices.objects.filter(contract_id=report["id"]).values(
+                    "goods_services_category__category_name"
+                )
                 product_categorylist = []
                 equity_categorylist = []
 
                 try:
-                    equitycategories = Tender.objects.filter(id=report['id']).values('equity_category__category_name')
+                    equitycategories = Tender.objects.filter(id=report["id"]).values("equity_category__category_name")
                     for category in equitycategories:
-                        equity_categorylist.append(category['equity_category__category_name'])
-                    equitycategories = str(','.join(set(equity_categorylist)))                
+                        equity_categorylist.append(category["equity_category__category_name"])
+                    equitycategories = str(",".join(set(equity_categorylist)))
                 except:
-                    equity_categorylist =[]
-                    equitycategories=''
+                    equity_categorylist = []
+                    equitycategories = ""
 
                 for category in productcategories:
-                    product_categorylist.append(category['goods_services_category__category_name'])
+                    product_categorylist.append(category["goods_services_category__category_name"])
 
-                
                 try:
-                    data['contract_id'] = report['contract_id']
-                    data['contract_date'] = str(report['contract_date'])
-                    data['procurement_procedure'] = report['procurement_procedure']
-                    data['status'] = report['status']
-                    data['no_of_bidders'] = report['no_of_bidders']
-                    data['contract_title'] = report['contract_title']
-                    data['contract_desc'] = report['contract_desc']
-                    data['buyer_id'] = buyer_id
-                    data['buyer_name'] = buyer_name
-                    data['buyer_address'] = buyer_address
-                    data['supplier_id'] = supplier_id
-                    data['supplier_name'] = supplier_name
-                    data['supplier_address'] = supplier_address
-                    data['contract_value_usd'] = report['contract_usd']
-                    data['contract_value_local'] = report['contract_local']
-                    data['award_value_usd'] = report['award_usd']
-                    data['award_value_local'] = report['award_local']
-                    data['tender_value_usd'] = report['tender_usd']
-                    data['tender_value_local'] = report['tender_local']
-                    data['product_categories'] = str(','.join(set(product_categorylist)))
-                    data['equity_categories'] = equitycategories
-                    data['link_to_contract'] = report['link_to_contract']
-                    data['link_to_tender'] = report['link_to_tender']
-                    data['data_source'] = report['data_source']
+                    data["contract_id"] = report["contract_id"]
+                    data["contract_date"] = str(report["contract_date"])
+                    data["procurement_procedure"] = report["procurement_procedure"]
+                    data["status"] = report["status"]
+                    data["no_of_bidders"] = report["no_of_bidders"]
+                    data["contract_title"] = report["contract_title"]
+                    data["contract_desc"] = report["contract_desc"]
+                    data["buyer_id"] = buyer_id
+                    data["buyer_name"] = buyer_name
+                    data["buyer_address"] = buyer_address
+                    data["supplier_id"] = supplier_id
+                    data["supplier_name"] = supplier_name
+                    data["supplier_address"] = supplier_address
+                    data["contract_value_usd"] = report["contract_usd"]
+                    data["contract_value_local"] = report["contract_local"]
+                    data["award_value_usd"] = report["award_usd"]
+                    data["award_value_local"] = report["award_local"]
+                    data["tender_value_usd"] = report["tender_usd"]
+                    data["tender_value_local"] = report["tender_local"]
+                    data["product_categories"] = str(",".join(set(product_categorylist)))
+                    data["equity_categories"] = equitycategories
+                    data["link_to_contract"] = report["link_to_contract"]
+                    data["link_to_tender"] = report["link_to_tender"]
+                    data["data_source"] = report["data_source"]
 
                     row += 1
                     columns = 0
-                    for key,value in data.items():
-                        value = value if value else ' '
+                    for key, value in data.items():
+                        value = value if value else " "
                         if value == None:
-                            value=""
+                            value = ""
                         worksheet.write(row, columns, value)
                         columns += 1
                 except Exception as e:
                     print(e)
-            print(f'Contract Excel Exporting of {country_name} has been successful with {row} no of rows')
+            print(f"Contract Excel Exporting of {country_name} has been successful with {row} no of rows")
         else:
-            print(f'{country_name} doesnt have data')
-        
-        workbook.close() 
-        print('............')
+            print(f"{country_name} doesnt have data")
 
+        workbook.close()
+        print("............")

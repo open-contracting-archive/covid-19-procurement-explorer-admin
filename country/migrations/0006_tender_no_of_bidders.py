@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0005_auto_20201203_0612'),
+        ("country", "0005_auto_20201203_0612"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='tender',
-            name='no_of_bidders',
-            field=models.BigIntegerField(blank=True, null=True, verbose_name='Number of Bidders'),
+            model_name="tender",
+            name="no_of_bidders",
+            field=models.BigIntegerField(blank=True, null=True, verbose_name="Number of Bidders"),
         ),
     ]

@@ -6,13 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0010_covidmonthlyactivecases'),
+        ("country", "0010_covidmonthlyactivecases"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='country',
-            name='continent',
-            field=models.CharField(choices=[('africa', 'Africa'), ('asia', 'Asia'), ('europe', 'Europe'), ('middle_east', 'Middle East'), ('north_america', 'North America'), ('south_america', 'South America'), ('oceanic', 'Oceanic')], max_length=25, null=True, verbose_name='Continent'),
+            model_name="country",
+            name="continent",
+            field=models.CharField(
+                choices=[
+                    ("africa", "Africa"),
+                    ("asia", "Asia"),
+                    ("europe", "Europe"),
+                    ("middle_east", "Middle East"),
+                    ("north_america", "North America"),
+                    ("south_america", "South America"),
+                    ("oceanic", "Oceanic"),
+                ],
+                max_length=25,
+                null=True,
+                verbose_name="Continent",
+            ),
         ),
     ]

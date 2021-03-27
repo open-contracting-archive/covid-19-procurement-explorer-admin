@@ -7,17 +7,27 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0009_goodsservices_country'),
+        ("country", "0009_goodsservices_country"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='CovidMonthlyActiveCases',
+            name="CovidMonthlyActiveCases",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('covid_data_date', models.DateField()),
-                ('active_cases_count', models.BigIntegerField(blank=True, null=True, verbose_name='Active cases count')),
-                ('country', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='covid_monthly_active_cases', to='country.country')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("covid_data_date", models.DateField()),
+                (
+                    "active_cases_count",
+                    models.BigIntegerField(blank=True, null=True, verbose_name="Active cases count"),
+                ),
+                (
+                    "country",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="covid_monthly_active_cases",
+                        to="country.country",
+                    ),
+                ),
             ],
         ),
     ]

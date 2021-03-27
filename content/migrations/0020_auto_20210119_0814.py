@@ -6,13 +6,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0019_auto_20210115_1135'),
+        ("content", "0019_auto_20210115_1135"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='staticpage',
-            name='page_type',
-            field=models.CharField(choices=[('About Us', 'About Us'), ('Privacy Policy', 'Privacy Policy'), ('Terms Of Use', 'Terms Of Use')], max_length=20),
+            model_name="staticpage",
+            name="page_type",
+            field=models.CharField(
+                choices=[
+                    ("About Us", "About Us"),
+                    ("Privacy Policy", "Privacy Policy"),
+                    ("Terms Of Use", "Terms Of Use"),
+                ],
+                max_length=20,
+            ),
         ),
     ]

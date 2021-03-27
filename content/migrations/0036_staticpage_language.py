@@ -7,15 +7,15 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0020_importbatch_tempdataimporttable'),
-        ('content', '0035_auto_20210215_0928'),
+        ("country", "0020_importbatch_tempdataimporttable"),
+        ("content", "0035_auto_20210215_0928"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='staticpage',
-            name='language',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='country.language'),
+            model_name="staticpage",
+            name="language",
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to="country.language"),
             preserve_default=False,
         ),
     ]

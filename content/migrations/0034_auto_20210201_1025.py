@@ -8,14 +8,21 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('wagtaildocs', '0010_document_file_hash'),
-        ('content', '0033_auto_20210129_0746'),
+        ("wagtaildocs", "0010_document_file_hash"),
+        ("content", "0033_auto_20210129_0746"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='dataimport',
-            name='import_file',
-            field=models.ForeignKey(help_text='Only upload xlsx, xls format', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='wagtaildocs.document', validators=[content.validators.validate_file_extension]),
+            model_name="dataimport",
+            name="import_file",
+            field=models.ForeignKey(
+                help_text="Only upload xlsx, xls format",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="wagtaildocs.document",
+                validators=[content.validators.validate_file_extension],
+            ),
         ),
     ]

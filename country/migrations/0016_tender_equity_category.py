@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0015_delete_countrypartner'),
+        ("country", "0015_delete_countrypartner"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='tender',
-            name='equity_category',
-            field=models.ManyToManyField(to='country.EquityCategory'),
+            model_name="tender",
+            name="equity_category",
+            field=models.ManyToManyField(to="country.EquityCategory"),
         ),
     ]

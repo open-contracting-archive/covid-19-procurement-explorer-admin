@@ -7,13 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0043_merge_20210310_1153'),
+        ("content", "0043_merge_20210310_1153"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='staticpage',
-            name='static_content_type',
-            field=models.CharField(choices=[('static_page', 'Static Page'), ('methodology', 'Methodology')], max_length=100, null=True, verbose_name='Content Type'),
+            model_name="staticpage",
+            name="static_content_type",
+            field=models.CharField(
+                choices=[("static_page", "Static Page"), ("methodology", "Methodology")],
+                max_length=100,
+                null=True,
+                verbose_name="Content Type",
+            ),
         ),
     ]

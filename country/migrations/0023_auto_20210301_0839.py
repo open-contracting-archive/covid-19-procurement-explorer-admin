@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0022_merge_20210226_1050'),
+        ("country", "0022_merge_20210226_1050"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='equitycategory',
-            options={'verbose_name_plural': 'Equity Categories'},
+            name="equitycategory",
+            options={"verbose_name_plural": "Equity Categories"},
         ),
     ]

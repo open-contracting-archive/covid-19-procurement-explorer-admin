@@ -7,13 +7,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0041_auto_20210309_1050'),
+        ("content", "0041_auto_20210309_1050"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='eventspage',
-            name='organisation',
+            model_name="eventspage",
+            name="organisation",
             field=models.CharField(blank=True, max_length=200, null=True),
         ),
     ]

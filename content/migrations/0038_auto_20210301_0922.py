@@ -7,13 +7,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0037_remove_staticpage_page_type'),
+        ("content", "0037_remove_staticpage_page_type"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dataimport',
-            name='imported',
-            field=models.BooleanField(default=False,blank=True),
+            model_name="dataimport",
+            name="imported",
+            field=models.BooleanField(default=False, blank=True),
         ),
     ]

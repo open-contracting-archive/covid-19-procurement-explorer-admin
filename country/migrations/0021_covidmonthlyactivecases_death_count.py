@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0020_importbatch_tempdataimporttable'),
+        ("country", "0020_importbatch_tempdataimporttable"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='covidmonthlyactivecases',
-            name='death_count',
-            field=models.BigIntegerField(blank=True, null=True, verbose_name='Death count'),
+            model_name="covidmonthlyactivecases",
+            name="death_count",
+            field=models.BigIntegerField(blank=True, null=True, verbose_name="Death count"),
         ),
     ]

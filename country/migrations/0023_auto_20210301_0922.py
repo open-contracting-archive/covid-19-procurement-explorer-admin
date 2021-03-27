@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0022_merge_20210226_1050'),
+        ("country", "0022_merge_20210226_1050"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='importbatch',
-            name='data_import_id',
+            model_name="importbatch",
+            name="data_import_id",
             field=models.IntegerField(null=True),
         ),
     ]

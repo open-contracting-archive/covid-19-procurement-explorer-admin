@@ -8,22 +8,34 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0025_merge_20210302_0515'),
+        ("country", "0025_merge_20210302_0515"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DataProvider',
+            name="DataProvider",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, unique=True, validators=[django.core.validators.RegexValidator('^[a-zA-Z ]+$', 'Only letters and spaces are allowed in the Country Name')], verbose_name='Name')),
-                ('website', models.URLField()),
-                ('logo', models.ImageField(upload_to='dataprovider/logo')),
-                ('remark', models.TextField(max_length=500000, unique=True, verbose_name='Remark')),
-                ('country', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='country.country')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=50,
+                        unique=True,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                "^[a-zA-Z ]+$", "Only letters and spaces are allowed in the Country Name"
+                            )
+                        ],
+                        verbose_name="Name",
+                    ),
+                ),
+                ("website", models.URLField()),
+                ("logo", models.ImageField(upload_to="dataprovider/logo")),
+                ("remark", models.TextField(max_length=500000, unique=True, verbose_name="Remark")),
+                ("country", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="country.country")),
             ],
             options={
-                'verbose_name_plural': 'Data Providers',
+                "verbose_name_plural": "Data Providers",
             },
         ),
     ]

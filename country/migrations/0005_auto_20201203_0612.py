@@ -6,14 +6,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0004_auto_20201203_0601'),
+        ("country", "0004_auto_20201203_0601"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='country',
-            name='currency',
-            field=models.CharField(default='', max_length=50, verbose_name='Currency'),
+            model_name="country",
+            name="currency",
+            field=models.CharField(default="", max_length=50, verbose_name="Currency"),
             preserve_default=False,
         ),
     ]

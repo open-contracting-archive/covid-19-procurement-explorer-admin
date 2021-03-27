@@ -8,14 +8,20 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0026_dataprovider'),
-        ('content', '0040_auto_20210303_1120'),
+        ("country", "0026_dataprovider"),
+        ("content", "0040_auto_20210303_1120"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='staticpage',
-            name='country',
-            field=models.ForeignKey(default=1, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='country.country'),
+            model_name="staticpage",
+            name="country",
+            field=models.ForeignKey(
+                default=1,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="country.country",
+            ),
         ),
     ]

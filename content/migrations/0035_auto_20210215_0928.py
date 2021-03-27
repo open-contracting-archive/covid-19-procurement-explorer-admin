@@ -7,43 +7,47 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0034_auto_20210201_1025'),
+        ("content", "0034_auto_20210201_1025"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='dataimport',
-            options={'verbose_name': 'Data Imports', 'verbose_name_plural': 'Data Imports'},
+            name="dataimport",
+            options={"verbose_name": "Data Imports", "verbose_name_plural": "Data Imports"},
         ),
         migrations.AlterModelOptions(
-            name='eventspage',
-            options={'verbose_name': 'Event', 'verbose_name_plural': 'Event'},
+            name="eventspage",
+            options={"verbose_name": "Event", "verbose_name_plural": "Event"},
         ),
         migrations.AlterModelOptions(
-            name='insightspage',
-            options={'verbose_name': 'News & Blog', 'verbose_name_plural': 'News &  Blog'},
+            name="insightspage",
+            options={"verbose_name": "News & Blog", "verbose_name_plural": "News &  Blog"},
         ),
         migrations.AlterModelOptions(
-            name='resourcespage',
-            options={'verbose_name': 'Library', 'verbose_name_plural': 'Library'},
+            name="resourcespage",
+            options={"verbose_name": "Library", "verbose_name_plural": "Library"},
         ),
         migrations.AlterModelOptions(
-            name='staticpage',
-            options={'verbose_name': 'Static Page', 'verbose_name_plural': 'Static Page'},
+            name="staticpage",
+            options={"verbose_name": "Static Page", "verbose_name_plural": "Static Page"},
         ),
         migrations.AlterField(
-            model_name='dataimport',
-            name='import_file',
-            field=models.FileField(upload_to='documents'),
+            model_name="dataimport",
+            name="import_file",
+            field=models.FileField(upload_to="documents"),
         ),
         migrations.AlterField(
-            model_name='staticpage',
-            name='show_in_footer_menu',
-            field=models.CharField(blank=True, choices=[('Yes', 'Yes'), ('Yes', 'No')], default='No', max_length=20, null=True),
+            model_name="staticpage",
+            name="show_in_footer_menu",
+            field=models.CharField(
+                blank=True, choices=[("Yes", "Yes"), ("Yes", "No")], default="No", max_length=20, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='staticpage',
-            name='show_in_header_menu',
-            field=models.CharField(blank=True, choices=[('Yes', 'Yes'), ('Yes', 'No')], default='No', max_length=20, null=True),
+            model_name="staticpage",
+            name="show_in_header_menu",
+            field=models.CharField(
+                blank=True, choices=[("Yes", "Yes"), ("Yes", "No")], default="No", max_length=20, null=True
+            ),
         ),
     ]

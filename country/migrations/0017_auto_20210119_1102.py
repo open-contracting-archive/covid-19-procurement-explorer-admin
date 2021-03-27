@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0016_tender_equity_category'),
+        ("country", "0016_tender_equity_category"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='country',
-            name='country_code_alpha_2',
-            field=models.CharField(db_index=True, max_length=2, verbose_name='Country code alpha-2'),
+            model_name="country",
+            name="country_code_alpha_2",
+            field=models.CharField(db_index=True, max_length=2, verbose_name="Country code alpha-2"),
         ),
         migrations.AlterField(
-            model_name='goodsservices',
-            name='contract_value_local',
-            field=models.FloatField(blank=True, db_index=True, null=True, verbose_name='Contract value local'),
+            model_name="goodsservices",
+            name="contract_value_local",
+            field=models.FloatField(blank=True, db_index=True, null=True, verbose_name="Contract value local"),
         ),
         migrations.AlterField(
-            model_name='goodsservices',
-            name='contract_value_usd',
-            field=models.FloatField(blank=True, db_index=True, null=True, verbose_name='Contract value USD'),
+            model_name="goodsservices",
+            name="contract_value_usd",
+            field=models.FloatField(blank=True, db_index=True, null=True, verbose_name="Contract value USD"),
         ),
     ]

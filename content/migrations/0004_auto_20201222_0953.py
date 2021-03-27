@@ -8,16 +8,16 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('wagtailcore', '0059_apply_collection_ordering'),
-        ('wagtailforms', '0004_add_verbose_name_plural'),
-        ('wagtailredirects', '0006_redirect_increase_max_length'),
-        ('contenttypes', '0002_remove_content_type_name'),
-        ('content', '0003_collection'),
+        ("wagtailcore", "0059_apply_collection_ordering"),
+        ("wagtailforms", "0004_add_verbose_name_plural"),
+        ("wagtailredirects", "0006_redirect_increase_max_length"),
+        ("contenttypes", "0002_remove_content_type_name"),
+        ("content", "0003_collection"),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='Collection',
-            new_name='HomePage',
+            old_name="Collection",
+            new_name="HomePage",
         ),
     ]

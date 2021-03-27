@@ -9,56 +9,68 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0024_topic'),
-        ('content', '0037_remove_staticpage_page_type'),
+        ("country", "0024_topic"),
+        ("content", "0037_remove_staticpage_page_type"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='insightspage',
-            name='language',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='country.language'),
+            model_name="insightspage",
+            name="language",
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to="country.language"),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='insightspage',
-            name='topics',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='country.topic'),
+            model_name="insightspage",
+            name="topics",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to="country.topic"
+            ),
         ),
         migrations.AddField(
-            model_name='resourcespage',
-            name='lang',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='country.language'),
+            model_name="resourcespage",
+            name="lang",
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to="country.language"),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='resourcespage',
-            name='topics',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='country.topic'),
+            model_name="resourcespage",
+            name="topics",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to="country.topic"
+            ),
         ),
         migrations.AlterField(
-            model_name='insightspage',
-            name='country',
-            field=models.ForeignKey(default=1, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='country.country'),
+            model_name="insightspage",
+            name="country",
+            field=models.ForeignKey(
+                default=1,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="country.country",
+            ),
         ),
         migrations.AlterField(
-            model_name='insightspage',
-            name='featured',
-            field=models.BooleanField(choices=[(True, 'Yes'), (False, 'No')], default=False, verbose_name='Featured ?'),
+            model_name="insightspage",
+            name="featured",
+            field=models.BooleanField(
+                choices=[(True, "Yes"), (False, "No")], default=False, verbose_name="Featured ?"
+            ),
         ),
         migrations.AlterField(
-            model_name='insightspage',
-            name='news_date',
-            field=models.DateField(default=django.utils.timezone.now, verbose_name='Published date'),
+            model_name="insightspage",
+            name="news_date",
+            field=models.DateField(default=django.utils.timezone.now, verbose_name="Published date"),
         ),
         migrations.AlterField(
-            model_name='staticpage',
-            name='show_in_footer_menu',
-            field=models.CharField(choices=[('Yes', 'Yes'), ('No', 'No')], default='No', max_length=20),
+            model_name="staticpage",
+            name="show_in_footer_menu",
+            field=models.CharField(choices=[("Yes", "Yes"), ("No", "No")], default="No", max_length=20),
         ),
         migrations.AlterField(
-            model_name='staticpage',
-            name='show_in_header_menu',
-            field=models.CharField(choices=[('Yes', 'Yes'), ('No', 'No')], default='No', max_length=20),
+            model_name="staticpage",
+            name="show_in_header_menu",
+            field=models.CharField(choices=[("Yes", "Yes"), ("No", "No")], default="No", max_length=20),
         ),
     ]

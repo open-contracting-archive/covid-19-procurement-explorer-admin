@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0030_insightspage_news_date'),
+        ("content", "0030_insightspage_news_date"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='resourcespage',
-            name='language',
+            model_name="resourcespage",
+            name="language",
             field=models.CharField(max_length=2000, null=True),
         ),
         migrations.AddField(
-            model_name='resourcespage',
-            name='topic',
+            model_name="resourcespage",
+            name="topic",
             field=models.CharField(max_length=2000, null=True),
         ),
         migrations.AlterField(
-            model_name='resourcespage',
-            name='link',
+            model_name="resourcespage",
+            name="link",
             field=models.URLField(max_length=10000),
         ),
     ]

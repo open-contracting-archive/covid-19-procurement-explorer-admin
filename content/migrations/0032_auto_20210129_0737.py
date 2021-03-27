@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0031_auto_20210129_0734'),
+        ("content", "0031_auto_20210129_0734"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='resourcespage',
-            name='language',
+            model_name="resourcespage",
+            name="language",
             field=models.CharField(blank=True, max_length=2000, null=True),
         ),
         migrations.AlterField(
-            model_name='resourcespage',
-            name='topic',
+            model_name="resourcespage",
+            name="topic",
             field=models.CharField(blank=True, max_length=2000, null=True),
         ),
     ]

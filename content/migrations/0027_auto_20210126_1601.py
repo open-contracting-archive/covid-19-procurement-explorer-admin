@@ -7,15 +7,15 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0018_auto_20210119_1121'),
-        ('content', '0026_auto_20210126_1558'),
+        ("country", "0018_auto_20210119_1121"),
+        ("content", "0026_auto_20210126_1558"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='dataimport',
-            name='country',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='country.country'),
+            model_name="dataimport",
+            name="country",
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to="country.country"),
             preserve_default=False,
         ),
     ]

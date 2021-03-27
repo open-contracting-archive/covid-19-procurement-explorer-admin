@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0036_staticpage_language'),
+        ("content", "0036_staticpage_language"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='staticpage',
-            name='page_type',
+            model_name="staticpage",
+            name="page_type",
         ),
     ]

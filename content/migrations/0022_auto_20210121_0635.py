@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0021_auto_20210119_0949'),
+        ("content", "0021_auto_20210119_0949"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='staticpage',
-            name='show_in_footer_menu',
+            model_name="staticpage",
+            name="show_in_footer_menu",
             field=models.BooleanField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='staticpage',
-            name='show_in_header_menu',
+            model_name="staticpage",
+            name="show_in_header_menu",
             field=models.BooleanField(blank=True, null=True),
         ),
     ]

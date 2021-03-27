@@ -6,22 +6,35 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country', '0018_auto_20210119_1121'),
+        ("country", "0018_auto_20210119_1121"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RedFlag',
+            name="RedFlag",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(blank=True, db_index=True, max_length=250, null=True, verbose_name='Red Flag Title')),
-                ('description', models.CharField(blank=True, db_index=True, max_length=300, null=True, verbose_name='Description')),
-                ('function_name', models.CharField(blank=True, db_index=True, max_length=300, null=True, verbose_name='Function Name')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "title",
+                    models.CharField(
+                        blank=True, db_index=True, max_length=250, null=True, verbose_name="Red Flag Title"
+                    ),
+                ),
+                (
+                    "description",
+                    models.CharField(blank=True, db_index=True, max_length=300, null=True, verbose_name="Description"),
+                ),
+                (
+                    "function_name",
+                    models.CharField(
+                        blank=True, db_index=True, max_length=300, null=True, verbose_name="Function Name"
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='tender',
-            name='red_flag',
-            field=models.ManyToManyField(to='country.RedFlag'),
+            model_name="tender",
+            name="red_flag",
+            field=models.ManyToManyField(to="country.RedFlag"),
         ),
     ]
