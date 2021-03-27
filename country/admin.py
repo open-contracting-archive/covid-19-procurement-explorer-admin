@@ -73,11 +73,13 @@ class DataImportAdmin(admin.ModelAdmin):
         data_import_id = str(self.page_ptr_id)
         if self.imported:
             return format_html(
-                f"""<img src="/static/admin/img/icon-yes.svg" alt="True"><a class="button" disabled="True">Imported</a>&nbsp;"""
+                """<img src="/static/admin/img/icon-yes.svg" alt="True">"""
+                """<a class="button" disabled="True">Imported</a>&nbsp;"""
             )
         else:
             return format_html(
-                f"""<a class="button" href="/data_import?country={country}&data_import_id={data_import_id}&validated={validated}">Import</a>&nbsp;"""
+                f"""<a class="button" href="/data_import?country={country}&data_import_id={data_import_id}"""
+                f"""&validated={validated}">Import</a>&nbsp;"""
             )
 
     import_status.short_description = "Import Status"

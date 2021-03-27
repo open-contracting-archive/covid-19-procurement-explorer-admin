@@ -258,7 +258,8 @@ class DataImportView(APIView):
         else:
             messages.error(
                 request,
-                "Your data import file is not validated, please upload file with all necessary headers and try importing again.",
+                "Your data import file is not validated, please upload file with all necessary headers and try "
+                "importing again.",
             )
 
             return HttpResponseRedirect("/admin/content/dataimport")

@@ -85,7 +85,8 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
         access_key = settings.FIXER_IO_API_KEY
         try:
             r = requests.get(
-                f"https://data.fixer.io/api/{conversion_date}?access_key={access_key}&base={source_currency}&symbols={dst_currency}",
+                f"https://data.fixer.io/api/{conversion_date}?access_key={access_key}&base={source_currency}"
+                f"&symbols={dst_currency}",
                 timeout=20,
             )
             # {
@@ -782,9 +783,9 @@ def process_redflag7(id, tender):
     concentration = Tender.objects.filter(
         buyer__buyer_name=tender["buyer__buyer_name"], supplier__supplier_name=tender["supplier__supplier_name"]
     )
-    if (
-        len(concentration) > 10
-    ):  # supplier who has signed X(10) percent or more of their contracts with the same buyer (wins tenders from the same buyer);
+    # supplier who has signed X(10) percent or more of their contracts with the same buyer
+    # (wins tenders from the same buyer)
+    if len(concentration) > 10:
         for i in concentration:
             obj = Tender.objects.get(id=i.id)
             obj.red_flag.add(flag7_obj)
