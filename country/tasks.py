@@ -132,7 +132,7 @@ def save_tender_excel_to_db(excel_file_path, country, currency):
         # currency = ws_settings[2][2]
         country = country
         currency = currency
-    except Exception:
+    except:
         traceback.print_exc(file=sys.stdout)
         return True
 
@@ -292,7 +292,7 @@ def save_tender_excel_to_db(excel_file_path, country, currency):
                 )
 
             total_rows_imported_count += 1
-        except Exception:
+        except:
             # transaction.rollback()
 
             contract_id = row["Contract ID"]
@@ -450,7 +450,7 @@ def save_tender_data_to_db(gs_sheet_url):
                     )
 
                 total_rows_imported_count += 1
-            except Exception:
+            except:
                 # transaction.rollback()
 
                 contract_id = row["Contract ID"]
@@ -476,7 +476,7 @@ def import_tender_from_batch_id(batch_id, country, currency):
         temp_data = TempDataImportTable.objects.filter(import_batch_id=batch_id)
         country = country
         currency = currency
-    except Exception:
+    except:
         traceback.print_exc(file=sys.stdout)
         return True
 
@@ -639,7 +639,7 @@ def import_tender_from_batch_id(batch_id, country, currency):
                 )
 
             total_rows_imported_count += 1
-        except Exception:
+        except:
             # transaction.rollback()
 
             contract_id = row.contract_id

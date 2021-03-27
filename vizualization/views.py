@@ -676,7 +676,7 @@ class QuantityCorrelation(APIView):
                     if j["active_cases_count"] and j["death_count"]:
                         active_case_count += j["active_cases_count"]
                         death_count += j["death_count"]
-            except Exception:
+            except:
                 active_case_count = 0
                 death_count = 0
             a = {}
@@ -1552,7 +1552,7 @@ class SupplierProfileView(APIView):
             data["country_code"] = supplier_detail[0]["country__country_code_alpha_2"]
             data["country_name"] = supplier_detail[0]["country__name"]
             return JsonResponse(data, safe=False)
-        except Exception:
+        except:
             data["error"] = "Enter valid ID"
             return JsonResponse(data, safe=False)
 
@@ -1582,7 +1582,7 @@ class BuyerProfileView(APIView):
             data["country_code"] = buyer_detail[0]["country__country_code_alpha_2"]
             data["country_name"] = buyer_detail[0]["country__name"]
             return JsonResponse(data, safe=False)
-        except Exception:
+        except:
             data["error"] = "Enter valid ID"
             return JsonResponse(data, safe=False)
 
