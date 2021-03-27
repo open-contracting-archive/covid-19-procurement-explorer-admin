@@ -85,7 +85,6 @@ class DataImportAdmin(admin.ModelAdmin):
     import_status.short_description = "Import Status"
 
     def import_actions(self):
-        country = str(self.country)
         data_import_id = str(self.page_ptr_id)
         importbatch = ImportBatch.objects.get(data_import_id=data_import_id)
         file_source = f"/media/{self.import_file}"

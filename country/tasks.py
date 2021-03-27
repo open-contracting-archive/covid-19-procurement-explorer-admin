@@ -305,20 +305,15 @@ def save_tender_excel_to_db(excel_file_path, country, currency):
 
 
 def save_tender_data_to_db(gs_sheet_url):
-    contract_ids = []
-    duplicate_contract_ids = []
-
     gc = gspread.service_account(filename=settings.GOOGLE_SHEET_CREDENTIALS_JSON)
     covid_sheets = gc.open_by_url(gs_sheet_url)
 
     try:
         worksheet_settings = covid_sheets.worksheet("settings")
-        worksheet_codelist = covid_sheets.worksheet("codelist")
         worksheet_data = covid_sheets.worksheet("data")
 
         # Get country and currency from worksheet:settings
         country = worksheet_settings.cell(2, 3).value
-        currency = worksheet_settings.cell(3, 3).value
 
         data_all = worksheet_data.get_all_records()
 
@@ -476,7 +471,6 @@ def save_tender_data_to_db(gs_sheet_url):
 def import_tender_from_batch_id(batch_id, country, currency):
     print(f"import_tender_data from Batch_id {batch_id}")
     total_rows_imported_count = 0
-    errors = []
 
     try:
         temp_data = TempDataImportTable.objects.filter(import_batch_id=batch_id)

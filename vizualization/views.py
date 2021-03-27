@@ -41,9 +41,7 @@ class TotalSpendingsView(APIView):
         country = self.request.GET.get("country", None)
         buyer = self.request.GET.get("buyer")
         supplier = self.request.GET.get("supplier")
-        today = datetime.datetime.now()
-        one_month_earlier = today + dateutil.relativedelta.relativedelta(months=-1)
-        earlier = one_month_earlier.replace(day=1).date()
+
         filter_args = {}
         exclude_args = {}
         exclude_args["status"] = "canceled"
@@ -143,9 +141,7 @@ class TotalContractsView(APIView):
         country = self.request.GET.get("country", None)
         buyer = self.request.GET.get("buyer")
         supplier = self.request.GET.get("supplier")
-        today = datetime.datetime.now()
-        one_month_earlier = today + dateutil.relativedelta.relativedelta(months=-1)
-        earlier = one_month_earlier.replace(day=1).date()
+
         open_count = 0
         selective_count = 0
         direct_count = 0
@@ -206,9 +202,7 @@ class AverageBidsView(APIView):
         """
         country = self.request.GET.get("country", None)
         buyer = self.request.GET.get("buyer")
-        current_time = datetime.datetime.now()
-        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=-1)
-        previous_month = previous_month_date.replace(day=1).date()
+
         filter_args = {}
         if country:
             filter_args["country__country_code_alpha_2"] = country
@@ -708,10 +702,6 @@ class MonopolizationView(APIView):
         if buyer:
             filter_args = add_filter_args("buyer", buyer, filter_args)
 
-        current_time = datetime.datetime.now()
-        previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=-1)
-        previous_month = previous_month_date.replace(day=1).date()
-
         # Month wise average of number of bids for contracts
         monthwise_data = (
             Tender.objects.filter(**filter_args)
@@ -935,7 +925,7 @@ class CountryMapView(APIView):
         country = self.request.GET.get("country", None)
         try:
             country_instance = Country.objects.get(country_code_alpha_2=country)
-        except Exception as DoesNotExist:
+        except:
             final = {"result": "Invalid Alpha Code"}
             return JsonResponse(final)
         if country is not None and country_instance is not None:
@@ -1283,7 +1273,6 @@ class EquityIndicatorView(APIView):
             filter_args["country__country_code_alpha_2"] = country
         if buyer:
             filter_args = add_filter_args("buyer", buyer, filter_args)
-        result = []
         if country:
             try:
                 country_instance = Country.objects.get(country_code_alpha_2=country)
@@ -1320,7 +1309,7 @@ class EquityIndicatorView(APIView):
                     },
                 ]
                 return JsonResponse(data, safe=False)
-            except Exception as DoesNotExist:
+            except:
                 results = [{"error": "Invalid country_code"}]
                 return JsonResponse(results, safe=False)
         else:
@@ -1403,7 +1392,7 @@ class ProductTimelineView(APIView):
                     data["tender_count"] = tender["count"]
                     result.append(data)
                 return JsonResponse(result, safe=False)
-            except Exception as DoesNotExist:
+            except:
                 result = [{"error": "Invalid country_code"}]
                 return JsonResponse(result, safe=False)
         else:
@@ -1435,7 +1424,7 @@ class ProductTimelineView(APIView):
                     data["tender_count"] = tender["count"]
                     result.append(data)
                 return JsonResponse(result, safe=False)
-            except Exception as DoesNotExist:
+            except:
                 result = [{"error": "Invalid country_code"}]
                 return JsonResponse(result, safe=False)
             return JsonResponse(data, safe=False)
@@ -1563,7 +1552,7 @@ class SupplierProfileView(APIView):
             data["country_code"] = supplier_detail[0]["country__country_code_alpha_2"]
             data["country_name"] = supplier_detail[0]["country__name"]
             return JsonResponse(data, safe=False)
-        except Exception as e:
+        except Exception:
             data["error"] = "Enter valid ID"
             return JsonResponse(data, safe=False)
 
@@ -1593,7 +1582,7 @@ class BuyerProfileView(APIView):
             data["country_code"] = buyer_detail[0]["country__country_code_alpha_2"]
             data["country_name"] = buyer_detail[0]["country__name"]
             return JsonResponse(data, safe=False)
-        except Exception as e:
+        except Exception:
             data["error"] = "Enter valid ID"
             return JsonResponse(data, safe=False)
 
@@ -1606,7 +1595,7 @@ class CountryPartnerView(APIView):
             filter_args["country__country_code_alpha_2"] = country
         try:
             data_provider = CountryPartner.objects.filter(**filter_args)
-        except Exception as DoesNotExist:
+        except:
             data_provider = [{"error": "Country partner doesnot exist for this country"}]
         result = []
         if data_provider:
@@ -1633,7 +1622,7 @@ class DataProviderView(APIView):
             filter_args["country__country_code_alpha_2"] = country
         try:
             data_provider = DataProvider.objects.filter(**filter_args)
-        except Exception as DoesNotExist:
+        except:
             data_provider = [{"error": "Data Provider doesnot exist for this country"}]
         result = []
         if data_provider:
@@ -1835,7 +1824,7 @@ class FilterParams(APIView):
 
             return JsonResponse(result, safe=False)
 
-        except Exception as DoesNotExist:
+        except:
             result = [{"error": "No buyer and supplier data available"}]
             return JsonResponse(result, safe=False)
 
@@ -1932,7 +1921,7 @@ class FilterParametersSuppliers(APIView):
                     data["country_code"] = "USD"
                 result.append(data)
             return JsonResponse(result, safe=False)
-        except Exception as DoesNotExist:
+        except:
             result = [{"error": "Country code doest not exists"}]
             return JsonResponse(result, safe=False)
 
@@ -1962,14 +1951,13 @@ class FilterParametersBuyers(APIView):
                     data["country_code"] = "USD"
                 result.append(data)
             return JsonResponse(result, safe=False)
-        except Exception as DoesNotExist:
+        except:
             result = [{"error": "Country code doest not exists"}]
             return JsonResponse(result, safe=False)
 
 
 class FilterParametersStatic(APIView):
     def get(self, request):
-        filter_args = {}
         countries = Country.objects.values("id", "country_code", "name")
         products = GoodsServicesCategory.objects.values("id", "category_name")
         equities = EquityCategory.objects.values("id", "category_name")
@@ -2125,7 +2113,7 @@ class SlugBlogShow(APIView):
                 result["country_id"] = results[0]["country_id"]
                 result["content_image_id"] = results[0]["content_image_id"]
 
-        except Exception as DoesNotExist:
+        except:
             result = [{"error": "Content doest not exists"}]
         return JsonResponse(result, safe=False)
 
@@ -2140,7 +2128,7 @@ class SlugStaticPageShow(APIView):
                 result["page_type"] = results[0]["page_type"]
                 result["body"] = results[0]["body"]
 
-        except Exception as DoesNotExist:
+        except:
             result = [{"error": "Content doest not exists"}]
 
         return JsonResponse(result, safe=False)

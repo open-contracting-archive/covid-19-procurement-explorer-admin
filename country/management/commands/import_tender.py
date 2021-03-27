@@ -21,12 +21,9 @@ class Command(BaseCommand):
 
         try:
             worksheet_settings = covid_sheets.worksheet("settings")
-            worksheet_codelist = covid_sheets.worksheet("codelist")
-            worksheet_data = covid_sheets.worksheet("data")
 
             # Get country and currency from worksheet:settings
             country = worksheet_settings.cell(2, 3).value
-            currency = worksheet_settings.cell(3, 3).value
 
             # Check if country exists in our database
             result = Country.objects.filter(name=country).first()

@@ -13,9 +13,9 @@ class Command(BaseCommand):
         print(f"Fetching equity data for {country_name}")
         if country_name:
             try:
-                country_instance = Country.objects.get(name=country_name)
-                fetch_equity_data.apply_async(args=(country_name,), queue="covid19")
-                print(print("Created task: import_equity_data"))
+                if Country.objects.filter(name=country_name).exists():
+                    fetch_equity_data.apply_async(args=(country_name,), queue="covid19")
+                    print(print("Created task: import_equity_data"))
             except Exception as e:
                 print(e)
 
