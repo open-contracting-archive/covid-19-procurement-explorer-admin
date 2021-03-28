@@ -20,21 +20,36 @@ from sentry_sdk.integrations.django import DjangoIntegration
 environ.Env.read_env()
 env = environ.Env(
     # set casting, default value
+    SECRET_KEY=(str, "ig0(igk8+n76thmh-@%*n4bc1ra3sq-#x)kx6bqf&zdh9n1*+8"),
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, []),
+    DB_ENGINE=(str, "django.db.backends.postgresql_psycopg2"),
+    DB_NAME=(str, ""),
+    DB_USER=(str, ""),
+    DB_PASSWORD=(str, ""),
+    DB_HOST=(str, "127.0.0.1"),
+    DB_PORT=(int, 5432),
+    STATIC_URL=(str, "/static/"),
+    FORCE_SCRIPT_NAME=(str, "/"),
     CORS_ORIGIN_WHITELIST=(list, []),
+    CELERY_BROKER_URL=(str, "pyamqp://localhost/"),
+    CELERY_TIMEZONE=(str, "UTC"),
     FETCH_COVID_DATA_INTERVAL=(int, 10800),
+    GOOGLE_SHEET_CREDENTIALS_JSON=(str, ""),
+    FIXER_IO_API_KEY=(str, ""),
+    MEDIA_URL=(str, "/media/"),
 )
 
 
-sentry_sdk.init(
-    dsn=env("SENTRY_DSN"),
-    integrations=[DjangoIntegration()],
-    traces_sample_rate=1.0,
-    # If you wish to associate users to errors (assuming you are using
-    # django.contrib.auth) you may enable sending PII data.
-    send_default_pii=True,
-)
+if "SENTRY_DSN" in os.environ:
+    sentry_sdk.init(
+        dsn=env("SENTRY_DSN"),
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=1.0,
+        # If you wish to associate users to errors (assuming you are using
+        # django.contrib.auth) you may enable sending PII data.
+        send_default_pii=True,
+    )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
