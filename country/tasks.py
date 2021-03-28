@@ -89,6 +89,8 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
                 f"&symbols={dst_currency}",
                 timeout=20,
             )
+            # A sample response:
+            #
             # {
             #     "success": true,
             #     "timestamp": 1387929599,
@@ -125,11 +127,8 @@ def save_tender_excel_to_db(excel_file_path, country, currency):
     errors = []
 
     try:
-        # ws_settings = pd.read_excel(excel_file_path, sheet_name='settings', header=None)
         ws_data = pd.read_excel(excel_file_path, sheet_name="data", header=0, na_values=None, na_filter=False)
         ws_data = ws_data.where(ws_data.notnull(), None)
-        # country = ws_settings[2][1]
-        # currency = ws_settings[2][2]
         country = country
         currency = currency
     except:
@@ -159,8 +158,6 @@ def save_tender_excel_to_db(excel_file_path, country, currency):
             contract_title = row["Contract title"]
             contract_desc = row["Contract description"]
             no_of_bidders = row["Number of bidders"] or None
-            # if math.isnan(no_of_bidders):
-            #     no_of_bidders = None
 
             buyer_id = row["Buyer ID"]
             buyer_name = row["Buyer"].strip()
@@ -668,12 +665,6 @@ def import_tender_data_excel(excel_file_path, country, currency):
 
 @app.task(name="local_currency_to_usd")
 def local_currency_to_usd(goods_services_row_id, conversion_date, source_currency, source_values):
-    # source_values = {
-    #     'tender_value_local': row['Tender value'],
-    #     'award_value_local': row['Award value'],
-    #     'contract_value_local': row['Contract value']
-    # }
-
     dst_tender_value = convert_local_to_usd(
         conversion_date, source_currency, source_values["tender_value_local"], dst_currency="USD"
     )
