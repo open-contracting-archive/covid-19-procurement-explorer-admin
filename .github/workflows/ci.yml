@@ -1,0 +1,27 @@
+name: CI
+on: [push, pull_request]
+env:
+  BASEDIR: https://raw.githubusercontent.com/open-contracting/standard-maintenance-scripts/main
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
+    - uses: actions/cache@v1
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements_dev.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    # Check requirements.txt contains production requirements.
+    - run: pip install -r requirements.txt
+    - run: ./manage.py --help
+    - run: pip install -r requirements_dev.txt
+    - run: coverage run --source content,country,covidadmin,vizualization manage.py test
+      if: always()
+    - env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: coveralls --service=github
