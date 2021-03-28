@@ -5,6 +5,7 @@ ipdb
 ipython
 isort
 pip-tools
+pre-commit
 pylint
 pytest
 transifex-client

@@ -418,10 +418,6 @@ class TenderSerializer(serializers.ModelSerializer):
             result.append(equity.category_name)
         return result
 
-    # def get_red_flag_count(self,obj):
-    #     red_flags = obj.red_flag.all().count()
-    #     return red_flags
-
     def get_supplier_name(self, obj):
         return obj.supplier.supplier_name
 

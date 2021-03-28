@@ -234,10 +234,6 @@ class DataImportView(APIView):
         data_import_id = self.request.GET.get("data_import_id", None)
         validated = self.request.GET.get("validated", None)
 
-        # file_path = settings.MEDIA_ROOT+'/documents/'+filename
-        # valid_file_extension = ['.xlsx','.xls',]
-        # file_extension= os.path.splitext(filename)[-1].lower()
-
         if validated:
             if data_import_id:
                 try:

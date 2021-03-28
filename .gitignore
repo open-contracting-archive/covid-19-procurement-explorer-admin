@@ -37,5 +37,5 @@ static/wagtailvideos/
 #public folders
 media/
 
-
 export/*
+erl_crash.dump
