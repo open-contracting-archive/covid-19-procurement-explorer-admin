@@ -11,7 +11,7 @@ from rest_framework.pagination import LimitOffsetPagination, PageNumberPaginatio
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from content.models import ImportBatch
+from country.models import ImportBatch
 from vizualization.views import add_filter_args
 
 from .models import Buyer, Country, Language, OverallSummary, Supplier, Tender
