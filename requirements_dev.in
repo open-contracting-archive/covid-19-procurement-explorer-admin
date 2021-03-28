@@ -1,11 +1,10 @@
 -r requirements.txt
 black
+coveralls
 flake8
 ipdb
 ipython
 isort
 pip-tools
 pre-commit
-pylint
-pytest
 transifex-client
