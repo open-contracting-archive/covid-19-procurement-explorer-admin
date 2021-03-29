@@ -1,3 +1,4 @@
+import os
 import socket
 
 import xlsxwriter
@@ -12,6 +13,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         print("Exporting!!!!!!!!")
+        os.makedirs(os.path.join("media", "export"), exist_ok=True)
         workbook = xlsxwriter.Workbook("media/export/overall_summary.xlsx")
         worksheet = workbook.add_worksheet()
         row = 0
