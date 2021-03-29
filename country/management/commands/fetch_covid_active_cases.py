@@ -31,7 +31,7 @@ class Command(BaseCommand):
                         if (
                             not existing_db_entry
                             or not existing_db_entry.active_cases_count
-                            or not existing_db_entry.death_cases
+                            or not existing_db_entry.death_count
                         ):
                             request_string = f"https://covid-api.com/api/reports?iso={country_code}&date={date}"
                             r = requests.get(request_string)

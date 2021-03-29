@@ -23,7 +23,7 @@ class RedFlags:
         )
         contract_value = tender_instance["contract_value"]
         tender_value = tender_instance["tender_value"]
-        if contract_value > tender_value:
+        if tender_value and contract_value > tender_value:
             return True
         else:
             return False
