@@ -39,5 +39,11 @@ media/
 
 export/*
 erl_crash.dump
+
+# Code coverage
 /.coverage
 /htmlcov
+
+# Deployment scripts used by Young Innovations
+ /script.sh
+ /deploy.sh
