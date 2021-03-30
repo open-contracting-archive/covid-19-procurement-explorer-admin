@@ -419,28 +419,36 @@ class TenderSerializer(serializers.ModelSerializer):
         return result
 
     def get_supplier_name(self, obj):
-        return obj.supplier.supplier_name
+        if obj.supplier:
+            return obj.supplier.supplier_name
 
     def get_buyer_name(self, obj):
-        return obj.buyer.buyer_name
+        if obj.buyer:
+            return obj.buyer.buyer_name
 
     def get_supplier_id(self, obj):
-        return obj.supplier.id
+        if obj.supplier:
+            return obj.supplier.id
 
     def get_buyer_id(self, obj):
-        return obj.buyer.id
+        if obj.buyer:
+            return obj.buyer.id
 
     def get_supplier_address(self, obj):
-        return obj.supplier.supplier_address
+        if obj.supplier:
+            return obj.supplier.supplier_address
 
     def get_buyer_address(self, obj):
-        return obj.buyer.buyer_address
+        if obj.buyer:
+            return obj.buyer.buyer_address
 
     def get_supplier_code(self, obj):
-        return obj.supplier.supplier_id
+        if obj.supplier:
+            return obj.supplier.supplier_id
 
     def get_buyer_code(self, obj):
-        return obj.buyer.buyer_id
+        if obj.buyer:
+            return obj.buyer.buyer_id
 
 
 class OverallStatSummarySerializer(serializers.ModelSerializer):
