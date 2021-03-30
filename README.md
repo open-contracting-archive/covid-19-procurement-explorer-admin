@@ -17,7 +17,19 @@ pre-commit install
 
 Initialize the database:
 
-```
+```shell
 createdb covid19_test
 env DB_NAME=covid19_test ./manage.py migrate
+```
+
+Create a superuser:
+
+```shell
+env DB_NAME=covid19_test ./manage.py createsuperuser
+```
+
+Run a development server:
+
+```shell
+env DEBUG=True DB_NAME=covid19_test ./manage.py runserver
 ```
