@@ -96,7 +96,7 @@ class InsightsPage(Page):
 
     class Meta:
         verbose_name = "News & Blog"
-        verbose_name_plural = "News &  Blog"
+        verbose_name_plural = "News & Blogs"
 
     search_fields = Page.search_fields + [
         index.SearchField("published_date"),
@@ -151,7 +151,7 @@ class EventsPage(Page):
 
     class Meta:
         verbose_name = "Event"
-        verbose_name_plural = "Event"
+        verbose_name_plural = "Events"
 
     settings_panels = []
     promote_panels = []
@@ -224,8 +224,8 @@ class ResourcesPage(Page):
     ]
 
     class Meta:
-        verbose_name = "Library"
-        verbose_name_plural = "Library"
+        verbose_name = "Resource"
+        verbose_name_plural = "Resources"
 
     settings_panels = []
     promote_panels = []
@@ -275,7 +275,7 @@ class DataImport(Page):
         self.slug = ""
 
     class Meta:
-        verbose_name = "Data Imports"
+        verbose_name = "Data Import"
         verbose_name_plural = "Data Imports"
 
 
@@ -339,7 +339,7 @@ class StaticPage(Page):
 
     class Meta:
         verbose_name = "Static Page"
-        verbose_name_plural = "Static Page"
+        verbose_name_plural = "Static Pages"
 
 
 class CountryPartner(models.Model):
@@ -353,6 +353,7 @@ class CountryPartner(models.Model):
     logo = models.ImageField(upload_to="country/partner/logo", height_field=None, width_field=None, max_length=100)
 
     class Meta:
+        verbose_name = _("Country Partner")
         verbose_name_plural = _("Country Partners")
 
     def __str__(self):
