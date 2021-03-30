@@ -1,8 +1,8 @@
 # COVID-19 Contract Explorer: Admin backend
 
-## Getting Started 
+## Getting started
 
-Install dependencies:
+Install development dependencies:
 
 ```shell
 pip install pip-tools
