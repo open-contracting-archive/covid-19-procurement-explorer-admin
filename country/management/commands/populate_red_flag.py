@@ -78,7 +78,7 @@ class Command(BaseCommand):
                 "implemented": False,
             },
         ]
-        print("Importingg!!!!!!!!")
+        print("Importing")
         try:
             for values in red_flags:
                 obj, created = RedFlag.objects.get_or_create(

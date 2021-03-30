@@ -249,7 +249,7 @@ class DataImportView(APIView):
                     return HttpResponseRedirect("/admin/content/dataimport")
             else:
                 # messages.error(request, 'Your import failed because it only supports .xlsx and .xls file!')
-                messages.error(request, "Your import failed !!")
+                messages.error(request, "Your import failed!")
                 return HttpResponseRedirect("/admin/content/dataimport")
         else:
             messages.error(

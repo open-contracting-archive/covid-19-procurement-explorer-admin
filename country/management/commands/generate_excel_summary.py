@@ -9,10 +9,10 @@ from country.models import Country, OverallSummary, Tender
 
 
 class Command(BaseCommand):
-    help = "Generate Excel Summary!!"
+    help = "Generate Excel Summary"
 
     def handle(self, *args, **kwargs):
-        print("Exporting!!!!!!!!")
+        print("Exporting")
         os.makedirs(os.path.join("media", "export"), exist_ok=True)
         workbook = xlsxwriter.Workbook("media/export/overall_summary.xlsx")
         worksheet = workbook.add_worksheet()

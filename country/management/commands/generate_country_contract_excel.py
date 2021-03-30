@@ -4,7 +4,7 @@ from country.tasks import country_contract_excel
 
 
 class Command(BaseCommand):
-    help = "Generate Country Contract Excel !!"
+    help = "Generate Country Contract Excel"
 
     def add_arguments(self, parser):
         parser.add_argument("--country", type=str)

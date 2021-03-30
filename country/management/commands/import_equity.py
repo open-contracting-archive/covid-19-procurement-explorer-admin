@@ -1195,7 +1195,7 @@ class Command(BaseCommand):
             ],
         }
 
-        print("Importingg!!!!!!!!")
+        print("Importing")
         try:
             for keys, values in data.items():
                 category = EquityCategory.objects.get(category_name=keys)

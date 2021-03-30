@@ -7,7 +7,7 @@ from country.tasks import process_currency_conversion
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        print("Processing currency conversion !!")
+        print("Processing currency conversion")
         unconverted_tender = GoodsServices.objects.filter(
             Q(tender_value_usd__isnull=True) | Q(award_value_usd__isnull=True) | Q(contract_value_usd__isnull=True)
         )
@@ -23,4 +23,4 @@ class Command(BaseCommand):
                 queue="covid19",
             )
             print("Created task for id :" + str(id))
-        return "Done!!"
+        return "Done"

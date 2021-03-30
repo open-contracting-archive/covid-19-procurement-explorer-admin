@@ -4,10 +4,10 @@ from country.models import TempDataImportTable, Tender
 
 
 class Command(BaseCommand):
-    help = "Fix contract_status and contract_procedure fields!!"
+    help = "Fix contract_status and contract_procedure fields"
 
     def handle(self, *args, **kwargs):
-        print("Converting!!!!!!!!")
+        print("Converting")
         tenders = Tender.objects.filter(link_to_contract="not_identified")
 
         for tender in tenders:
@@ -40,4 +40,4 @@ class Command(BaseCommand):
                 tender.procurement_procedure = temp_value
                 tender.save()
                 print("Tender value changed for id :" + str(tender.id))
-        print("Done!!")
+        print("Done")

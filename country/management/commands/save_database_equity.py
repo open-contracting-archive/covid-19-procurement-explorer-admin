@@ -21,4 +21,4 @@ class Command(BaseCommand):
 
         else:
             print("Enter country name as arguments")
-        return "Done!!"
+        return "Done"
