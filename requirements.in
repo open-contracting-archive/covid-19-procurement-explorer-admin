@@ -10,7 +10,7 @@ djangorestframework
 flower
 gspread
 pandas
-psycopg2-binary
+psycopg2
 python-dateutil
 requests
 sentry_sdk

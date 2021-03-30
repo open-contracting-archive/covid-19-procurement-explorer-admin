@@ -7,4 +7,5 @@ ipython
 isort
 pip-tools
 pre-commit
+psycopg2-binary
 transifex-client
