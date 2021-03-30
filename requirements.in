@@ -8,7 +8,6 @@ django-modelcluster
 django-taggit
 djangorestframework
 flower
-gspread
 pandas
 psycopg2
 python-dateutil
