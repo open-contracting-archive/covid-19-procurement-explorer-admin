@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput
@@ -6,10 +7,12 @@ from django.utils.html import format_html
 from content.models import CountryPartner, DataImport
 
 from .models import (
+    Buyer,
     Country,
     DataProvider,
     EquityCategory,
     EquityKeywords,
+    GoodsServices,
     ImportBatch,
     Language,
     RedFlag,
@@ -32,6 +35,7 @@ class EquityAdmin(admin.ModelAdmin):
 
 admin.site.register(Language)
 admin.site.register(Topic)
+admin.site.register(Buyer)
 admin.site.register(Supplier)
 admin.site.register(EquityCategory, EquityAdmin)
 
@@ -200,8 +204,14 @@ class CountryPartnerAdmin(admin.ModelAdmin):
     list_display = ("name", "order", "country")
 
 
+# class TenderInline(admin.TabularInline):
+#     model = Tender
+
+
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
+    # inlines = [TenderInline,]
+
     readonly_fields = (
         "covid_cases_total",
         "covid_deaths_total",
@@ -210,9 +220,40 @@ class CountryAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Tender)
+class GoodsAndServicesInline(admin.TabularInline):
+    model = GoodsServices
+    extra = 0
+    fields = ("classification_code", "tender_value_local", "contract_value_local", "award_value_local")
+
+
+class TenderForm(forms.ModelForm):
+    class Meta:
+        model = Tender
+        fields = (
+            "country",
+            "contract_title",
+            "contract_desc",
+            "contract_date",
+            "procurement_procedure",
+            "status",
+            "link_to_contract",
+            "no_of_bidders",
+            "supplier",
+            "buyer",
+        )
+
+
 class TenderAdmin(admin.ModelAdmin):
     readonly_fields = ("contract_value_usd",)
+    form = TenderForm
+    list_display = ("id", "contract_id", "contract_title")
+    search_fields = ("id", "contract_id", "contract_title")
+    inlines = [
+        GoodsAndServicesInline,
+    ]
+
+
+admin.site.register(Tender, TenderAdmin)
 
 
 @admin.register(RedFlag)
