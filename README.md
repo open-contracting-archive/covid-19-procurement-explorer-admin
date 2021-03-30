@@ -28,8 +28,12 @@ Create a superuser:
 env DB_NAME=covid19_test ./manage.py createsuperuser
 ```
 
+## Tasks
+
 Run a development server:
 
 ```shell
 env DEBUG=True DB_NAME=covid19_test ./manage.py runserver
 ```
+
+To add, remove or upgrade a requirement, [follow these instructions](https://ocp-software-handbook.readthedocs.io/en/latest/python/applications.html#requirements).
