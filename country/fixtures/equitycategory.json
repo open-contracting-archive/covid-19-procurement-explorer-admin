@@ -1,0 +1,86 @@
+[
+  {
+    "model": "country.equitycategory",
+    "pk": 1,
+    "fields": {
+      "category_name": "Age"
+    }
+  },
+  {
+    "model": "country.equitycategory",
+    "pk": 2,
+    "fields": {
+      "category_name": "Disability"
+    }
+  },
+  {
+    "model": "country.equitycategory",
+    "pk": 3,
+    "fields": {
+      "category_name": "Ethnicity"
+    }
+  },
+  {
+    "model": "country.equitycategory",
+    "pk": 4,
+    "fields": {
+      "category_name": "Gender, Sexual Orientation, Sex"
+    }
+  },
+  {
+    "model": "country.equitycategory",
+    "pk": 5,
+    "fields": {
+      "category_name": "General"
+    }
+  },
+  {
+    "model": "country.equitycategory",
+    "pk": 6,
+    "fields": {
+      "category_name": "Homelessness"
+    }
+  },
+  {
+    "model": "country.equitycategory",
+    "pk": 7,
+    "fields": {
+      "category_name": "Mental Health"
+    }
+  },
+  {
+    "model": "country.equitycategory",
+    "pk": 8,
+    "fields": {
+      "category_name": "Migration"
+    }
+  },
+  {
+    "model": "country.equitycategory",
+    "pk": 9,
+    "fields": {
+      "category_name": "Poverty"
+    }
+  },
+  {
+    "model": "country.equitycategory",
+    "pk": 10,
+    "fields": {
+      "category_name": "Prisoners / Ex-prisoners"
+    }
+  },
+  {
+    "model": "country.equitycategory",
+    "pk": 11,
+    "fields": {
+      "category_name": "Religion"
+    }
+  },
+  {
+    "model": "country.equitycategory",
+    "pk": 12,
+    "fields": {
+      "category_name": "Unemployment"
+    }
+  }
+]

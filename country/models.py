@@ -6,6 +6,11 @@ from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
 
 
+class CountryManager(models.Manager):
+    def get_by_natural_key(self, name):
+        return self.get(name=name)
+
+
 class Country(models.Model):
     CONTINENT_CHOICES = [
         ("africa", "Africa"),
@@ -105,6 +110,8 @@ class Country(models.Model):
     )
     covid19_procurement_policy = models.TextField(verbose_name=_("COVID-19 Procurement Policy"), null=True, blank=True)
     covid19_preparedness = models.TextField(verbose_name=_("COVID-19 Preparedness"), null=True, blank=True)
+
+    objects = CountryManager()
 
     class Meta:
         verbose_name_plural = _("Countries")
@@ -217,8 +224,15 @@ class Buyer(models.Model):
         return f"{self.buyer_id} - {self.buyer_name}"
 
 
+class EquityCategoryManager(models.Manager):
+    def get_by_natural_key(self, category_name):
+        return self.get(category_name=category_name)
+
+
 class EquityCategory(models.Model):
     category_name = models.CharField(verbose_name=_("Category name"), max_length=50, null=True, unique=True)
+
+    objects = EquityCategoryManager()
 
     def __str__(self):
         return self.category_name
