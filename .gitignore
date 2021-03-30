@@ -40,3 +40,4 @@ media/
 export/*
 erl_crash.dump
 /.coverage
+/htmlcov
