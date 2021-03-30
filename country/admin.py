@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db import models
+from django.forms import TextInput
 from django.utils.html import format_html
 
 from content.models import CountryPartner, DataImport
@@ -10,6 +12,7 @@ from .models import (
     EquityKeywords,
     ImportBatch,
     Language,
+    RedFlag,
     Supplier,
     TempDataImportTable,
     Tender,
@@ -189,3 +192,12 @@ class CountryAdmin(admin.ModelAdmin):
 @admin.register(Tender)
 class TenderAdmin(admin.ModelAdmin):
     readonly_fields = ("contract_value_usd",)
+
+
+@admin.register(RedFlag)
+class RedFlagAdmin(admin.ModelAdmin):
+    list_display = ("title", "implemented")
+
+    formfield_overrides = {
+        models.CharField: {"widget": TextInput(attrs={"size": "100"})},
+    }
