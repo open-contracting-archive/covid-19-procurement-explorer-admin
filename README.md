@@ -37,6 +37,12 @@ env DB_NAME=covid19_test ./manage.py loaddata equitycategory
 env DB_NAME=covid19_test ./manage.py loaddata equitykeywords
 ```
 
+Retrieve remote data:
+
+```shell
+env DB_NAME=covid19_test ./manage.py fetch_covid_active_cases
+```
+
 ## Tasks
 
 Run a development server:
