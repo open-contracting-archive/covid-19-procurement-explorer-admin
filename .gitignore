@@ -47,3 +47,6 @@ erl_crash.dump
 # Deployment scripts used by Young Innovations
  /script.sh
  /deploy.sh
+
+#Pycharm
+*.idea/

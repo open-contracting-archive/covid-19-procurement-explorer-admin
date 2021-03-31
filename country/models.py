@@ -158,8 +158,8 @@ class SupplierManager(models.Manager):
             super()
             .get_queryset()
             .annotate(
-                amount_local=Sum("tenders__goods_services__contract_value_local", distinct=True),
-                amount_usd=Sum("tenders__goods_services__contract_value_usd", distinct=True),
+                amount_local=Sum("tenders__goods_services__contract_value_local"),
+                amount_usd=Sum("tenders__goods_services__contract_value_usd"),
                 country_name=F("tenders__country__name"),
                 red_flag_count=Count("tenders__red_flag", distinct=True),
                 product_category_count=Count("tenders__goods_services__goods_services_category", distinct=True),
@@ -175,8 +175,8 @@ class BuyerManager(models.Manager):
             super()
             .get_queryset()
             .annotate(
-                amount_local=Sum("tenders__goods_services__contract_value_local", distinct=True),
-                amount_usd=Sum("tenders__goods_services__contract_value_usd", distinct=True),
+                amount_usd=Sum("tenders__goods_services__contract_value_usd"),
+                amount_local=Sum("tenders__goods_services__contract_value_local"),
                 country_name=F("tenders__country__name"),
                 red_flag_count=Count("tenders__red_flag", distinct=True),
                 product_category_count=Count("tenders__goods_services__goods_services_category", distinct=True),
@@ -184,20 +184,6 @@ class BuyerManager(models.Manager):
                 supplier_count=Count(
                     "tenders__supplier_id", filter=Q(tenders__supplier_id__isnull=False), distinct=True
                 ),
-            )
-        )
-
-
-class TenderManager(models.Manager):
-    def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .annotate(
-                amount_local=Sum("goods_services__contract_value_local"),
-                amount_usd=Sum("goods_services__contract_value_usd"),
-                red_flag_count=Count("red_flag"),
-                tender_count=Count("id", distinct=True),
             )
         )
 
@@ -272,108 +258,6 @@ class RedFlag(models.Model):
         return self.title
 
 
-class Tender(models.Model):
-    PROCUREMENT_METHOD_CHOICES = [
-        ("open", "open"),
-        ("limited", "limited"),
-        ("direct", "direct"),
-        ("selective", "selective"),
-    ]
-
-    TENDER_STATUS_CHOICES = [
-        ("active", "active"),
-        ("completed", "completed"),
-        ("canceled", "canceled"),
-    ]
-
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="tenders")
-    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name="tenders", null=True, blank=True)
-    buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="tenders", null=True, blank=True)
-
-    contract_id = models.CharField(verbose_name=_("Contract ID"), max_length=150, null=True)
-    contract_date = models.DateField(verbose_name=_("Contract date"), null=True, db_index=True)
-    procurement_procedure = models.CharField(
-        verbose_name=_("Procurement procedure"), max_length=25, choices=PROCUREMENT_METHOD_CHOICES, null=True
-    )
-    status = models.CharField(
-        verbose_name=_("Contract status"), max_length=25, choices=TENDER_STATUS_CHOICES, null=True
-    )
-    link_to_contract = models.CharField(verbose_name=_("Link to contract"), max_length=250, null=True, blank=True)
-    link_to_tender = models.CharField(verbose_name=_("Link to tender"), max_length=250, null=True, blank=True)
-    data_source = models.CharField(verbose_name=_("Data source"), max_length=250, null=True, blank=True)
-
-    no_of_bidders = models.BigIntegerField(verbose_name=_("Number of Bidders"), null=True, blank=True)
-    contract_title = models.TextField(verbose_name=_("Contract title"), null=True, blank=True)
-    contract_value_local = models.FloatField(verbose_name=_("Contract value local"), null=True, blank=True)
-    contract_value_usd = models.FloatField(verbose_name=_("Contract value USD"), null=True, blank=True)
-    contract_desc = models.TextField(verbose_name=_("Contract description"), null=True, blank=True)
-
-    equity_categories = ArrayField(models.CharField(max_length=100, null=True, blank=True), default=list, null=True)
-    equity_category = models.ManyToManyField(EquityCategory)
-    red_flag = models.ManyToManyField(RedFlag)
-
-    def __str__(self):
-        return self.contract_id
-
-
-class GoodsServicesCategory(models.Model):
-    category_name = models.CharField(
-        verbose_name=_("Category name"), max_length=100, null=False, unique=True, db_index=True
-    )
-    category_desc = models.TextField(verbose_name=_("Category description"), null=True, blank=True)
-
-    def __str__(self):
-        return self.category_name
-
-
-class GoodsServices(models.Model):
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="goods_services", null=True)
-    goods_services_category = models.ForeignKey(
-        GoodsServicesCategory, on_delete=models.CASCADE, related_name="goods_services", null=True
-    )
-    contract = models.ForeignKey(Tender, on_delete=models.CASCADE, related_name="goods_services", null=True)
-
-    classification_code = models.CharField(
-        verbose_name=_("Classification code"), max_length=100, null=True, blank=True
-    )
-    no_of_bidders = models.BigIntegerField(verbose_name=_("Number of bidders"), null=True, blank=True)
-
-    contract_title = models.TextField(verbose_name=_("Contract title"), null=True, blank=True)
-    contract_desc = models.TextField(verbose_name=_("Contract description"), null=True, blank=True)
-
-    supplier = models.ForeignKey(
-        Supplier, on_delete=models.CASCADE, related_name="goods_services", null=True, blank=True
-    )
-    buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="goods_services", null=True, blank=True)
-
-    tender_value_local = models.FloatField(verbose_name=_("Tender value local"), null=True, blank=True)
-    tender_value_usd = models.FloatField(verbose_name=_("Tender value USD"), null=True, blank=True)
-    award_value_local = models.FloatField(verbose_name=_("Award value local"), null=True, blank=True)
-    award_value_usd = models.FloatField(verbose_name=_("Award value USD"), null=True, blank=True)
-    contract_value_local = models.FloatField(
-        verbose_name=_("Contract value local"), null=True, blank=True, db_index=True
-    )
-    contract_value_usd = models.FloatField(verbose_name=_("Contract value USD"), null=True, blank=True, db_index=True)
-
-    def __str__(self):
-        return f"{self.goods_services_category} - {self.contract_title}"
-
-
-class CovidMonthlyActiveCases(models.Model):
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="covid_monthly_active_cases")
-    covid_data_date = models.DateField()
-    active_cases_count = models.BigIntegerField(verbose_name=_("Active cases count"), null=True, blank=True)
-    death_count = models.BigIntegerField(verbose_name=_("Death count"), null=True, blank=True)
-
-
-class EquityKeywords(models.Model):
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="equity_keywords", null=True)
-    equity_category = models.ForeignKey(
-        EquityCategory, on_delete=models.CASCADE, related_name="equity_keywords", null=True
-    )
-    keyword = models.CharField(verbose_name=_("Keyword"), max_length=100, null=False)
-
-
 class ImportBatch(models.Model):
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="import_batch_country", null=True)
     import_type = models.CharField(verbose_name=("Import Type"), max_length=150, null=False)
@@ -416,6 +300,114 @@ class TempDataImportTable(models.Model):
 
     def __str__(self):
         return self.contract_id
+
+
+class Tender(models.Model):
+    PROCUREMENT_METHOD_CHOICES = [
+        ("open", "open"),
+        ("limited", "limited"),
+        ("direct", "direct"),
+        ("selective", "selective"),
+    ]
+
+    TENDER_STATUS_CHOICES = [
+        ("active", "active"),
+        ("completed", "completed"),
+        ("canceled", "canceled"),
+    ]
+
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="tenders")
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name="tenders", null=True, blank=True)
+    buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="tenders", null=True, blank=True)
+
+    contract_id = models.CharField(verbose_name=_("Contract ID"), max_length=150, null=True)
+    contract_date = models.DateField(verbose_name=_("Contract date"), null=True, db_index=True)
+    procurement_procedure = models.CharField(
+        verbose_name=_("Procurement procedure"), max_length=25, choices=PROCUREMENT_METHOD_CHOICES, null=True
+    )
+    status = models.CharField(
+        verbose_name=_("Contract status"), max_length=25, choices=TENDER_STATUS_CHOICES, null=True
+    )
+    link_to_contract = models.CharField(verbose_name=_("Link to contract"), max_length=250, null=True, blank=True)
+    link_to_tender = models.CharField(verbose_name=_("Link to tender"), max_length=250, null=True, blank=True)
+    data_source = models.CharField(verbose_name=_("Data source"), max_length=250, null=True, blank=True)
+
+    no_of_bidders = models.BigIntegerField(verbose_name=_("Number of Bidders"), null=True, blank=True)
+    contract_title = models.TextField(verbose_name=_("Contract title"), null=True, blank=True)
+    contract_value_local = models.FloatField(verbose_name=_("Contract value local"), null=True, blank=True)
+    contract_value_usd = models.FloatField(verbose_name=_("Contract value USD"), null=True, blank=True)
+    contract_desc = models.TextField(verbose_name=_("Contract description"), null=True, blank=True)
+
+    equity_categories = ArrayField(models.CharField(max_length=100, null=True, blank=True), default=list, null=True)
+    equity_category = models.ManyToManyField(EquityCategory)
+    red_flag = models.ManyToManyField(RedFlag)
+    temp_table_id = models.ForeignKey(
+        TempDataImportTable, on_delete=models.CASCADE, related_name="tenders", null=True, blank=True
+    )
+
+    def __str__(self):
+        return self.contract_id
+
+
+class GoodsServicesCategory(models.Model):
+    category_name = models.CharField(
+        verbose_name=_("Category name"), max_length=100, null=False, unique=True, db_index=True
+    )
+    category_desc = models.TextField(verbose_name=_("Category description"), null=True, blank=True)
+
+    def __str__(self):
+        return self.category_name
+
+
+class GoodsServices(models.Model):
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="goods_services", null=True)
+    goods_services_category = models.ForeignKey(
+        GoodsServicesCategory, on_delete=models.CASCADE, related_name="goods_services", null=True
+    )
+    contract = models.ForeignKey(Tender, on_delete=models.CASCADE, related_name="goods_services", null=True)
+
+    classification_code = models.CharField(
+        verbose_name=_("Classification code"), max_length=100, null=True, blank=True
+    )
+    no_of_bidders = models.BigIntegerField(verbose_name=_("Number of bidders"), null=True, blank=True)
+
+    contract_title = models.TextField(verbose_name=_("Contract title"), null=True, blank=True)
+    contract_desc = models.TextField(verbose_name=_("Contract description"), null=True, blank=True)
+
+    supplier = models.ForeignKey(
+        Supplier, on_delete=models.CASCADE, related_name="goods_services", null=True, blank=True
+    )
+    buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="goods_services", null=True, blank=True)
+
+    quantity_units = models.CharField(verbose_name=("Quantity,units"), max_length=1500, null=True)
+    ppu_including_vat = models.CharField(verbose_name=("Price per units including VAT"), max_length=1500, null=True)
+
+    tender_value_local = models.FloatField(verbose_name=_("Tender value local"), null=True, blank=True)
+    tender_value_usd = models.FloatField(verbose_name=_("Tender value USD"), null=True, blank=True)
+    award_value_local = models.FloatField(verbose_name=_("Award value local"), null=True, blank=True)
+    award_value_usd = models.FloatField(verbose_name=_("Award value USD"), null=True, blank=True)
+    contract_value_local = models.FloatField(
+        verbose_name=_("Contract value local"), null=True, blank=True, db_index=True
+    )
+    contract_value_usd = models.FloatField(verbose_name=_("Contract value USD"), null=True, blank=True, db_index=True)
+
+    def __str__(self):
+        return f"{self.goods_services_category} - {self.contract_title}"
+
+
+class CovidMonthlyActiveCases(models.Model):
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="covid_monthly_active_cases")
+    covid_data_date = models.DateField()
+    active_cases_count = models.BigIntegerField(verbose_name=_("Active cases count"), null=True, blank=True)
+    death_count = models.BigIntegerField(verbose_name=_("Death count"), null=True, blank=True)
+
+
+class EquityKeywords(models.Model):
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="equity_keywords", null=True)
+    equity_category = models.ForeignKey(
+        EquityCategory, on_delete=models.CASCADE, related_name="equity_keywords", null=True
+    )
+    keyword = models.CharField(verbose_name=_("Keyword"), max_length=100, null=False)
 
 
 class DataProvider(models.Model):

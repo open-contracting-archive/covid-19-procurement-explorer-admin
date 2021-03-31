@@ -149,15 +149,15 @@ def import_tender_from_batch_id(batch_id, country, currency):
             if row.tender_value:
                 tender_value_local = float(row.tender_value)
             else:
-                tender_value_local = ""
+                tender_value_local = 0
             if row.award_value:
                 award_value_local = float(row.award_value)
             else:
-                award_value_local = ""
+                award_value_local = 0
             if row.contract_value:
                 contract_value_local = float(row.contract_value)
             else:
-                contract_value_local = ""
+                contract_value_local = 0
 
             contract_title = row.contract_title
             contract_desc = row.contract_description
@@ -177,6 +177,9 @@ def import_tender_from_batch_id(batch_id, country, currency):
             status = row.contract_status.strip().lower()
             if status == "Terminated" or status == "Canclled":
                 status = "canceled"
+
+            quantity_units = row.quantity_units
+            ppu_including_vat = row.ppu_including_vat
 
             link_to_contract = row.link_to_contract
             link_to_tender = row.link_to_tender
@@ -238,6 +241,7 @@ def import_tender_from_batch_id(batch_id, country, currency):
                         contract_value_local=contract_value_local or None,
                         contract_desc=contract_desc,
                         no_of_bidders=no_of_bidders or None,
+                        temp_table_id=row,
                     )
                     tender_obj.save()
             else:
@@ -270,9 +274,11 @@ def import_tender_from_batch_id(batch_id, country, currency):
                     no_of_bidders=no_of_bidders or None,
                     contract_title=contract_title,
                     contract_desc=contract_desc,
-                    tender_value_local=tender_value_local or None,
-                    award_value_local=award_value_local or None,
-                    contract_value_local=contract_value_local or None,
+                    tender_value_local=tender_value_local or 0,
+                    award_value_local=award_value_local or 0,
+                    contract_value_local=contract_value_local or 0,
+                    quantity_units=quantity_units or None,
+                    ppu_including_vat=ppu_including_vat or None,
                 )
                 goods_services_obj.save()
 
@@ -507,10 +513,8 @@ def store_in_temp_table(instance_id):
         i = 0
 
         while i <= len(ws):
-            procurement_procedure_value = ws["Procurement procedure code"][i].strip().lower()
-            contract_status_value = ws["Contract Status Code"][i].strip().lower()
-            print(procurement_procedure_value)
-            print(contract_status_value)
+            procurement_procedure_value = str(ws["Procurement procedure code"][i]).strip().lower()
+            contract_status_value = str(ws["Contract Status Code"][i]).strip().lower()
 
             if contract_status_value in contract_status_option:
                 contract_status_lowered_value = contract_status_value.lower()

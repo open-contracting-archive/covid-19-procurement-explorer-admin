@@ -87,6 +87,22 @@ class DataImportAdmin(admin.ModelAdmin):
 
     import_status.short_description = "Import Status"
 
+    def validate(self):
+        data_import_id = str(self.page_ptr_id)
+        if self.validated:
+            return format_html(
+                f"""<a class="button" disabled="True" href="/data_validate?data_import_id={data_import_id}">
+                Validate</a>&nbsp;"""
+            )
+        else:
+            return format_html(
+                f"""<a class="button" onClick="this.disabled = true;" href="/data_validate?
+                data_import_id={data_import_id}">
+                Validate</a>&nbsp;"""
+            )
+
+    validate.short_description = "Validate"
+
     def import_actions(self):
         data_import_id = str(self.page_ptr_id)
         importbatch = ImportBatch.objects.get(data_import_id=data_import_id)
@@ -102,9 +118,7 @@ class DataImportAdmin(admin.ModelAdmin):
                 <a class="button" href={file_source} download>Download Source File</a>&nbsp;"""
             )
 
-    import_actions.short_description = "Import Actions"
-
-    list_display = ("title", "description", "country", custom_title, import_status, import_actions)
+    list_display = ("title", "description", "country", custom_title, import_status, import_actions, validate)
 
 
 @admin.register(DataProvider)
