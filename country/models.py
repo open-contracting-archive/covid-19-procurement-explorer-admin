@@ -1,7 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import Count, F, Q, Sum
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
 
@@ -158,13 +157,13 @@ class SupplierManager(models.Manager):
             super()
             .get_queryset()
             .annotate(
-                amount_local=Sum("tenders__goods_services__contract_value_local"),
-                amount_usd=Sum("tenders__goods_services__contract_value_usd"),
-                country_name=F("tenders__country__name"),
-                red_flag_count=Count("tenders__red_flag", distinct=True),
-                product_category_count=Count("tenders__goods_services__goods_services_category", distinct=True),
-                tender_count=Count("tenders__id", distinct=True),
-                buyer_count=Count("tenders__buyer_id", filter=Q(tenders__buyer_id__isnull=False), distinct=True),
+                # amount_local=Sum("tenders__goods_services__contract_value_local"),
+                # amount_usd=Sum("tenders__goods_services__contract_value_usd"),
+                # country_name=F("tenders__country__name"),
+                # red_flag_count=Count("tenders__red_flag", distinct=True),
+                # product_category_count=Count("tenders__goods_services__goods_services_category", distinct=True),
+                # tender_count=Count("tenders__id", distinct=True),
+                # buyer_count=Count("tenders__buyer_id", filter=Q(tenders__buyer_id__isnull=False), distinct=True),
             )
         )
 
@@ -175,15 +174,15 @@ class BuyerManager(models.Manager):
             super()
             .get_queryset()
             .annotate(
-                amount_usd=Sum("tenders__goods_services__contract_value_usd"),
-                amount_local=Sum("tenders__goods_services__contract_value_local"),
-                country_name=F("tenders__country__name"),
-                red_flag_count=Count("tenders__red_flag", distinct=True),
-                product_category_count=Count("tenders__goods_services__goods_services_category", distinct=True),
-                tender_count=Count("tenders__id", distinct=True),
-                supplier_count=Count(
-                    "tenders__supplier_id", filter=Q(tenders__supplier_id__isnull=False), distinct=True
-                ),
+                # amount_usd=Sum("tenders__goods_services__contract_value_usd"),
+                # amount_local=Sum("tenders__goods_services__contract_value_local"),
+                # country_name=F("tenders__country__name"),
+                # red_flag_count=Count("tenders__red_flag", distinct=True),
+                # # product_category_count=Count("tenders__goods_services__goods_services_category", distinct=True),
+                # tender_count=Count("tenders__id", distinct=True),
+                # supplier_count=Count(
+                #     "tenders__supplier_id", filter=Q(tenders__supplier_id__isnull=False), distinct=True
+                # ),
             )
         )
 
