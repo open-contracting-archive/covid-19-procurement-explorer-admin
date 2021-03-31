@@ -43,6 +43,7 @@ jobs:
     - run: pip install -r requirements_dev.txt
     - run: |
         ./manage.py migrate
+        ./manage.py makemigrations --check --dry-run
         ./manage.py loaddata country redflag equitycategory equitykeywords
         coverage run --source content,country,covidadmin,vizualization,country/management/commands manage.py test
       env:
