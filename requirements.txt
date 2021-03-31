@@ -162,6 +162,6 @@ xlwt==1.3.0
     # via tablib
 zipp==3.4.0
     # via importlib-metadata
-psycopg2==2.8.6
+
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
