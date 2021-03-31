@@ -17,7 +17,6 @@ import environ
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-environ.Env.read_env()
 env = environ.Env(
     # set casting, default value
     SECRET_KEY=(str, "ig0(igk8+n76thmh-@%*n4bc1ra3sq-#x)kx6bqf&zdh9n1*+8"),
