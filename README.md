@@ -31,7 +31,10 @@ env DB_NAME=covid19_test ./manage.py createsuperuser
 Load test data:
 
 ```shell
+env DB_NAME=covid19_test ./manage.py loaddata country
 env DB_NAME=covid19_test ./manage.py loaddata redflag
+env DB_NAME=covid19_test ./manage.py loaddata equitycategory
+env DB_NAME=covid19_test ./manage.py loaddata equitykeywords
 ```
 
 ## Tasks

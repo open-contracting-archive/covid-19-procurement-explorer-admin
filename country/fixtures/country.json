@@ -1,0 +1,137 @@
+[
+  {
+    "model": "country.country",
+    "pk": 1,
+    "fields": {
+      "name": "Global",
+      "continent": "oceanic",
+      "population": null,
+      "gdp": null,
+      "country_code": "Global",
+      "country_code_alpha_2": "gl",
+      "currency": "global",
+      "healthcare_budget": null,
+      "healthcare_gdp_pc": null
+    }
+  },
+  {
+    "model": "country.country",
+    "pk": 2,
+    "fields": {
+      "name": "Kenya",
+      "continent": "africa",
+      "population": 53771296,
+      "gdp": 1090.0,
+      "country_code": "KEN",
+      "country_code_alpha_2": "KE",
+      "currency": "KES",
+      "healthcare_budget": 88.3,
+      "healthcare_gdp_pc": 5.2
+    }
+  },
+  {
+    "model": "country.country",
+    "pk": 3,
+    "fields": {
+      "name": "Kyrgyzstan",
+      "continent": "asia",
+      "population": 6524195,
+      "gdp": 1070.0,
+      "country_code": "KGZ",
+      "country_code_alpha_2": "KG",
+      "currency": "KGS",
+      "healthcare_budget": 85.7,
+      "healthcare_gdp_pc": 6.5
+    }
+  },
+  {
+    "model": "country.country",
+    "pk": 4,
+    "fields": {
+      "name": "Lithuania",
+      "continent": "europe",
+      "population": 2697935,
+      "gdp": 15300.0,
+      "country_code": "LTU",
+      "country_code_alpha_2": "LT",
+      "currency": "EUR",
+      "healthcare_budget": 1249.0,
+      "healthcare_gdp_pc": 6.8
+    }
+  },
+  {
+    "model": "country.country",
+    "pk": 5,
+    "fields": {
+      "name": "Mexico",
+      "continent": "north_america",
+      "population": 127800000,
+      "gdp": 10118.0,
+      "country_code": "MEX",
+      "country_code_alpha_2": "MX",
+      "currency": "MXN",
+      "healthcare_budget": 519.6,
+      "healthcare_gdp_pc": 5.5
+    }
+  },
+  {
+    "model": "country.country",
+    "pk": 6,
+    "fields": {
+      "name": "Moldova",
+      "continent": "europe",
+      "population": 4033963,
+      "gdp": 3200.0,
+      "country_code": "MDA",
+      "country_code_alpha_2": "MD",
+      "currency": "MDL",
+      "healthcare_budget": 213.0,
+      "healthcare_gdp_pc": 6.5
+    }
+  },
+  {
+    "model": "country.country",
+    "pk": 7,
+    "fields": {
+      "name": "Paraguay",
+      "continent": "south_america",
+      "population": 7132538,
+      "gdp": 4909.0,
+      "country_code": "PRY",
+      "country_code_alpha_2": "PY",
+      "currency": "PYG",
+      "healthcare_budget": 400.4,
+      "healthcare_gdp_pc": 6.65
+    }
+  },
+  {
+    "model": "country.country",
+    "pk": 8,
+    "fields": {
+      "name": "Ukraine",
+      "continent": "europe",
+      "population": 43733762,
+      "gdp": 2629.0,
+      "country_code": "UKR",
+      "country_code_alpha_2": "UA",
+      "currency": "UAH",
+      "healthcare_budget": 345.0,
+      "healthcare_gdp_pc": 7.72
+    }
+  },
+  {
+    "model": "country.country",
+    "pk": 9,
+    "fields": {
+      "name": "United Kingdom",
+      "continent": "europe",
+      "population": 67886011,
+      "gdp": 31446.0,
+      "country_code": "GBR",
+      "country_code_alpha_2": "GB",
+      "currency": "GBP",
+      "healthcare_budget": 4315.0,
+      "healthcare_gdp_pc": 9.9
+    }
+  }
+]
