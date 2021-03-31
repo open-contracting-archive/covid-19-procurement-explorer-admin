@@ -19,19 +19,19 @@ Initialize the database:
 
 ```shell
 createdb covid19_test
-env DB_NAME=covid19_test ./manage.py migrate
+./manage.py migrate
 ```
 
 Create a superuser:
 
 ```shell
-env DB_NAME=covid19_test ./manage.py createsuperuser
+./manage.py createsuperuser
 ```
 
 Load test data:
 
 ```shell
-env DB_NAME=covid19_test ./manage.py loaddata country redflag equitycategory equitykeywords
+./manage.py loaddata country redflag equitycategory equitykeywords
 ```
 
 ## Tasks
@@ -39,7 +39,7 @@ env DB_NAME=covid19_test ./manage.py loaddata country redflag equitycategory equ
 Run a development server:
 
 ```shell
-env DEBUG=True DB_NAME=covid19_test ./manage.py runserver
+env DEBUG=True ./manage.py runserver
 ```
 
 To add, remove or upgrade a requirement, [follow these instructions](https://ocp-software-handbook.readthedocs.io/en/latest/python/applications.html#requirements).
