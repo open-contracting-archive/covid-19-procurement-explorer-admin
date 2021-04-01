@@ -144,11 +144,9 @@ class BuyerView(viewsets.ModelViewSet):
     extensions_auto_optimize = True
 
     def retrieve(self, request, *args, **kwargs):
-        # do your customization here
         pk = self.kwargs["pk"]
         instance = Buyer.objects.filter(id=pk)[0]
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        return Response(self.get_serializer(instance).data)
 
     def get_queryset(self):
         #    country, buyer name, value range, red flag range
@@ -192,11 +190,9 @@ class SupplierView(viewsets.ModelViewSet):
     extensions_auto_optimize = True
 
     def retrieve(self, request, *args, **kwargs):
-        # do your customization here
         pk = self.kwargs["pk"]
         instance = Supplier.objects.filter(id=pk)[0]
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        return Response(self.get_serializer(instance).data)
 
     def get_queryset(self):
         #    country, buyer name, value range, red flag range

@@ -16,8 +16,7 @@ class InsightsPageAdmin(ModelAdmin):
     ordering = ("-news_date",)
 
     def tags_(self, obj):
-        tags = obj.tags.all()
-        return ", ".join([i.name for i in tags])
+        return ", ".join([i.name for i in obj.tags.all()])
 
 
 modeladmin_register(InsightsPageAdmin)

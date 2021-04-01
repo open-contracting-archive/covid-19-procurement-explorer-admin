@@ -75,8 +75,7 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
 
     if result:
         print("Found conversion data in database")
-        conversion_rate = result.conversion_rate
-        return round(source_value * conversion_rate, 2)
+        return round(source_value * result.conversion_rate, 2)
     else:
         print("Fetching conversion data from fixer.io")
         access_key = settings.FIXER_IO_API_KEY

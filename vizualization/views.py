@@ -305,8 +305,7 @@ class GlobalOverView(APIView):
                     b["tender_count"] = contract_val
                 result["details"].append(b)
             data.append(result)
-        final = {"result": data}
-        return JsonResponse(final)
+        return JsonResponse({"result": data})
 
 
 class TopSuppliers(APIView):
@@ -381,8 +380,7 @@ class TopSuppliers(APIView):
             a["buyer_count"] = value["count"]
             by_buyer.append(a)
 
-        result = {"by_number": by_number, "by_value": by_value, "by_buyer": by_buyer}
-        return JsonResponse(result)
+        return JsonResponse({"by_number": by_number, "by_value": by_value, "by_buyer": by_buyer})
 
 
 class TopBuyers(APIView):
@@ -438,8 +436,7 @@ class TopBuyers(APIView):
             a["buyer_name"] = value["buyer__buyer_name"]
             a["tender_count"] = value["count"]
             by_number.append(a)
-        result = {"by_number": by_number, "by_value": by_value}
-        return JsonResponse(result)
+        return JsonResponse({"by_number": by_number, "by_value": by_value})
 
 
 class DirectOpen(APIView):
@@ -926,8 +923,7 @@ class CountryMapView(APIView):
         try:
             country_instance = Country.objects.get(country_code_alpha_2=country)
         except:
-            final = {"result": "Invalid Alpha Code"}
-            return JsonResponse(final)
+            return JsonResponse({"result": "Invalid Alpha Code"})
         if country is not None and country_instance is not None:
             tender_instance = Tender.objects.filter(country__country_code_alpha_2=country).aggregate(
                 total_usd=Sum("goods_services__contract_value_usd"),
@@ -966,8 +962,7 @@ class WorldMapView(APIView):
             data["amount_usd"] = tender_instance["total_usd"]
             data["tender_count"] = tender_count
             result.append(data)
-        final_result = {"result": result}
-        return JsonResponse(final_result)
+        return JsonResponse({"result": result})
 
 
 class GlobalSuppliersView(APIView):
@@ -1310,8 +1305,7 @@ class EquityIndicatorView(APIView):
                 ]
                 return JsonResponse(data, safe=False)
             except:
-                results = [{"error": "Invalid country_code"}]
-                return JsonResponse(results, safe=False)
+                return JsonResponse([{"error": "Invalid country_code"}], safe=False)
         else:
             tenders_assigned = (
                 Tender.objects.filter(**filter_args)
@@ -1393,8 +1387,7 @@ class ProductTimelineView(APIView):
                     result.append(data)
                 return JsonResponse(result, safe=False)
             except:
-                result = [{"error": "Invalid country_code"}]
-                return JsonResponse(result, safe=False)
+                return JsonResponse([{"error": "Invalid country_code"}], safe=False)
         else:
             tenders_assigned = (
                 Tender.objects.filter(**filter_args)
@@ -1425,8 +1418,7 @@ class ProductTimelineView(APIView):
                     result.append(data)
                 return JsonResponse(result, safe=False)
             except:
-                result = [{"error": "Invalid country_code"}]
-                return JsonResponse(result, safe=False)
+                return JsonResponse([{"error": "Invalid country_code"}], safe=False)
             return JsonResponse(data, safe=False)
 
 
@@ -1825,8 +1817,7 @@ class FilterParams(APIView):
             return JsonResponse(result, safe=False)
 
         except:
-            result = [{"error": "No buyer and supplier data available"}]
-            return JsonResponse(result, safe=False)
+            return JsonResponse([{"error": "No buyer and supplier data available"}], safe=False)
 
 
 class EquitySummaryView(APIView):
@@ -1922,8 +1913,7 @@ class FilterParametersSuppliers(APIView):
                 result.append(data)
             return JsonResponse(result, safe=False)
         except:
-            result = [{"error": "Country code doest not exists"}]
-            return JsonResponse(result, safe=False)
+            return JsonResponse([{"error": "Country code doest not exists"}], safe=False)
 
 
 class FilterParametersBuyers(APIView):
@@ -1952,8 +1942,7 @@ class FilterParametersBuyers(APIView):
                 result.append(data)
             return JsonResponse(result, safe=False)
         except:
-            result = [{"error": "Country code doest not exists"}]
-            return JsonResponse(result, safe=False)
+            return JsonResponse([{"error": "Country code doest not exists"}], safe=False)
 
 
 class FilterParametersStatic(APIView):
@@ -2194,8 +2183,7 @@ class BuyerTrendView(APIView):
                     b["buyer_count"] = buyer_val
                 result["details"].append(b)
             data.append(result)
-        final = {"result": data}
-        return JsonResponse(final)
+        return JsonResponse({"result": data})
 
 
 class SupplierTrendView(APIView):
@@ -2258,8 +2246,7 @@ class SupplierTrendView(APIView):
                     b["supplier_count"] = supplier_val
                 result["details"].append(b)
             data.append(result)
-        final = {"result": data}
-        return JsonResponse(final)
+        return JsonResponse({"result": data})
 
 
 class DirectOpenContractTrendView(APIView):
@@ -2324,8 +2311,7 @@ class DirectOpenContractTrendView(APIView):
                     b["tender_count"] = contract_val
                 result["details"].append(b)
             data.append(result)
-        final = {"result": data}
-        return JsonResponse(final)
+        return JsonResponse({"result": data})
 
 
 class ContractRedFlagsView(APIView):

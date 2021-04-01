@@ -86,9 +86,7 @@ class SupplierSerializer(serializers.ModelSerializer):
             else:
                 return None
         except:
-            supplier_related_tenders = obj.tenders.all()
-            sum_result = supplier_related_tenders.aggregate(sum_usd=Sum("goods_services__contract_value_usd"))
-            return sum_result["sum_usd"]
+            return obj.tenders.all().aggregate(sum_usd=Sum("goods_services__contract_value_usd"))["sum_usd"]
 
     def get_amount_local(self, obj):
         try:
@@ -97,9 +95,7 @@ class SupplierSerializer(serializers.ModelSerializer):
             else:
                 return None
         except:
-            supplier_related_tenders = obj.tenders.all()
-            sum_result = supplier_related_tenders.aggregate(sum_local=Sum("goods_services__contract_value_local"))
-            return sum_result["sum_local"]
+            return obj.tenders.all().aggregate(sum_local=Sum("goods_services__contract_value_local"))["sum_local"]
 
     def get_red_flag_tender_count(self, obj):
         return obj.red_flag_count
@@ -198,9 +194,7 @@ class BuyerSerializer(serializers.ModelSerializer):
             else:
                 return None
         except:
-            buyer_related_tenders = obj.tenders.all()
-            sum_result = buyer_related_tenders.aggregate(sum_usd=Sum("goods_services__contract_value_usd"))
-            return sum_result["sum_usd"]
+            return obj.tenders.all().aggregate(sum_usd=Sum("goods_services__contract_value_usd"))["sum_usd"]
 
     def get_amount_local(self, obj):
         try:
@@ -209,9 +203,7 @@ class BuyerSerializer(serializers.ModelSerializer):
             else:
                 return None
         except:
-            buyer_related_tenders = obj.tenders.all()
-            sum_result = buyer_related_tenders.aggregate(sum_local=Sum("goods_services__contract_value_local"))
-            return sum_result["sum_local"]
+            return obj.tenders.all().aggregate(sum_local=Sum("goods_services__contract_value_local"))["sum_local"]
 
     def get_red_flag_tender_count(self, obj):
         return obj.red_flag_count
