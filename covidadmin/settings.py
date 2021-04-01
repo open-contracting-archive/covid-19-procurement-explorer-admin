@@ -34,7 +34,6 @@ env = environ.Env(
     CELERY_BROKER_URL=(str, "pyamqp://guest@localhost/"),
     CELERY_TIMEZONE=(str, "UTC"),
     FETCH_COVID_DATA_INTERVAL=(int, 10800),
-    GOOGLE_SHEET_CREDENTIALS_JSON=(str, ""),
     FIXER_IO_API_KEY=(str, ""),
     MEDIA_URL=(str, "/media/"),
 )
@@ -216,7 +215,6 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-GOOGLE_SHEET_CREDENTIALS_JSON = env("GOOGLE_SHEET_CREDENTIALS_JSON")
 FIXER_IO_API_KEY = env("FIXER_IO_API_KEY")
 
 WAGTAIL_SITE_NAME = "Covid 19 procurement explorer"
