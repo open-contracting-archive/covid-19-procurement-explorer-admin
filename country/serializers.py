@@ -102,17 +102,15 @@ class SupplierSerializer(serializers.ModelSerializer):
             return sum_result["sum_local"]
 
     def get_red_flag_tender_count(self, obj):
-        red_flags = obj.red_flag_count
-        return red_flags
+        return obj.red_flag_count
 
     def get_red_flag_tender_percentage(self, obj):
         red_flags = obj.red_flag_count
         total = obj.tender_count
         try:
-            percentage = red_flags / total
+            return red_flags / total
         except:
-            percentage = 0
-        return percentage
+            return 0
 
     def get_country_code(self, obj):
         tender_obj = obj.tenders.first()
@@ -133,8 +131,7 @@ class SupplierSerializer(serializers.ModelSerializer):
     def get_buyer_count(self, obj):
         supplier_related_tenders = obj.tenders.all()
         if supplier_related_tenders:
-            supplier_count = supplier_related_tenders.exclude(buyer_id__isnull=True).distinct("buyer_id").count()
-            return supplier_count
+            return supplier_related_tenders.exclude(buyer_id__isnull=True).distinct("buyer_id").count()
 
     def get_supplier_id(self, obj):
         return obj.id
@@ -148,8 +145,7 @@ class SupplierSerializer(serializers.ModelSerializer):
         except:
             supplier_related_tenders = obj.tenders.all()
             if supplier_related_tenders:
-                tender_count = supplier_related_tenders.count()
-                return tender_count
+                return supplier_related_tenders.count()
 
     def get_product_category_count(self, obj):
         try:
@@ -218,17 +214,15 @@ class BuyerSerializer(serializers.ModelSerializer):
             return sum_result["sum_local"]
 
     def get_red_flag_tender_count(self, obj):
-        red_flags = obj.red_flag_count
-        return red_flags
+        return obj.red_flag_count
 
     def get_red_flag_tender_percentage(self, obj):
         red_flags = obj.red_flag_count
         total = obj.tender_count
         try:
-            percentage = red_flags / total
+            return red_flags / total
         except:
-            percentage = 0
-        return percentage
+            return 0
 
     def get_country_code(self, obj):
         tender_obj = obj.tenders.first()
@@ -263,8 +257,7 @@ class BuyerSerializer(serializers.ModelSerializer):
     def get_supplier_count(self, obj):
         buyer_related_tenders = obj.tenders.all()
         if buyer_related_tenders:
-            supplier_count = buyer_related_tenders.exclude(supplier_id__isnull=True).distinct("supplier_id").count()
-            return supplier_count
+            return buyer_related_tenders.exclude(supplier_id__isnull=True).distinct("supplier_id").count()
 
     def get_tender_count(self, obj):
         try:
@@ -275,8 +268,7 @@ class BuyerSerializer(serializers.ModelSerializer):
         except:
             buyer_related_tenders = obj.tenders.all()
             if buyer_related_tenders:
-                tender_count = buyer_related_tenders.count()
-                return tender_count
+                return buyer_related_tenders.count()
 
     def get_buyer_id(self, obj):
         return obj.id
@@ -372,46 +364,33 @@ class TenderSerializer(serializers.ModelSerializer):
 
     def get_bidders_no(self, obj):
         try:
-            result = obj.no_of_bidders
-            return result
+            return obj.no_of_bidders
         except:
             return 0
 
     def get_tender_local(self, obj):
-        result = 0
         try:
-            result = obj.goods_services.aggregate(tender_value_local=Sum("tender_value_local"))["tender_value_local"]
-            return result
+            return obj.goods_services.aggregate(tender_value_local=Sum("tender_value_local"))["tender_value_local"]
         except:
-            result = 0
-            return result
+            return 0
 
     def get_tender_usd(self, obj):
-        result = 0
         try:
-            result = obj.goods_services.aggregate(tender_value_usd=Sum("tender_value_usd"))["tender_value_usd"]
-            return result
+            return obj.goods_services.aggregate(tender_value_usd=Sum("tender_value_usd"))["tender_value_usd"]
         except:
-            result = 0
-            return result
+            return 0
 
     def get_award_local(self, obj):
-        result = 0
         try:
-            result = obj.goods_services.aggregate(award_value_local=Sum("award_value_local"))["award_value_local"]
-            return result
+            return obj.goods_services.aggregate(award_value_local=Sum("award_value_local"))["award_value_local"]
         except:
-            result = 0
-            return result
+            return 0
 
     def get_award_usd(self, obj):
-        result = 0
         try:
-            result = obj.goods_services.aggregate(award_value_usd=Sum("award_value_usd"))["award_value_usd"]
-            return result
+            return obj.goods_services.aggregate(award_value_usd=Sum("award_value_usd"))["award_value_usd"]
         except:
-            result = 0
-            return result
+            return 0
 
     def get_equity_category(self, obj):
         equity_categories = obj.equity_category.all()

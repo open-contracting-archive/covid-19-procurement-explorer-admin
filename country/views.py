@@ -40,8 +40,7 @@ class CountryView(viewsets.ModelViewSet):
     extensions_auto_optimize = True
 
     def get_queryset(self):
-        queryset = Country.objects.all()
-        return queryset
+        return Country.objects.all()
 
     @action(detail=False, methods=["get"])
     def choices(self, request):
@@ -125,8 +124,7 @@ class TenderView(viewsets.ModelViewSet):
             exclude_args["procurement_procedure__in"] = ["open", "limited", "direct", "selective"]
         elif procurement_procedure in ["open", "limited", "direct", "selective"]:
             filter_args["procurement_procedure"] = procurement_procedure
-        queryset = Tender.objects.annotate(**annotate_args).filter(**filter_args).exclude(**exclude_args)
-        return queryset
+        return Tender.objects.annotate(**annotate_args).filter(**filter_args).exclude(**exclude_args)
 
 
 class BuyerView(viewsets.ModelViewSet):
@@ -174,8 +172,7 @@ class BuyerView(viewsets.ModelViewSet):
             elif value_comparison == "lt":
                 annotate_args["sum"] = Sum("tenders__goods_services__contract_value_usd")
                 filter_args["sum__lte"] = contract_value_usd
-        queryset = Buyer.objects.annotate(**annotate_args).filter(**filter_args).distinct()
-        return queryset
+        return Buyer.objects.annotate(**annotate_args).filter(**filter_args).distinct()
 
 
 class SupplierView(viewsets.ModelViewSet):
@@ -223,8 +220,7 @@ class SupplierView(viewsets.ModelViewSet):
             elif value_comparison == "lt":
                 annotate_args["sum"] = Sum("tenders__goods_services__contract_value_usd")
                 filter_args["sum__lte"] = contract_value_usd
-        queryset = Supplier.objects.annotate(**annotate_args).filter(**filter_args).distinct()
-        return queryset
+        return Supplier.objects.annotate(**annotate_args).filter(**filter_args).distinct()
 
 
 class OverallStatSummaryView(viewsets.ModelViewSet):
