@@ -1,6 +1,6 @@
 from django.db.models import Sum
 from rest_framework import serializers
-
+from rest_framework_serializer_extensions.serializers import SerializerExtensionsMixin
 from .models import Buyer, Country, Language, OverallSummary, RedFlag, Supplier, Tender
 
 
@@ -21,7 +21,7 @@ class ChoiceField(serializers.ChoiceField):
         self.fail("invalid_choice", input=data)
 
 
-class CountrySerializer(serializers.HyperlinkedModelSerializer):
+class CountrySerializer(serializers.HyperlinkedModelSerializer, SerializerExtensionsMixin):
     id = serializers.IntegerField(read_only=True)
     continent = ChoiceField(choices=Country.CONTINENT_CHOICES)
 
@@ -40,7 +40,7 @@ class CountrySerializer(serializers.HyperlinkedModelSerializer):
         )
 
 
-class LanguageSerializer(serializers.ModelSerializer):
+class LanguageSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     class Meta:
         model = Language
         fields = (
@@ -50,11 +50,11 @@ class LanguageSerializer(serializers.ModelSerializer):
         )
 
 
-class SupplierSerializer(serializers.ModelSerializer):
+class SupplierSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     amount_local = serializers.SerializerMethodField()
     amount_usd = serializers.SerializerMethodField()
-    red_flag_tender_count = serializers.SerializerMethodField()
-    red_flag_tender_percentage = serializers.SerializerMethodField()
+    # red_flag_tender_count = serializers.SerializerMethodField()
+    # red_flag_tender_percentage = serializers.SerializerMethodField()
     country_code = serializers.SerializerMethodField()
     country_name = serializers.SerializerMethodField()
     product_category_count = serializers.SerializerMethodField()
@@ -67,7 +67,7 @@ class SupplierSerializer(serializers.ModelSerializer):
         fields = (
             "amount_local",
             "amount_usd",
-            "red_flag_tender_count",
+            # "red_flag_tender_count",
             "supplier_id",
             "supplier_name",
             "supplier_address",
@@ -76,7 +76,7 @@ class SupplierSerializer(serializers.ModelSerializer):
             "product_category_count",
             "buyer_count",
             "tender_count",
-            "red_flag_tender_percentage",
+            # "red_flag_tender_percentage",
         )
 
     def get_amount_usd(self, obj):
@@ -97,16 +97,16 @@ class SupplierSerializer(serializers.ModelSerializer):
         except:
             return obj.tenders.all().aggregate(sum_local=Sum("goods_services__contract_value_local"))["sum_local"]
 
-    def get_red_flag_tender_count(self, obj):
-        return obj.red_flag_count
-
-    def get_red_flag_tender_percentage(self, obj):
-        red_flags = obj.red_flag_count
-        total = obj.tender_count
-        try:
-            return red_flags / total
-        except:
-            return 0
+    # def get_red_flag_tender_count(self, obj):
+    #     return obj.red_flag_count
+    #
+    # def get_red_flag_tender_percentage(self, obj):
+    #     red_flags = obj.red_flag_count
+    #     total = obj.tender_count
+    #     try:
+    #         return red_flags / total
+    #     except:
+    #         return 0
 
     def get_country_code(self, obj):
         tender_obj = obj.tenders.first()
@@ -158,11 +158,11 @@ class SupplierSerializer(serializers.ModelSerializer):
                 return product_category_count
 
 
-class BuyerSerializer(serializers.ModelSerializer):
+class BuyerSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     amount_local = serializers.SerializerMethodField()
     amount_usd = serializers.SerializerMethodField()
-    red_flag_tender_count = serializers.SerializerMethodField()
-    red_flag_tender_percentage = serializers.SerializerMethodField()
+    # red_flag_tender_count = serializers.SerializerMethodField()
+    # red_flag_tender_percentage = serializers.SerializerMethodField()
     country_code = serializers.SerializerMethodField()
     country_name = serializers.SerializerMethodField()
     product_category_count = serializers.SerializerMethodField()
@@ -175,7 +175,7 @@ class BuyerSerializer(serializers.ModelSerializer):
         fields = (
             "amount_local",
             "amount_usd",
-            "red_flag_tender_count",
+            # "red_flag_tender_count",
             "buyer_id",
             "buyer_name",
             "buyer_address",
@@ -184,7 +184,7 @@ class BuyerSerializer(serializers.ModelSerializer):
             "product_category_count",
             "supplier_count",
             "tender_count",
-            "red_flag_tender_percentage",
+            # "red_flag_tender_percentage",
         )
 
     def get_amount_usd(self, obj):
@@ -194,7 +194,11 @@ class BuyerSerializer(serializers.ModelSerializer):
             else:
                 return None
         except:
-            return obj.tenders.all().aggregate(sum_usd=Sum("goods_services__contract_value_usd"))["sum_usd"]
+            return (
+                obj.tenders.select_related("goods_services")
+                .all()
+                .aggregate(sum_usd=Sum("goods_services__contract_value_usd"))["sum_usd"]
+            )
 
     def get_amount_local(self, obj):
         try:
@@ -203,18 +207,22 @@ class BuyerSerializer(serializers.ModelSerializer):
             else:
                 return None
         except:
-            return obj.tenders.all().aggregate(sum_local=Sum("goods_services__contract_value_local"))["sum_local"]
+            return (
+                obj.tenders.select_related("goods_services")
+                .all()
+                .aggregate(sum_local=Sum("goods_services__contract_value_local"))["sum_local"]
+            )
 
-    def get_red_flag_tender_count(self, obj):
-        return obj.red_flag_count
-
-    def get_red_flag_tender_percentage(self, obj):
-        red_flags = obj.red_flag_count
-        total = obj.tender_count
-        try:
-            return red_flags / total
-        except:
-            return 0
+    # def get_red_flag_tender_count(self, obj):
+    #     return obj.red_flag_count
+    #
+    # def get_red_flag_tender_percentage(self, obj):
+    #     red_flags = obj.red_flag_count
+    #     total = obj.tender_count
+    #     try:
+    #         return red_flags / total
+    #     except:
+    #         return 0
 
     def get_country_code(self, obj):
         tender_obj = obj.tenders.first()
@@ -266,13 +274,13 @@ class BuyerSerializer(serializers.ModelSerializer):
         return obj.id
 
 
-class RedFlagSerializer(serializers.ModelSerializer):
+class RedFlagSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     class Meta:
         model = RedFlag
         fields = "__all__"
 
 
-class TenderSerializer(serializers.ModelSerializer):
+class TenderSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     country_name = serializers.CharField(source="country.name", read_only=True)
     country_alpha_code = serializers.CharField(source="country.country_code_alpha_2", read_only=True)
     contract_currency_local = serializers.CharField(source="country.currency", read_only=True)
@@ -435,7 +443,7 @@ class TenderSerializer(serializers.ModelSerializer):
         return list(a)
 
 
-class OverallStatSummarySerializer(serializers.ModelSerializer):
+class OverallStatSummarySerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     country = CountrySerializer(many=False, read_only=True)
 
     class Meta:

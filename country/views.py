@@ -124,7 +124,12 @@ class TenderView(viewsets.ModelViewSet):
             exclude_args["procurement_procedure__in"] = ["open", "limited", "direct", "selective"]
         elif procurement_procedure in ["open", "limited", "direct", "selective"]:
             filter_args["procurement_procedure"] = procurement_procedure
-        return Tender.objects.annotate(**annotate_args).filter(**filter_args).exclude(**exclude_args)
+        return (
+            Tender.objects.prefetch_related("buyer", "supplier", "country")
+            .annotate(**annotate_args)
+            .filter(**filter_args)
+            .exclude(**exclude_args)
+        )
 
 
 class BuyerView(viewsets.ModelViewSet):
@@ -160,7 +165,7 @@ class BuyerView(viewsets.ModelViewSet):
         if country:
             filter_args["tenders__country__country_code_alpha_2"] = country
         if buyer_name:
-            filter_args["buyer_name__icontains"] = buyer_name
+            filter_args["buyer_name__contains"] = buyer_name
         if product_id:
             filter_args["tenders__goods_services__goods_services_category"] = product_id
         if contract_value_usd and value_comparison:
@@ -170,7 +175,7 @@ class BuyerView(viewsets.ModelViewSet):
             elif value_comparison == "lt":
                 annotate_args["sum"] = Sum("tenders__goods_services__contract_value_usd")
                 filter_args["sum__lte"] = contract_value_usd
-        return Buyer.objects.annotate(**annotate_args).filter(**filter_args).distinct()
+        return Buyer.objects.prefetch_related("tenders").annotate(**annotate_args).filter(**filter_args).distinct()
 
 
 class SupplierView(viewsets.ModelViewSet):

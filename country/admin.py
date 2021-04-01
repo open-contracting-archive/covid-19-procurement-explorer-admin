@@ -96,9 +96,8 @@ class DataImportAdmin(admin.ModelAdmin):
             )
         else:
             return format_html(
-                f"""<a class="button" onClick="this.disabled = true;" href="/data_validate?
-                data_import_id={data_import_id}">
-                Validate</a>&nbsp;"""
+                f"""<a class="button" onClick="this.disabled = true;"
+                 href="/data_validate?data_import_id={data_import_id}">Validate</a>&nbsp;"""
             )
 
     validate.short_description = "Validate"
