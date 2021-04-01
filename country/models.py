@@ -54,62 +54,6 @@ class Country(models.Model):
         verbose_name=_("Total deaths by Covid-19"), null=True, blank=True, validators=[MinValueValidator(0)]
     )
     covid_data_last_updated = models.DateTimeField(null=True, blank=True)
-    equity_unemployment_rate = models.FloatField(
-        verbose_name=_("Unemployment rate"),
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
-    )
-    equity_income_avg = models.FloatField(
-        verbose_name=_("Average income"), null=True, blank=True, validators=[MinValueValidator(0)]
-    )
-    equity_gender_dist_male = models.FloatField(
-        verbose_name=_("Gender distribution male"),
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
-    )
-    equity_gender_dist_female = models.FloatField(
-        verbose_name=_("Gender distribution female"),
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
-    )
-    equity_age_dist_0_14 = models.BigIntegerField(
-        verbose_name=_("Age distribution 0-14 years"), null=True, blank=True, validators=[MinValueValidator(0)]
-    )
-    equity_age_dist_15_24 = models.BigIntegerField(
-        verbose_name=_("Age distribution 15-24 years"), null=True, blank=True, validators=[MinValueValidator(0)]
-    )
-    equity_age_dist_25_54 = models.BigIntegerField(
-        verbose_name=_("Age distribution 25-54 years"), null=True, blank=True, validators=[MinValueValidator(0)]
-    )
-    equity_age_dist_55_64 = models.BigIntegerField(
-        verbose_name=_("Age distribution 55-64 years"), null=True, blank=True, validators=[MinValueValidator(0)]
-    )
-    equity_age_dist_65_above = models.BigIntegerField(
-        verbose_name=_("Age distribution 65-above years"), null=True, blank=True, validators=[MinValueValidator(0)]
-    )
-    procurement_annual_public_spending = models.FloatField(
-        verbose_name=_("Annual public procurement spending"), null=True, blank=True, validators=[MinValueValidator(0)]
-    )
-    procurement_gdp_pc = models.FloatField(
-        verbose_name=_("% of Procurement to GDP"),
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
-    )
-    procurement_covid_spending = models.FloatField(
-        verbose_name=_("COVID-19 spending"), null=True, blank=True, validators=[MinValueValidator(0)]
-    )
-    procurement_total_market_pc = models.FloatField(
-        verbose_name=_("% from total procurement market"),
-        null=True,
-        blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
-    )
-    covid19_procurement_policy = models.TextField(verbose_name=_("COVID-19 Procurement Policy"), null=True, blank=True)
-    covid19_preparedness = models.TextField(verbose_name=_("COVID-19 Preparedness"), null=True, blank=True)
 
     objects = CountryManager()
 
