@@ -311,6 +311,7 @@ class TenderSerializer(serializers.ModelSerializer):
     equity_category = serializers.SerializerMethodField()
     # red_flag_count = serializers.SerializerMethodField()
     red_flag = RedFlagSerializer(many=True, read_only=True)
+    goods_services = serializers.SerializerMethodField()
 
     class Meta:
         model = Tender
@@ -348,6 +349,7 @@ class TenderSerializer(serializers.ModelSerializer):
             "equity_category",
             # 'red_flag_count',
             "red_flag",
+            "goods_services",
         )
         read_only_fields = (
             "contract_value_usd",
@@ -449,6 +451,17 @@ class TenderSerializer(serializers.ModelSerializer):
     def get_buyer_code(self, obj):
         if obj.buyer:
             return obj.buyer.buyer_id
+
+    def get_goods_services(self, obj):
+        a = obj.goods_services.all().values(
+            "goods_services_category__category_name",
+            "contract_value_usd",
+            "quantity_units",
+            "ppu_including_vat",
+            "contract_value_local",
+            "classification_code",
+        )
+        return list(a)
 
 
 class OverallStatSummarySerializer(serializers.ModelSerializer):

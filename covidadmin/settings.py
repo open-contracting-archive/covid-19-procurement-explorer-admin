@@ -17,22 +17,21 @@ import environ
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-environ.Env.read_env()
 env = environ.Env(
     # set casting, default value
     SECRET_KEY=(str, "ig0(igk8+n76thmh-@%*n4bc1ra3sq-#x)kx6bqf&zdh9n1*+8"),
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, []),
     DB_ENGINE=(str, "django.db.backends.postgresql_psycopg2"),
-    DB_NAME=(str, ""),
+    DB_NAME=(str, "covid19"),
     DB_USER=(str, ""),
     DB_PASSWORD=(str, ""),
-    DB_HOST=(str, "127.0.0.1"),
+    DB_HOST=(str, "localhost"),
     DB_PORT=(int, 5432),
     STATIC_URL=(str, "/static/"),
     FORCE_SCRIPT_NAME=(str, "/"),
     CORS_ORIGIN_WHITELIST=(list, []),
-    CELERY_BROKER_URL=(str, "pyamqp://localhost/"),
+    CELERY_BROKER_URL=(str, "pyamqp://guest@localhost/"),
     CELERY_TIMEZONE=(str, "UTC"),
     FETCH_COVID_DATA_INTERVAL=(int, 10800),
     GOOGLE_SHEET_CREDENTIALS_JSON=(str, ""),
@@ -200,6 +199,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": ("rest_framework.pagination.LimitOffsetPagination",),
     "PAGE_SIZE": 20,
     "ORDERING_PARAM": "order",
+    "SERIALIZER_EXTENSIONS": dict(AUTO_OPTIMIZE=True),
 }
 
 
