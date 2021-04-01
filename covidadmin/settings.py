@@ -97,7 +97,6 @@ INSTALLED_APPS = [
     "wagtail.api.v2",
     "ckeditor",
     # 'debug_toolbar',
-    # 'corsheaders',
 ]
 
 MIDDLEWARE = [

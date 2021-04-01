@@ -44,6 +44,7 @@ jobs:
     - run: |
         ./manage.py migrate
         ./manage.py makemigrations --check --dry-run
+        ./manage.py check --fail-level WARNING
         ./manage.py loaddata country redflag equitycategory equitykeywords
         coverage run --source content,country,covidadmin,vizualization,country/management/commands manage.py test
       env:

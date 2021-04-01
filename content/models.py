@@ -64,8 +64,8 @@ class InsightsPage(Page):
     tags = ClusterTaggableManager(through="content.InsightPageTag", blank=True)
     news_date = models.DateField("Published date", default=now)
 
-    language = models.ForeignKey(Language, on_delete=models.CASCADE, blank=False, null=False)
-    topics = models.ForeignKey(Topic, on_delete=models.CASCADE, blank=True, null=True)
+    language = models.ForeignKey(Language, on_delete=models.PROTECT, blank=False, null=False)
+    topics = models.ForeignKey(Topic, on_delete=models.SET_NULL, blank=True, null=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("contents_type"),
@@ -188,9 +188,9 @@ class ResourcesPage(Page):
     link = models.URLField(max_length=10000, null=True, blank=True)
 
     language = models.CharField(max_length=2000, null=True, blank=True)
-    lang = models.ForeignKey(Language, on_delete=models.CASCADE, blank=False, null=False)
+    lang = models.ForeignKey(Language, on_delete=models.PROTECT, blank=False, null=False)
     topic = models.CharField(max_length=2000, null=True, blank=True)
-    topics = models.ForeignKey(Topic, on_delete=models.CASCADE, blank=True, null=True)
+    topics = models.ForeignKey(Topic, on_delete=models.SET_NULL, blank=True, null=True)
 
     published_date = models.DateField("Published date")
     author = models.CharField(blank=True, max_length=250)
@@ -250,7 +250,7 @@ class DataImport(Page):
 
     import_file = models.FileField(null=True, blank=False, upload_to="documents", validators=[validate_file_extension])
 
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, blank=False, null=False)
+    country = models.ForeignKey(Country, on_delete=models.PROTECT, blank=False, null=False)
     validated = models.BooleanField(null=False, blank=True, default=False)
     no_of_rows = models.CharField(verbose_name=_("No of rows"), null=True, max_length=10, default=0)
     imported = models.BooleanField(null=False, blank=True, default=False)
@@ -284,7 +284,7 @@ class StaticPage(Page):
 
     subpage_types = []
 
-    language = models.ForeignKey(Language, on_delete=models.CASCADE, blank=False, null=False)
+    language = models.ForeignKey(Language, on_delete=models.PROTECT, blank=False, null=False)
     body = RichTextField()
     PAGE_TYPE_OPTIONS = (
         ("static_page", "Static Page"),
