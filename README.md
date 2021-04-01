@@ -42,6 +42,14 @@ env DB_NAME=covid19_test ./manage.py fetch_covid_active_cases
 
 ## Tasks
 
+Retrieve remote data:
+
+```shell
+./manage.py fetch_covid_active_cases
+```
+
+## Develop
+
 Run a development server:
 
 ```shell
@@ -49,3 +57,9 @@ env DEBUG=True ./manage.py runserver
 ```
 
 To add, remove or upgrade a requirement, [follow these instructions](https://ocp-software-handbook.readthedocs.io/en/latest/python/applications.html#requirements).
+
+## Test
+
+```shell
+./manage.py test --keepdb
+```
