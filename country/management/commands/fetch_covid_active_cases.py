@@ -2,66 +2,63 @@ import calendar
 import datetime
 
 import requests
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.management.base import BaseCommand
 
 from country.models import Country, CovidMonthlyActiveCases
 
 
 class Command(BaseCommand):
-    help = "Import historical covid active cases data from covid-api.com"
+    help = "Import COVID statistics from covid-api.com"
 
     def handle(self, *args, **kwargs):
-        countries = Country.objects.all().exclude(name="Global")
-        YEARS = [2020, 2021]
+        today = datetime.date.today()
 
+        dates_in_period = set()
+        for year in range(2020, today.year + 1):
+            for month in range(1, 13):
+                day = calendar.monthrange(year, month)[1]
+                date = datetime.date(year, month, day)
+                if date > today:
+                    break
+                dates_in_period.add(date)
+
+        dates_with_data = dict(
+            Country.objects.exclude(country_code_alpha_2="gl")
+            .prefetch_related("covid_monthly_active_cases")
+            .annotate(date=ArrayAgg("covid_monthly_active_cases__covid_data_date"))
+            .values_list("country_code", "date")
+        )
+
+        countries = Country.objects.all().exclude(country_code_alpha_2="gl").order_by("country_code")
         for country in countries:
             country_code = country.country_code
-            today_date = datetime.date.today().__str__()
-            for year in YEARS:
-                for month in range(1, 12 + 1):
-                    month_end_day = calendar.monthrange(year, month)[1]
-                    date = f"{year}-{month:02}-{month_end_day:02}"
-                    date = date.split("-")
-                    date = datetime.datetime(int(date[0]), int(date[1]), int(date[2]))
-                    if today_date > str(date):
-                        date = f"{year}-{month:02}-{month_end_day:02}"
-                        existing_db_entry = CovidMonthlyActiveCases.objects.filter(
-                            country=country, covid_data_date=date
-                        ).first()
-                        if (
-                            not existing_db_entry
-                            or not existing_db_entry.active_cases_count
-                            or not existing_db_entry.death_count
-                        ):
-                            request_string = f"https://covid-api.com/api/reports?iso={country_code}&date={date}"
-                            r = requests.get(request_string)
-                            if r.status_code in [200]:
-                                covid_data = r.json()["data"]
-                                if covid_data:
-                                    print(f"Fetching {request_string}... OK")
-                                    active_cases_count = sum([province["active"] for province in covid_data])
-                                    death_count = sum([province["deaths"] for province in covid_data])
-                                    rec = CovidMonthlyActiveCases(
-                                        country=country,
-                                        covid_data_date=date,
-                                        active_cases_count=active_cases_count,
-                                        death_count=death_count,
-                                    )
-                                    rec.save()
-                                else:
-                                    print(f"Fetching {request_string}... FAILED. NO DATA")
-                                    print(r.content)
-                                    rec = CovidMonthlyActiveCases(
-                                        country=country,
-                                        covid_data_date=date,
-                                        active_cases_count=None,
-                                        death_count=None,
-                                    )
-                                    rec.save()
-                                    continue
-                            else:
-                                print(f"Fetching {request_string}... REQUEST FAILED")
-                                print(r.status_code, r.content)
-                                continue
-                        else:
-                            print(f"Data for {country_code} {date} already exists in database.")
+            dates_to_query = dates_in_period - set(dates_with_data.get(country_code, []))
+
+            for date in sorted(dates_to_query):
+                url = f"https://covid-api.com/api/reports?iso={country_code}&date={date}"
+
+                response = requests.get(url)
+                if not response.ok:
+                    self.stderr.write(f"Fetching {url}... {response.status_code}")
+                    continue
+
+                data = response.json()["data"]
+                if not data:
+                    self.stdout.write(f"Fetching {url}... NO DATA")
+                    continue
+
+                active_cases_count = 0
+                death_count = 0
+                for item in data:
+                    active_cases_count += item["active"]
+                    death_count += item["deaths"]
+
+                CovidMonthlyActiveCases(
+                    country=country,
+                    covid_data_date=date,
+                    active_cases_count=active_cases_count,
+                    death_count=death_count,
+                ).save()
+
+                self.stdout.write(f"Fetching {url}... OK")
