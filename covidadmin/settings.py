@@ -20,7 +20,7 @@ from sentry_sdk.integrations.django import DjangoIntegration
 env = environ.Env(
     # set casting, default value
     SECRET_KEY=(str, "ig0(igk8+n76thmh-@%*n4bc1ra3sq-#x)kx6bqf&zdh9n1*+8"),
-    DEBUG=(bool, False),
+    DEBUG=(bool, True),
     ALLOWED_HOSTS=(list, []),
     DB_ENGINE=(str, "django.db.backends.postgresql_psycopg2"),
     DB_NAME=(str, "covid19"),

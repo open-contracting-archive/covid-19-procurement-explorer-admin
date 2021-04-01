@@ -37,14 +37,6 @@ Load test data:
 Retrieve remote data:
 
 ```shell
-env DB_NAME=covid19_test ./manage.py fetch_covid_active_cases
-```
-
-## Tasks
-
-Retrieve remote data:
-
-```shell
 ./manage.py fetch_covid_active_cases
 ```
 
@@ -53,7 +45,7 @@ Retrieve remote data:
 Run a development server:
 
 ```shell
-env DEBUG=True ./manage.py runserver
+./manage.py runserver
 ```
 
 To add, remove or upgrade a requirement, [follow these instructions](https://ocp-software-handbook.readthedocs.io/en/latest/python/applications.html#requirements).
