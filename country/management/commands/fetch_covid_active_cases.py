@@ -23,6 +23,7 @@ class Command(BaseCommand):
                     break
                 dates_in_period.add(date)
 
+        # If a country has no dates, the list will be `[None]`.
         dates_with_data = dict(
             Country.objects.exclude(country_code_alpha_2="gl")
             .prefetch_related("covid_monthly_active_cases")
@@ -33,9 +34,15 @@ class Command(BaseCommand):
         countries = Country.objects.all().exclude(country_code_alpha_2="gl").order_by("country_code")
         for country in countries:
             country_code = country.country_code
-            dates_to_query = dates_in_period - set(dates_with_data.get(country_code, []))
+            country_dates = set(dates_with_data[country_code])
+            dates_to_query = dates_in_period - country_dates
+            minimum_date = min(country_dates)
 
             for date in sorted(dates_to_query):
+                # Don't retry dates from the beginning of the pandemic.
+                if minimum_date and date < minimum_date:
+                    continue
+
                 url = f"https://covid-api.com/api/reports?iso={country_code}&date={date}"
 
                 response = requests.get(url)

@@ -49,12 +49,6 @@ class CommandTests(TransactionTestCase):
                 ],
             )
 
-            self.assertCommand(
-                "fetch_covid_active_cases",
-                expected_out="""\
-                    Fetching https://covid-api.com/api/reports?iso=KEN&date=2020-01-31... NO DATA
-                    Fetching https://covid-api.com/api/reports?iso=KEN&date=2020-02-29... NO DATA
-                """,
-            )
+            self.assertCommand("fetch_covid_active_cases")
 
             self.assertEqual(CovidMonthlyActiveCases.objects.count(), 2)
