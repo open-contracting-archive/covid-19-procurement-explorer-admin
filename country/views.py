@@ -11,8 +11,9 @@ from rest_framework.pagination import LimitOffsetPagination, PageNumberPaginatio
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from content.models import DataImport
 from country.models import ImportBatch
-from country.tasks import store_in_temp_table
+from country.tasks import delete_dataset, store_in_temp_table
 from vizualization.views import add_filter_args
 
 from .models import Buyer, Country, Language, OverallSummary, Supplier, Tender
@@ -287,4 +288,18 @@ class DataValidateView(APIView):
         else:
             # messages.error(request, 'Your import failed because it only supports .xlsx and .xls file!')
             messages.error(request, "Your import failed !!")
+            return HttpResponseRedirect("/admin/content/dataimport")
+
+
+class DeleteDataSetView(APIView):
+    def get(self, request):
+        data_import_id = self.request.GET.get("data_import_id", None)
+        if data_import_id is not None:
+            data_import = DataImport.objects.get(page_ptr_id=data_import_id)
+            data_import.delete()
+            delete_dataset.apply_async(args=(data_import_id,), queue="covid19")
+            messages.info(request, "Your dataset has been successfully deleted from the system !!")
+            return HttpResponseRedirect("/admin/content/dataimport")
+        else:
+            messages.error(request, "Invalid data import id !!")
             return HttpResponseRedirect("/admin/content/dataimport")
