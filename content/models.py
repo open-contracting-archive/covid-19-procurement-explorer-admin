@@ -187,9 +187,7 @@ class ResourcesPage(Page):
 
     link = models.URLField(max_length=10000, null=True, blank=True)
 
-    language = models.CharField(max_length=2000, null=True, blank=True)
     lang = models.ForeignKey(Language, on_delete=models.PROTECT, blank=False, null=False)
-    topic = models.CharField(max_length=2000, null=True, blank=True)
     topics = models.ForeignKey(Topic, on_delete=models.SET_NULL, blank=True, null=True)
 
     published_date = models.DateField("Published date")
@@ -201,9 +199,7 @@ class ResourcesPage(Page):
         FieldPanel("country"),
         DocumentChooserPanel("document"),
         FieldPanel("link"),
-        FieldPanel("language"),
         FieldPanel("lang"),
-        FieldPanel("topic"),
         FieldPanel("topics"),
         FieldPanel("published_date"),
         FieldPanel("author", classname="full"),
@@ -215,9 +211,7 @@ class ResourcesPage(Page):
         APIField("country"),
         APIField("document"),
         APIField("link"),
-        APIField("language"),
         APIField("lang"),
-        APIField("topic"),
         APIField("topics"),
         APIField("published_date"),
         APIField("author"),
