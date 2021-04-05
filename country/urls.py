@@ -16,4 +16,5 @@ urlpatterns = [
     path("data_import/", views.DataImportView.as_view(), name="data_imports"),
     path("data_validate/", views.DataValidateView.as_view(), name="data_validate"),
     path("data_edit/", views.DataEditView.as_view(), name="data_edits"),
+    path("delete_dataset/", views.DeleteDataSetView.as_view(), name="data_delete"),
 ]

@@ -117,7 +117,15 @@ class DataImportAdmin(admin.ModelAdmin):
                 <a class="button" href={file_source} download>Download Source File</a>&nbsp;"""
             )
 
-    list_display = ("title", "description", "country", custom_title, import_status, import_actions, validate)
+    def delete(self):
+        data_import_id = str(self.page_ptr_id)
+        return format_html(
+            f"""<a class="button" onclick="return confirm('Are you sure you want to delete?')"
+            href="/delete_dataset?data_import_id={data_import_id}"
+            id="delete">Delete</a>&nbsp;"""
+        )
+
+    list_display = ("title", "description", "country", custom_title, validate, import_status, import_actions, delete)
 
 
 @admin.register(DataProvider)
