@@ -248,6 +248,8 @@ class DataImport(Page):
     validated = models.BooleanField(null=False, blank=True, default=False)
     no_of_rows = models.CharField(verbose_name=_("No of rows"), null=True, max_length=10, default=0)
     imported = models.BooleanField(null=False, blank=True, default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("description"),
