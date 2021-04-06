@@ -225,3 +225,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = env("MEDIA_URL")
 MAX_UPLOAD_SIZE = "104857600"  # 100 MB
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "cache_table",
+    }
+}
