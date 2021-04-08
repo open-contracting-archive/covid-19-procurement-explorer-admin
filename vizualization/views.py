@@ -6,6 +6,8 @@ import dateutil.relativedelta
 from django.db.models import Count, Sum
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework.views import APIView
 
 from content.models import CountryPartner, EventsPage, InsightsPage, StaticPage
@@ -32,6 +34,7 @@ def add_filter_args(filter_type, filter_value, filter_args):
 
 
 class TotalSpendingsView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         """
         Return a list of all contracts.
@@ -133,6 +136,7 @@ class TotalSpendingsView(APIView):
 
 
 class TotalContractsView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         """
         Return a list of all contracts.
@@ -196,6 +200,7 @@ class TotalContractsView(APIView):
 
 
 class AverageBidsView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         """
         Returns average bids for contracts
@@ -247,6 +252,7 @@ class AverageBidsView(APIView):
 
 
 class GlobalOverView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         temp = {}
         tender_temp = {}
@@ -309,6 +315,7 @@ class GlobalOverView(APIView):
 
 
 class TopSuppliers(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         country = self.request.GET.get("country", None)
         buyer = self.request.GET.get("buyer")
@@ -384,6 +391,7 @@ class TopSuppliers(APIView):
 
 
 class TopBuyers(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         country = self.request.GET.get("country", None)
         supplier = self.request.GET.get("supplier")
@@ -440,6 +448,7 @@ class TopBuyers(APIView):
 
 
 class DirectOpen(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         country = self.request.GET.get("country", None)
         buyer = self.request.GET.get("buyer")
@@ -559,6 +568,7 @@ class ContractStatusView(APIView):
     Returns status wise grouped info about contracts
     """
 
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         result = list()
@@ -635,6 +645,7 @@ class ContractStatusView(APIView):
 class QuantityCorrelation(APIView):
     today = datetime.datetime.now()
 
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         country = self.request.GET.get("country", None)
         filter_args = {}
@@ -690,6 +701,7 @@ class QuantityCorrelation(APIView):
 
 
 class MonopolizationView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -734,6 +746,7 @@ class MonopolizationView(APIView):
 
 
 class CountrySuppliersView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -918,6 +931,7 @@ class CountrySuppliersView(APIView):
 
 
 class CountryMapView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         country = self.request.GET.get("country", None)
         try:
@@ -943,6 +957,7 @@ class CountryMapView(APIView):
 
 
 class WorldMapView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         product = self.request.GET.get("product", None)
         filter_args = {}
@@ -966,6 +981,7 @@ class WorldMapView(APIView):
 
 
 class GlobalSuppliersView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         count = int(self.request.GET.get("count", 5))
         supplier = self.request.GET.get("supplier", None)
@@ -1222,6 +1238,7 @@ class GlobalSuppliersView(APIView):
 
 
 class ProductDistributionView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -1260,6 +1277,7 @@ class ProductDistributionView(APIView):
 
 
 class EquityIndicatorView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -1342,6 +1360,7 @@ class EquityIndicatorView(APIView):
 
 
 class ProductTimelineView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -1423,6 +1442,7 @@ class ProductTimelineView(APIView):
 
 
 class ProductTimelineRaceView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -1520,6 +1540,7 @@ class ProductTimelineRaceView(APIView):
 
 
 class SupplierProfileView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request, *args, **kwargs):
         pk = self.kwargs["pk"]
         data = {}
@@ -1550,6 +1571,7 @@ class SupplierProfileView(APIView):
 
 
 class BuyerProfileView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request, *args, **kwargs):
         pk = self.kwargs["pk"]
         data = {}
@@ -1580,6 +1602,7 @@ class BuyerProfileView(APIView):
 
 
 class CountryPartnerView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -1607,6 +1630,7 @@ class CountryPartnerView(APIView):
 
 
 class DataProviderView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -1632,6 +1656,7 @@ class DataProviderView(APIView):
 
 
 class BuyerSummaryView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -1682,6 +1707,7 @@ class BuyerSummaryView(APIView):
 
 
 class SupplierSummaryView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -1730,6 +1756,7 @@ class SupplierSummaryView(APIView):
 
 
 class ProductSummaryView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -1765,6 +1792,7 @@ class ProductSummaryView(APIView):
 
 
 class FilterParams(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request, *args, **kwargs):
         try:
             buyers = Buyer.objects.values("id", "buyer_name")
@@ -1821,6 +1849,7 @@ class FilterParams(APIView):
 
 
 class EquitySummaryView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -1852,6 +1881,7 @@ class EquitySummaryView(APIView):
 
 
 class ProductTableView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -1886,6 +1916,7 @@ class ProductTableView(APIView):
 
 
 class FilterParametersSuppliers(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         result = []
@@ -1917,6 +1948,7 @@ class FilterParametersSuppliers(APIView):
 
 
 class FilterParametersBuyers(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         result = []
@@ -1946,6 +1978,7 @@ class FilterParametersBuyers(APIView):
 
 
 class FilterParametersStatic(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         countries = Country.objects.values("id", "country_code", "name")
         products = GoodsServicesCategory.objects.values("id", "category_name")
@@ -1992,6 +2025,7 @@ class FilterParametersStatic(APIView):
 
 
 class ProductSpendingComparision(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         product = self.request.GET.get("product", None)
@@ -2085,6 +2119,7 @@ class ProductSpendingComparision(APIView):
 
 
 class SlugBlogShow(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request, *args, **kwargs):
         content_type = self.kwargs["type"]
         slug = self.kwargs["slug"]
@@ -2108,6 +2143,7 @@ class SlugBlogShow(APIView):
 
 
 class SlugStaticPageShow(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request, *args, **kwargs):
         page_type = self.kwargs["type"]
         result = {}
@@ -2124,6 +2160,7 @@ class SlugStaticPageShow(APIView):
 
 
 class BuyerTrendView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         temp = {}
         tender_temp = {}
@@ -2187,6 +2224,7 @@ class BuyerTrendView(APIView):
 
 
 class SupplierTrendView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         temp = {}
         tender_temp = {}
@@ -2250,6 +2288,7 @@ class SupplierTrendView(APIView):
 
 
 class DirectOpenContractTrendView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         temp = {}
         tender_temp = {}
@@ -2315,6 +2354,7 @@ class DirectOpenContractTrendView(APIView):
 
 
 class ContractRedFlagsView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -2343,6 +2383,7 @@ class ContractRedFlagsView(APIView):
 
 
 class RedFlagSummaryView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
         country = self.request.GET.get("country", None)
@@ -2375,6 +2416,7 @@ class RedFlagSummaryView(APIView):
 
 
 class UpcomingEventView(APIView):
+    @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         result = {}
         today = datetime.datetime.now()
