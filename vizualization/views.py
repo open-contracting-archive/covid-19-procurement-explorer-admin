@@ -464,7 +464,7 @@ class DirectOpen(APIView):
                 Tender.objects.filter(country__country_code_alpha_2=country, procurement_procedure="direct")
                 .values("country__currency")
                 .annotate(
-                    count=Count("id"),
+                    count=Count("contract_id", distinct=True),
                     usd=Sum("goods_services__contract_value_usd"),
                     local=Sum("goods_services__contract_value_local"),
                 )
@@ -473,7 +473,17 @@ class DirectOpen(APIView):
                 Tender.objects.filter(country__country_code_alpha_2=country, procurement_procedure="open")
                 .values("country__currency")
                 .annotate(
-                    count=Count("id"),
+                    count=Count("contract_id", distinct=True),
+                    usd=Sum("goods_services__contract_value_usd"),
+                    local=Sum("goods_services__contract_value_local"),
+                )
+            )
+
+            amount_not_identified = (
+                Tender.objects.filter(country__country_code_alpha_2=country, procurement_procedure="not_identified")
+                .values("country__currency")
+                .annotate(
+                    count=Count("contract_id", distinct=True),
                     usd=Sum("goods_services__contract_value_usd"),
                     local=Sum("goods_services__contract_value_local"),
                 )
@@ -483,7 +493,7 @@ class DirectOpen(APIView):
                 Tender.objects.filter(**filter_args, procurement_procedure="direct")
                 .values("procurement_procedure")
                 .annotate(
-                    count=Count("id"),
+                    count=Count("contract_id", distinct=True),
                     usd=Sum("goods_services__contract_value_usd"),
                     local=Sum("goods_services__contract_value_local"),
                 )
@@ -492,7 +502,16 @@ class DirectOpen(APIView):
                 Tender.objects.filter(**filter_args, procurement_procedure="open")
                 .values("procurement_procedure")
                 .annotate(
-                    count=Count("id"),
+                    count=Count("contract_id", distinct=True),
+                    usd=Sum("goods_services__contract_value_usd"),
+                    local=Sum("goods_services__contract_value_local"),
+                )
+            )
+            amount_not_identified = (
+                Tender.objects.filter(**filter_args, procurement_procedure="not_identified")
+                .values("procurement_procedure")
+                .annotate(
+                    count=Count("contract_id", distinct=True),
                     usd=Sum("goods_services__contract_value_usd"),
                     local=Sum("goods_services__contract_value_local"),
                 )
@@ -502,7 +521,7 @@ class DirectOpen(APIView):
                 Tender.objects.filter(procurement_procedure="direct")
                 .values("procurement_procedure")
                 .annotate(
-                    count=Count("id"),
+                    count=Count("contract_id", distinct=True),
                     usd=Sum("goods_services__contract_value_usd"),
                     local=Sum("goods_services__contract_value_local"),
                 )
@@ -511,7 +530,16 @@ class DirectOpen(APIView):
                 Tender.objects.filter(procurement_procedure="open")
                 .values("procurement_procedure")
                 .annotate(
-                    count=Count("id"),
+                    count=Count("contract_id", distinct=True),
+                    usd=Sum("goods_services__contract_value_usd"),
+                    local=Sum("goods_services__contract_value_local"),
+                )
+            )
+            amount_not_identified = (
+                Tender.objects.filter(procurement_procedure="not_identified")
+                .values("procurement_procedure")
+                .annotate(
+                    count=Count("contract_id", distinct=True),
                     usd=Sum("goods_services__contract_value_usd"),
                     local=Sum("goods_services__contract_value_local"),
                 )
@@ -528,7 +556,7 @@ class DirectOpen(APIView):
                     "amount_local": i["local"] if i["local"] else 0,
                     "amount_usd": i["usd"] if i["usd"] else 0,
                     "tender_count": i["count"],
-                    "local_currency_code": i["country__currency"] if "country__currency" in i else [],
+                    "local_currency_code": i["country__currency"] if "country__currency" in i else "",
                     "procedure": "direct",
                 }
         else:
@@ -546,7 +574,7 @@ class DirectOpen(APIView):
                     "amount_local": i["local"] if i["local"] else 0,
                     "amount_usd": i["usd"] if i["usd"] else 0,
                     "tender_count": i["count"],
-                    "local_currency_code": i["country__currency"] if "country__currency" in i else [],
+                    "local_currency_code": i["country__currency"] if "country__currency" in i else "",
                     "procedure": "open",
                 }
         else:
@@ -558,7 +586,25 @@ class DirectOpen(APIView):
                 "procedure": "open",
             }
 
-        result = [result_direct, result_open]
+        if amount_not_identified:
+            for i in amount_not_identified:
+                result_not_identified = {
+                    "amount_local": i["local"] if i["local"] else 0,
+                    "amount_usd": i["usd"] if i["usd"] else 0,
+                    "tender_count": i["count"],
+                    "local_currency_code": i["country__currency"] if "country__currency" in i else "",
+                    "procedure": "not_identified",
+                }
+        else:
+            result_not_identified = {
+                "amount_local": 0,
+                "amount_usd": 0,
+                "tender_count": 0,
+                "local_currency_code": country_currency,
+                "procedure": "not_identified",
+            }
+
+        result = [result_direct, result_open, result_not_identified]
 
         return JsonResponse(result, safe=False)
 
@@ -599,7 +645,7 @@ class ContractStatusView(APIView):
 
         if country:
             try:
-                country_res = Country.objects.get(name=country)
+                country_res = Country.objects.get(country_code_alpha_2=country)
                 currency_code = country_res.currency
             except Exception as e:
                 print(e)
@@ -2035,7 +2081,7 @@ class ProductSpendingComparision(APIView):
                 Tender.objects.filter(**filter_args)
                 .annotate(month=TruncMonth("contract_date"))
                 .values(
-                    "country__country_code",
+                    "country__country_code_alpha_2",
                     "country__currency",
                     "month",
                     "goods_services__goods_services_category__id",
@@ -2050,7 +2096,7 @@ class ProductSpendingComparision(APIView):
                 Tender.objects.filter(**filter_args)
                 .annotate(month=TruncMonth("contract_date"))
                 .values(
-                    "country__country_code",
+                    "country__country_code_alpha_2",
                     "country__currency",
                     "month",
                     "goods_services__goods_services_category__id",
@@ -2063,7 +2109,7 @@ class ProductSpendingComparision(APIView):
                 {
                     "amount_local": i["local"],
                     "amount_usd": i["usd"],
-                    "country_code": i["country__country_code"],
+                    "country_code": i["country__country_code_alpha_2"],
                     "currency": i["country__currency"],
                     "month": i["month"].strftime("%Y-%m"),
                     "product_id": i["goods_services__goods_services_category__id"],
@@ -2078,7 +2124,7 @@ class ProductSpendingComparision(APIView):
             amount_usd_local = (
                 Tender.objects.annotate(month=TruncMonth("contract_date"))
                 .values(
-                    "country__country_code",
+                    "country__country_code_alpha_2",
                     "country__currency",
                     "month",
                     "goods_services__goods_services_category__id",
@@ -2092,7 +2138,7 @@ class ProductSpendingComparision(APIView):
             count = (
                 Tender.objects.annotate(month=TruncMonth("contract_date"))
                 .values(
-                    "country__country_code",
+                    "country__country_code_alpha_2",
                     "country__currency",
                     "month",
                     "goods_services__goods_services_category__id",
@@ -2105,7 +2151,7 @@ class ProductSpendingComparision(APIView):
                 {
                     "amount_local": i["local"],
                     "amount_usd": i["usd"],
-                    "country_code": i["country__country_code"],
+                    "country_code": i["country__country_code_alpha_2"],
                     "currency": i["country__currency"],
                     "month": i["month"].strftime("%Y-%m"),
                     "product_id": i["goods_services__goods_services_category__id"],
