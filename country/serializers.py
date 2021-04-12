@@ -1,6 +1,7 @@
 from django.db.models import Sum
 from rest_framework import serializers
 from rest_framework_serializer_extensions.serializers import SerializerExtensionsMixin
+
 from .models import Buyer, Country, Language, OverallSummary, RedFlag, Supplier, Tender
 
 
@@ -85,7 +86,7 @@ class SupplierSerializer(serializers.ModelSerializer, SerializerExtensionsMixin)
                 return obj.amount_usd
             else:
                 return None
-        except:
+        except Exception:
             return obj.tenders.all().aggregate(sum_usd=Sum("goods_services__contract_value_usd"))["sum_usd"]
 
     def get_amount_local(self, obj):
@@ -94,7 +95,7 @@ class SupplierSerializer(serializers.ModelSerializer, SerializerExtensionsMixin)
                 return obj.amount_local
             else:
                 return None
-        except:
+        except Exception:
             return obj.tenders.all().aggregate(sum_local=Sum("goods_services__contract_value_local"))["sum_local"]
 
     # def get_red_flag_tender_count(self, obj):
@@ -105,7 +106,7 @@ class SupplierSerializer(serializers.ModelSerializer, SerializerExtensionsMixin)
     #     total = obj.tender_count
     #     try:
     #         return red_flags / total
-    #     except:
+    #     except Exception:
     #         return 0
 
     def get_country_code(self, obj):
@@ -119,7 +120,7 @@ class SupplierSerializer(serializers.ModelSerializer, SerializerExtensionsMixin)
                 return obj.country_name
             else:
                 return None
-        except:
+        except Exception:
             tender_obj = obj.tenders.first()
             if tender_obj:
                 return tender_obj.country.name
@@ -138,7 +139,7 @@ class SupplierSerializer(serializers.ModelSerializer, SerializerExtensionsMixin)
                 return obj.tender_count
             else:
                 return None
-        except:
+        except Exception:
             supplier_related_tenders = obj.tenders.all()
             if supplier_related_tenders:
                 return supplier_related_tenders.count()
@@ -149,7 +150,7 @@ class SupplierSerializer(serializers.ModelSerializer, SerializerExtensionsMixin)
                 return obj.product_category_count
             else:
                 return None
-        except:
+        except Exception:
             supplier_related_tenders = obj.tenders.all()
             if supplier_related_tenders:
                 product_category_count = supplier_related_tenders.distinct(
@@ -193,7 +194,7 @@ class BuyerSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
                 return obj.amount_usd
             else:
                 return None
-        except:
+        except Exception:
             return (
                 obj.tenders.select_related("goods_services")
                 .all()
@@ -206,7 +207,7 @@ class BuyerSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
                 return obj.amount_local
             else:
                 return None
-        except:
+        except Exception:
             return (
                 obj.tenders.select_related("goods_services")
                 .all()
@@ -221,7 +222,7 @@ class BuyerSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     #     total = obj.tender_count
     #     try:
     #         return red_flags / total
-    #     except:
+    #     except Exception:
     #         return 0
 
     def get_country_code(self, obj):
@@ -235,7 +236,7 @@ class BuyerSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
                 return obj.country_name
             else:
                 return None
-        except:
+        except Exception:
             tender_obj = obj.tenders.first()
             if tender_obj:
                 return tender_obj.country.name
@@ -246,7 +247,7 @@ class BuyerSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
                 return obj.product_category_count
             else:
                 return None
-        except:
+        except Exception:
             buyer_related_tenders = obj.tenders.all()
             if buyer_related_tenders:
                 product_category_count = buyer_related_tenders.distinct(
@@ -265,7 +266,7 @@ class BuyerSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
                 return obj.tender_count
             else:
                 return None
-        except:
+        except Exception:
             buyer_related_tenders = obj.tenders.all()
             if buyer_related_tenders:
                 return buyer_related_tenders.count()
@@ -365,31 +366,31 @@ class TenderSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     def get_bidders_no(self, obj):
         try:
             return obj.no_of_bidders
-        except:
+        except Exception:
             return 0
 
     def get_tender_local(self, obj):
         try:
             return obj.goods_services.aggregate(tender_value_local=Sum("tender_value_local"))["tender_value_local"]
-        except:
+        except Exception:
             return 0
 
     def get_tender_usd(self, obj):
         try:
             return obj.goods_services.aggregate(tender_value_usd=Sum("tender_value_usd"))["tender_value_usd"]
-        except:
+        except Exception:
             return 0
 
     def get_award_local(self, obj):
         try:
             return obj.goods_services.aggregate(award_value_local=Sum("award_value_local"))["award_value_local"]
-        except:
+        except Exception:
             return 0
 
     def get_award_usd(self, obj):
         try:
             return obj.goods_services.aggregate(award_value_usd=Sum("award_value_usd"))["award_value_usd"]
-        except:
+        except Exception:
             return 0
 
     def get_equity_category(self, obj):

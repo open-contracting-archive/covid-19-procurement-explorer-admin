@@ -249,7 +249,7 @@ class DataImportView(APIView):
                     messages.info(request, "Your import has started!")
                     return HttpResponseRedirect("/admin/content/dataimport")
 
-                except:
+                except Exception:
                     messages.error(request, "Your import has failed!")
                     return HttpResponseRedirect("/admin/content/dataimport")
             else:
@@ -282,7 +282,7 @@ class DataValidateView(APIView):
                 messages.info(request, "Validation is in progress!! Please wait for a while")
                 return HttpResponseRedirect("/admin/content/dataimport")
 
-            except:
+            except Exception:
                 messages.error(request, "Your import has failed!")
                 return HttpResponseRedirect("/admin/content/dataimport")
         else:

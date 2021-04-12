@@ -684,7 +684,7 @@ class QuantityCorrelation(APIView):
                     if j["active_cases_count"] and j["death_count"]:
                         active_case_count += j["active_cases_count"]
                         death_count += j["death_count"]
-            except:
+            except Exception:
                 active_case_count = 0
                 death_count = 0
             a = {}
@@ -936,7 +936,7 @@ class CountryMapView(APIView):
         country = self.request.GET.get("country", None)
         try:
             country_instance = Country.objects.get(country_code_alpha_2=country)
-        except:
+        except Exception:
             return JsonResponse({"result": "Invalid Alpha Code"})
         if country is not None and country_instance is not None:
             tender_instance = Tender.objects.filter(country__country_code_alpha_2=country).aggregate(
@@ -1322,7 +1322,7 @@ class EquityIndicatorView(APIView):
                     },
                 ]
                 return JsonResponse(data, safe=False)
-            except:
+            except Exception:
                 return JsonResponse([{"error": "Invalid country_code"}], safe=False)
         else:
             tenders_assigned = (
@@ -1405,7 +1405,7 @@ class ProductTimelineView(APIView):
                     data["tender_count"] = tender["count"]
                     result.append(data)
                 return JsonResponse(result, safe=False)
-            except:
+            except Exception:
                 return JsonResponse([{"error": "Invalid country_code"}], safe=False)
         else:
             tenders_assigned = (
@@ -1436,7 +1436,7 @@ class ProductTimelineView(APIView):
                     data["tender_count"] = tender["count"]
                     result.append(data)
                 return JsonResponse(result, safe=False)
-            except:
+            except Exception:
                 return JsonResponse([{"error": "Invalid country_code"}], safe=False)
             return JsonResponse(data, safe=False)
 
@@ -1565,7 +1565,7 @@ class SupplierProfileView(APIView):
             data["country_code"] = supplier_detail[0]["country__country_code_alpha_2"]
             data["country_name"] = supplier_detail[0]["country__name"]
             return JsonResponse(data, safe=False)
-        except:
+        except Exception:
             data["error"] = "Enter valid ID"
             return JsonResponse(data, safe=False)
 
@@ -1596,7 +1596,7 @@ class BuyerProfileView(APIView):
             data["country_code"] = buyer_detail[0]["country__country_code_alpha_2"]
             data["country_name"] = buyer_detail[0]["country__name"]
             return JsonResponse(data, safe=False)
-        except:
+        except Exception:
             data["error"] = "Enter valid ID"
             return JsonResponse(data, safe=False)
 
@@ -1610,7 +1610,7 @@ class CountryPartnerView(APIView):
             filter_args["country__country_code_alpha_2"] = country
         try:
             data_provider = CountryPartner.objects.filter(**filter_args)
-        except:
+        except Exception:
             data_provider = [{"error": "Country partner doesnot exist for this country"}]
         result = []
         if data_provider:
@@ -1638,7 +1638,7 @@ class DataProviderView(APIView):
             filter_args["country__country_code_alpha_2"] = country
         try:
             data_provider = DataProvider.objects.filter(**filter_args)
-        except:
+        except Exception:
             data_provider = [{"error": "Data Provider doesnot exist for this country"}]
         result = []
         if data_provider:
@@ -1698,7 +1698,7 @@ class BuyerSummaryView(APIView):
             )
             print(final_current_month_count)
             print(final_previous_month_count)
-        except:
+        except Exception:
             percentage = 0
         result["total"] = totals["total"]
         result["percentage"] = percentage
@@ -1747,7 +1747,7 @@ class SupplierSummaryView(APIView):
             percentage = round(
                 ((final_current_month_count[0] - final_previous_month_count[0]) / final_previous_month_count[0]) * 100
             )
-        except:
+        except Exception:
             percentage = 0
         result["total"] = totals["total"]
         result["percentage"] = percentage
@@ -1844,7 +1844,7 @@ class FilterParams(APIView):
 
             return JsonResponse(result, safe=False)
 
-        except:
+        except Exception:
             return JsonResponse([{"error": "No buyer and supplier data available"}], safe=False)
 
 
@@ -1943,7 +1943,7 @@ class FilterParametersSuppliers(APIView):
                     data["country_code"] = "USD"
                 result.append(data)
             return JsonResponse(result, safe=False)
-        except:
+        except Exception:
             return JsonResponse([{"error": "Country code doest not exists"}], safe=False)
 
 
@@ -1973,7 +1973,7 @@ class FilterParametersBuyers(APIView):
                     data["country_code"] = "USD"
                 result.append(data)
             return JsonResponse(result, safe=False)
-        except:
+        except Exception:
             return JsonResponse([{"error": "Country code doest not exists"}], safe=False)
 
 
@@ -2137,7 +2137,7 @@ class SlugBlogShow(APIView):
                 result["country_id"] = results[0]["country_id"]
                 result["content_image_id"] = results[0]["content_image_id"]
 
-        except:
+        except Exception:
             result = [{"error": "Content doest not exists"}]
         return JsonResponse(result, safe=False)
 
@@ -2153,7 +2153,7 @@ class SlugStaticPageShow(APIView):
                 result["page_type"] = results[0]["page_type"]
                 result["body"] = results[0]["body"]
 
-        except:
+        except Exception:
             result = [{"error": "Content doest not exists"}]
 
         return JsonResponse(result, safe=False)

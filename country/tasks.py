@@ -127,7 +127,7 @@ def import_tender_from_batch_id(batch_id, country, currency):
         temp_data = TempDataImportTable.objects.filter(import_batch_id=batch_id)
         country = country
         currency = currency
-    except:
+    except Exception:
         traceback.print_exc(file=sys.stdout)
         return True
 
@@ -296,7 +296,7 @@ def import_tender_from_batch_id(batch_id, country, currency):
                 )
 
             total_rows_imported_count += 1
-        except:
+        except Exception:
             # transaction.rollback()
 
             contract_id = row.contract_id
@@ -675,7 +675,7 @@ def country_contract_excel(country):
                         for category in equitycategories:
                             equity_categorylist.append(category.category_name)
                         equitycategories = str(",".join(set(equity_categorylist)))
-                    except:
+                    except Exception:
                         equity_categorylist = []
                         equitycategories = ""
 
@@ -828,7 +828,7 @@ def country_contract_excel(country):
                     for category in equitycategories:
                         equity_categorylist.append(category["equity_category__category_name"])
                     equitycategories = str(",".join(set(equity_categorylist)))
-                except:
+                except Exception:
                     equity_categorylist = []
                     equitycategories = ""
 
