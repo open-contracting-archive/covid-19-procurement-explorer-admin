@@ -31,14 +31,16 @@ class Country(models.Model):
     population = models.BigIntegerField(
         verbose_name=_("Population"), null=True, blank=True, validators=[MinValueValidator(0)]
     )
-    gdp = models.FloatField(verbose_name=_("GDP"), null=True, blank=True, validators=[MinValueValidator(0)])
+    gdp = models.FloatField(
+        verbose_name=_("GDP per capita, $"), null=True, blank=True, validators=[MinValueValidator(0)]
+    )
     country_code = models.CharField(verbose_name=_("Country code"), max_length=10, null=False)
     country_code_alpha_2 = models.CharField(
         verbose_name=_("Country code alpha-2"), max_length=2, null=False, db_index=True
     )
     currency = models.CharField(verbose_name=_("Currency"), max_length=50, null=False)
     healthcare_budget = models.FloatField(
-        verbose_name=_("Healthcare budget"), null=True, blank=True, validators=[MinValueValidator(0)]
+        verbose_name=_("Healthcare spending, $ per capita"), null=True, blank=True, validators=[MinValueValidator(0)]
     )
     healthcare_gdp_pc = models.FloatField(
         verbose_name=_("% of GDP to healthcare"),
