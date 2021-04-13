@@ -55,3 +55,13 @@ To add, remove or upgrade a requirement, [follow these instructions](https://ocp
 ```shell
 ./manage.py test --keepdb
 ```
+
+## Deployment
+
+Get the deployed branch, commit hash and datetime:
+
+```bash
+curl https://admin.open-contracting.health/static/ver.txt
+```
+
+or, open <https://admin.open-contracting.health/static/ver.txt> in a browser.
