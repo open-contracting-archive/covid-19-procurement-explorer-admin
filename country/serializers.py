@@ -435,6 +435,7 @@ class TenderSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     def get_goods_services(self, obj):
         a = obj.goods_services.all().values(
             "goods_services_category__category_name",
+            "contract_desc",
             "contract_value_usd",
             "quantity_units",
             "ppu_including_vat",
