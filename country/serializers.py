@@ -62,6 +62,7 @@ class SupplierSerializer(serializers.ModelSerializer, SerializerExtensionsMixin)
     buyer_count = serializers.SerializerMethodField()
     tender_count = serializers.SerializerMethodField()
     supplier_id = serializers.SerializerMethodField()
+    supplier_code = serializers.SerializerMethodField(source="supplier.supplier_id", read_only=True)
 
     class Meta:
         model = Supplier
@@ -70,6 +71,7 @@ class SupplierSerializer(serializers.ModelSerializer, SerializerExtensionsMixin)
             "amount_usd",
             # "red_flag_tender_count",
             "supplier_id",
+            "supplier_code",
             "supplier_name",
             "supplier_address",
             "country_code",
@@ -158,6 +160,9 @@ class SupplierSerializer(serializers.ModelSerializer, SerializerExtensionsMixin)
                 ).count()
                 return product_category_count
 
+    def get_supplier_code(self, obj):
+        return obj.supplier_id
+
 
 class BuyerSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     amount_local = serializers.SerializerMethodField()
@@ -170,6 +175,7 @@ class BuyerSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     supplier_count = serializers.SerializerMethodField()
     tender_count = serializers.SerializerMethodField()
     buyer_id = serializers.SerializerMethodField()
+    buyer_code = serializers.SerializerMethodField(source="buyer.buyer_id", read_only=True)
 
     class Meta:
         model = Buyer
@@ -178,6 +184,7 @@ class BuyerSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
             "amount_usd",
             # "red_flag_tender_count",
             "buyer_id",
+            "buyer_code",
             "buyer_name",
             "buyer_address",
             "country_code",
@@ -273,6 +280,9 @@ class BuyerSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
 
     def get_buyer_id(self, obj):
         return obj.id
+
+    def get_buyer_code(self, obj):
+        return obj.buyer_id
 
 
 class RedFlagSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
