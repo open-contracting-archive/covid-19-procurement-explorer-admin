@@ -232,3 +232,5 @@ CACHES = {
         "LOCATION": "cache_table",
     }
 }
+
+LOCALE_PATHS = [os.path.join(BASE_DIR, "locale")]
