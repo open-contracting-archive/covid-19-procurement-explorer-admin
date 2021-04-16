@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.template.defaultfilters import slugify
@@ -282,8 +281,11 @@ class Tender(models.Model):
     contract_value_local = models.FloatField(verbose_name=_("Contract value local"), null=True, blank=True)
     contract_value_usd = models.FloatField(verbose_name=_("Contract value USD"), null=True, blank=True)
     contract_desc = models.TextField(verbose_name=_("Contract description"), null=True, blank=True)
+    tender_value_local = models.FloatField(verbose_name=_("Tender value local"), null=True, blank=True)
+    tender_value_usd = models.FloatField(verbose_name=_("Tender value USD"), null=True, blank=True)
+    award_value_local = models.FloatField(verbose_name=_("Award value local"), null=True, blank=True)
+    award_value_usd = models.FloatField(verbose_name=_("Award value USD"), null=True, blank=True)
 
-    equity_categories = ArrayField(models.CharField(max_length=100, null=True, blank=True), default=list, null=True)
     equity_category = models.ManyToManyField(EquityCategory)
     red_flag = models.ManyToManyField(RedFlag)
     temp_table_id = models.ForeignKey(

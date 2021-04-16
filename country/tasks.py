@@ -118,10 +118,76 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
             return None
 
 
+# @app.task(name="fix_contract_name_value")
+def fix_contract_name_value(tender_id, country):
+    country_obj = Country.objects.filter(name=country).first()
+    keywords = EquityKeywords.objects.filter(country=country_obj)
+    if type(tender_id) is not list:
+        tender_list = [tender_id]
+    else:
+        tender_list = tender_id
+    for tender in tender_list:
+        tender_instance = Tender.objects.get(id=tender)
+        goods_services = list(
+            tender_instance.goods_services.all().values(
+                "contract_title",
+                "contract_value_usd",
+                "award_value_usd",
+                "tender_value_usd",
+                "contract_value_local",
+                "award_value_local",
+                "tender_value_local",
+            )
+        )
+        contract_title = [i.get("contract_title") for i in goods_services if i.get("contract_title") is not None]
+        contract_title.append(tender_instance.contract_title)
+        contract_names = ", ".join(set(contract_title))
+        contract_value_usd = sum(
+            [i.get("contract_value_usd") for i in goods_services if i.get("contract_value_usd") is not None]
+        )
+        award_value_usd = sum(
+            [i.get("award_value_usd") for i in goods_services if i.get("award_value_usd") is not None]
+        )
+        tender_value_usd = sum(
+            [i.get("tender_value_usd") for i in goods_services if i.get("tender_value_usd") is not None]
+        )
+        contract_value_local = sum(
+            [i.get("contract_value_local") for i in goods_services if i.get("contract_value_local") is not None]
+        )
+        award_value_local = sum(
+            [i.get("award_value_local") for i in goods_services if i.get("award_value_local") is not None]
+        )
+        tender_value_local = sum(
+            [i.get("tender_value_local") for i in goods_services if i.get("tender_value_local") is not None]
+        )
+        tender_instance.contract_title = contract_names
+        tender_instance.contract_value_usd = contract_value_usd
+        tender_instance.contract_value_local = contract_value_local
+        tender_instance.tender_value_local = tender_value_local
+        tender_instance.tender_value_usd = tender_value_usd
+        tender_instance.award_value_local = award_value_local
+        tender_instance.award_value_usd = award_value_usd
+        tender_instance.save()
+        goodservices = tender_instance.goods_services.filter(country=country_obj)
+        for good_service in goodservices:
+            print(good_service.id)
+            for keyword in keywords:
+                keyword_value = keyword.keyword
+                if (
+                    keyword_value in good_service.contract_title.strip()
+                    or keyword_value in good_service.contract_desc.strip()
+                ):
+                    category = keyword.equity_category.category_name
+                    print(category)
+                    instance = EquityCategory.objects.get(category_name=category)
+                    tender_instance.equity_category.add(instance)
+
+
 @app.task(name="import_tender_from_batch_id")
 def import_tender_from_batch_id(batch_id, country, currency):
     print(f"import_tender_data from Batch_id {batch_id}")
     total_rows_imported_count = 0
+    imported_list_id = []
 
     try:
         temp_data = TempDataImportTable.objects.filter(import_batch_id=batch_id)
@@ -242,6 +308,7 @@ def import_tender_from_batch_id(batch_id, country, currency):
                         temp_table_id=row,
                     )
                     tender_obj.save()
+                    imported_list_id.append(tender_obj.id)
             else:
                 tender_obj = None
 
@@ -307,6 +374,7 @@ def import_tender_from_batch_id(batch_id, country, currency):
             traceback.print_exc(file=sys.stdout)
             print("------------------------------")
 
+    fix_contract_name_value(imported_list_id, country)
     data_import_id = ImportBatch.objects.get(id=batch_id).data_import_id
     DataImport.objects.filter(page_ptr_id=data_import_id).update(imported=True)
 
