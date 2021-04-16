@@ -7,7 +7,6 @@ django-filter
 django-modelcluster
 django-taggit
 djangorestframework
-flower
 pandas
 psycopg2
 python-dateutil
