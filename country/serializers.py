@@ -1,4 +1,4 @@
-from django.db.models import Sum
+from django.db.models import Count, Sum
 from rest_framework import serializers
 from rest_framework_serializer_extensions.serializers import SerializerExtensionsMixin
 
@@ -25,10 +25,14 @@ class ChoiceField(serializers.ChoiceField):
 class CountrySerializer(serializers.HyperlinkedModelSerializer, SerializerExtensionsMixin):
     id = serializers.IntegerField(read_only=True)
     continent = ChoiceField(choices=Country.CONTINENT_CHOICES)
+    amount_usd = serializers.SerializerMethodField()
+    amount_local = serializers.SerializerMethodField()
+    tender_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Country
         fields = "__all__"
+        extra_fields = ["continent", "id", "amount_usd", "amount_local", "tender_count"]
         lookup_field = "slug"
 
         extra_kwargs = {"url": {"lookup_field": "slug"}}
@@ -39,6 +43,38 @@ class CountrySerializer(serializers.HyperlinkedModelSerializer, SerializerExtens
             "covid_data_last_updated",
             "slug",
         )
+
+    def get_amount_usd(self, obj):
+        try:
+            if obj.amount_usd:
+                return obj.amount_usd
+            else:
+                None
+
+        except Exception:
+            return obj.tenders.all().aggregate(amount_usd=Sum("goods_services__contract_value_usd"))["amount_usd"]
+
+    def get_amount_local(self, obj):
+        try:
+            if obj.amount_local:
+                return obj.amount_local
+            else:
+                return None
+
+        except Exception:
+            return obj.tenders.all().aggregate(amount_local=Sum("goods_services__contract_value_local"))[
+                "amount_local"
+            ]
+
+    def get_tender_count(self, obj):
+        try:
+            if obj.tender_count:
+                return obj.tender_count
+            else:
+                return None
+
+        except Exception:
+            return obj.tenders.all().aggregate(tender_count=Count("id"))["tender_count"]
 
 
 class LanguageSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
