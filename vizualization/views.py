@@ -232,7 +232,7 @@ class AverageBidsView(APIView):
         final_line_chart_data = [
             {
                 "date": monthwise_data_sum[i]["month"],
-                "value": round(monthwise_data_sum[i]["sum"] / monthwise_data_count[i]["count"])
+                "value": round(monthwise_data_sum[i]["sum"] / monthwise_data_count[i]["count"], 1)
                 if monthwise_data_sum[i]["sum"]
                 else 0,
             }
