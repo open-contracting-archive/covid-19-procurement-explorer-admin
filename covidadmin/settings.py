@@ -78,7 +78,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "django_filters",
-    "vizualization",
+    "visualization",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.contrib.modeladmin",
