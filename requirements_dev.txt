@@ -296,10 +296,6 @@ typed-ast==1.4.1
     # via black
 typing-extensions==3.7.4.3
     # via black
-unidecode==1.1.1
-    # via
-    #   -r requirements.txt
-    #   wagtail
 urllib3==1.25.11
     # via
     #   -r requirements.txt
@@ -313,7 +309,7 @@ vine==5.0.0
     #   celery
 virtualenv==20.4.3
     # via pre-commit
-wagtail==2.11.1
+wagtail==2.12.4
     # via -r requirements.txt
 wcwidth==0.2.5
     # via
