@@ -21,7 +21,7 @@ from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
-from vizualization.views import SlugBlogShow, SlugStaticPageShow, UpcomingEventView
+from visualization.views import SlugBlogShow, SlugStaticPageShow, UpcomingEventView
 
 from .api import api_router
 
@@ -31,7 +31,7 @@ admin.site.site_header = "COVID-19 Procurement Explorer"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/v1/visualization/", include("vizualization.urls")),
+    path("api/v1/visualization/", include("visualization.urls")),
     path("api/contents/<str:type>/<str:slug>/", SlugBlogShow.as_view()),
     path("api/staticpage/<str:type>", SlugStaticPageShow.as_view()),
     path("api/upcoming-events", UpcomingEventView.as_view()),

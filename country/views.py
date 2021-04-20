@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 from content.models import DataImport
 from country.models import ImportBatch
 from country.tasks import delete_dataset, store_in_temp_table
-from vizualization.views import add_filter_args
+from visualization.views import add_filter_args
 
 from .models import Buyer, Country, Language, OverallSummary, Supplier, Tender
 from .serializers import (
