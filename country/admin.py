@@ -7,7 +7,6 @@ from django.utils.html import format_html
 from content.models import CountryPartner, DataImport
 
 from .models import (
-    Buyer,
     Country,
     DataProvider,
     EquityCategory,
@@ -16,8 +15,6 @@ from .models import (
     ImportBatch,
     Language,
     RedFlag,
-    Supplier,
-    TempDataImportTable,
     Tender,
     Topic,
 )
@@ -35,8 +32,8 @@ class EquityAdmin(admin.ModelAdmin):
 
 admin.site.register(Language)
 admin.site.register(Topic)
-admin.site.register(Buyer)
-admin.site.register(Supplier)
+# admin.site.register(Buyer)
+# admin.site.register(Supplier)
 admin.site.register(EquityCategory, EquityAdmin)
 
 
@@ -165,7 +162,7 @@ class DataProviderAdmin(admin.ModelAdmin):
     list_display = ("name", "country", "website")
 
 
-@admin.register(TempDataImportTable)
+# @admin.register(TempDataImportTable)
 class TempDataImportTableAdmin(admin.ModelAdmin):
     list_editable = (
         "contract_date",
@@ -274,7 +271,7 @@ class TenderForm(forms.ModelForm):
 class TenderAdmin(admin.ModelAdmin):
     readonly_fields = ("contract_value_usd",)
     form = TenderForm
-    list_display = ("id", "contract_id", "contract_title")
+    list_display = ("contract_id", "contract_title", "country", "contract_date", "contract_value_usd")
     search_fields = ("id", "contract_id", "contract_title")
     inlines = [
         GoodsAndServicesInline,

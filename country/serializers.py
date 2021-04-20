@@ -1,4 +1,4 @@
-from django.db.models import Count, Sum
+from django.db.models import Count, Max, Sum
 from rest_framework import serializers
 from rest_framework_serializer_extensions.serializers import SerializerExtensionsMixin
 
@@ -28,6 +28,7 @@ class CountrySerializer(serializers.HyperlinkedModelSerializer, SerializerExtens
     amount_usd = serializers.SerializerMethodField()
     amount_local = serializers.SerializerMethodField()
     tender_count = serializers.SerializerMethodField()
+    last_contract_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Country
@@ -75,6 +76,16 @@ class CountrySerializer(serializers.HyperlinkedModelSerializer, SerializerExtens
 
         except Exception:
             return obj.tenders.all().aggregate(tender_count=Count("id"))["tender_count"]
+
+    def get_last_contract_date(self, obj):
+        try:
+            if obj.last_contract_date:
+                return obj.last_contract_date
+            else:
+                return None
+
+        except Exception:
+            return obj.tenders.all().aggregate(contract_last_date=Max("contract_date"))["contract_last_date"]
 
 
 class LanguageSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
