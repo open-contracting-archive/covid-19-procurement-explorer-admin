@@ -35,7 +35,10 @@ class RedFlags:
         )
         contract_value = tender_instance["contract_value"]
         tender_value = tender_instance["tender_value"]
-        percentage_increase = ((contract_value - tender_value) / tender_value) * 100
+        try:
+            percentage_increase = ((contract_value - tender_value) / tender_value) * 100
+        except Exception:
+            percentage_increase = 0
         if (
             percentage_increase > 20
         ):  # the difference between the expected purchase price and the final (contract) value exceeds 20 percent;

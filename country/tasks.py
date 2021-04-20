@@ -128,6 +128,7 @@ def fix_contract_name_value(tender_id, country):
         tender_list = tender_id
     for tender in tender_list:
         tender_instance = Tender.objects.get(id=tender)
+        tender_instance.red_flag.clear()  # Clearing red-flag
         goods_services = list(
             tender_instance.goods_services.all().values(
                 "contract_title",
@@ -181,6 +182,9 @@ def fix_contract_name_value(tender_id, country):
                     print(category)
                     instance = EquityCategory.objects.get(category_name=category)
                     tender_instance.equity_category.add(instance)
+        process_redflag7.apply_async(args=(tender_instance.id,), queue="covid19")
+        process_redflag6.apply_async(args=(tender_instance.id,), queue="covid19")
+        process_redflag.apply_async(args=(tender_instance.id,), queue="covid19")
 
 
 @app.task(name="import_tender_from_batch_id")
@@ -477,35 +481,43 @@ def clear_redflag(id):
 
 
 @app.task(name="process_red_flag7")
-def process_redflag7(id, tender):
-    flag7_obj = RedFlag.objects.get(function_name="flag7")
-    concentration = Tender.objects.filter(
-        buyer__buyer_name=tender["buyer__buyer_name"], supplier__supplier_name=tender["supplier__supplier_name"]
+def process_redflag7(id):
+    tenders = Tender.objects.filter(id=id).values(
+        "id", "buyer__buyer_name", "supplier__supplier_name", "supplier__supplier_address"
     )
-    # supplier who has signed X(10) percent or more of their contracts with the same buyer
-    # (wins tenders from the same buyer)
-    if len(concentration) > 10:
-        for i in concentration:
-            obj = Tender.objects.get(id=i.id)
-            obj.red_flag.add(flag7_obj)
+    flag7_obj = RedFlag.objects.get(function_name="flag7")
+    for tender in tenders:
+        concentration = Tender.objects.filter(
+            buyer__buyer_name=tender["buyer__buyer_name"], supplier__supplier_name=tender["supplier__supplier_name"]
+        )
+        # supplier who has signed X(10) percent or more of their contracts with the same buyer
+        # (wins tenders from the same buyer)
+        if len(concentration) > 10:
+            for i in concentration:
+                obj = Tender.objects.get(id=i.id)
+                obj.red_flag.add(flag7_obj)
 
 
 @app.task(name="process_red_flag6")
-def process_redflag6(id, tender):
+def process_redflag6(id):
     flag6_obj = RedFlag.objects.get(function_name="flag6")
-    a = (
-        Tender.objects.values("buyer__buyer_name")
-        .filter(
-            supplier__supplier_name=tender["supplier__supplier_name"],
-            supplier__supplier_address=tender["supplier__supplier_address"],
-        )
-        .distinct("buyer__buyer_name")
+    tenders = Tender.objects.filter(id=id).values(
+        "id", "buyer__buyer_name", "supplier__supplier_name", "supplier__supplier_address"
     )
-    if len(a) > 2:
-        if a[0]["buyer__buyer_name"] == a[1]["buyer__buyer_name"]:
-            for obj in a:
-                objs = Tender.objects.get(id=obj.id)
-                objs.red_flag.add(flag6_obj)
+    for tender in tenders:
+        a = (
+            Tender.objects.values("buyer__buyer_name")
+            .filter(
+                supplier__supplier_name=tender["supplier__supplier_name"],
+                supplier__supplier_address=tender["supplier__supplier_address"],
+            )
+            .distinct("buyer__buyer_name")
+        )
+        if len(a) > 2:
+            if a[0]["buyer__buyer_name"] == a[1]["buyer__buyer_name"]:
+                for obj in a:
+                    objs = Tender.objects.get(id=obj.id)
+                    objs.red_flag.add(flag6_obj)
 
 
 @app.task(name="store_in_temp_table")
@@ -959,3 +971,47 @@ def delete_dataset(data_import_id):
         print("Done for temp data " + str(temp_data_id))
     import_batch.delete()
     return "Done"
+
+
+@app.task(name="fill_contract_values")
+def fill_contract_values(tender_id):
+    tender_instance = Tender.objects.get(id=tender_id)
+    goods_services = list(
+        tender_instance.goods_services.all().values(
+            "contract_title",
+            "contract_value_usd",
+            "award_value_usd",
+            "tender_value_usd",
+            "contract_value_local",
+            "award_value_local",
+            "tender_value_local",
+        )
+    )
+    contract_title = [i.get("contract_title") for i in goods_services if i.get("contract_title") is not None]
+    contract_title.append(tender_instance.contract_title)
+    contract_names = ", ".join(set(contract_title))
+    contract_value_usd = sum(
+        [i.get("contract_value_usd") for i in goods_services if i.get("contract_value_usd") is not None]
+    )
+    award_value_usd = sum([i.get("award_value_usd") for i in goods_services if i.get("award_value_usd") is not None])
+    tender_value_usd = sum(
+        [i.get("tender_value_usd") for i in goods_services if i.get("tender_value_usd") is not None]
+    )
+    contract_value_local = sum(
+        [i.get("contract_value_local") for i in goods_services if i.get("contract_value_local") is not None]
+    )
+    award_value_local = sum(
+        [i.get("award_value_local") for i in goods_services if i.get("award_value_local") is not None]
+    )
+    tender_value_local = sum(
+        [i.get("tender_value_local") for i in goods_services if i.get("tender_value_local") is not None]
+    )
+    tender_instance.contract_title = contract_names
+    tender_instance.contract_value_usd = contract_value_usd
+    tender_instance.contract_value_local = contract_value_local
+    tender_instance.tender_value_local = tender_value_local
+    tender_instance.tender_value_usd = tender_value_usd
+    tender_instance.award_value_local = award_value_local
+    tender_instance.award_value_usd = award_value_usd
+    tender_instance.save()
+    print("Done for tender id : " + str(tender_id))
