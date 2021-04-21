@@ -209,6 +209,7 @@ class AverageBidsView(APIView):
         buyer = self.request.GET.get("buyer")
 
         filter_args = {}
+        filter_args["no_of_bidders__gte"] = 1
         if country:
             filter_args["country__country_code_alpha_2"] = country
         if buyer:
@@ -234,12 +235,10 @@ class AverageBidsView(APIView):
 
         # Difference percentage calculation
 
-        # Overall average number of bids for contracts
-        overall_avg = Tender.objects.filter(**filter_args).aggregate(
-            sum=Sum("no_of_bidders"), count=Count("no_of_bidders")
-        )
         result = {
-            "average": round(overall_avg["sum"] / overall_avg["count"], 1) if overall_avg["sum"] else 0,
+            "average": round(sum(item["value"] for item in final_line_chart_data) / len(final_line_chart_data), 1)
+            if len(final_line_chart_data) > 0
+            else 0,
             "line_chart": final_line_chart_data,
         }
         return JsonResponse(result)
@@ -750,7 +749,7 @@ class MonopolizationView(APIView):
             filter_args["country__country_code_alpha_2"] = country
         if buyer:
             filter_args = add_filter_args("buyer", buyer, filter_args)
-
+        filter_args["supplier_id__isnull"] = False
         # Month wise average of number of bids for contracts
         monthwise_data = (
             Tender.objects.filter(**filter_args)
@@ -762,7 +761,7 @@ class MonopolizationView(APIView):
         final_line_chart_data = [
             {
                 "date": monthwise_data[i]["month"],
-                "value": round(monthwise_data[i]["count_contract"] / monthwise_data[i]["count_supplier"])
+                "value": round(monthwise_data[i]["count_contract"] / monthwise_data[i]["count_supplier"], 1)
                 if monthwise_data[i]["count_supplier"] and monthwise_data[i]["count_contract"]
                 else 0,
             }
@@ -771,14 +770,9 @@ class MonopolizationView(APIView):
 
         # Difference percentage calculation
 
-        # Overall average number of bids for contracts
-        overall = Tender.objects.filter(**filter_args).aggregate(
-            count_supplier=Count("supplier__supplier_id", distinct=True), count_contract=Count("id")
-        )
-
         result = {
-            "average": round(overall["count_contract"] / overall["count_supplier"], 1)
-            if overall["count_contract"] and overall["count_supplier"]
+            "average": round(sum(item["value"] for item in final_line_chart_data) / len(final_line_chart_data), 1)
+            if len(final_line_chart_data) > 0
             else 0,
             "line_chart": final_line_chart_data,
         }
