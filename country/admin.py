@@ -90,8 +90,8 @@ class DataImportAdmin(admin.ModelAdmin):
             return format_html("""<a class="button" disabled="True">Import</a>&nbsp;""")
         else:
             return format_html(
-                f"""<a class="button" href="/data_import?country={str(self.country)}
-                &data_import_id={str(self.page_ptr_id)}"""
+                f"""<a class="button"
+                href="/data_import?country={str(self.country)}&data_import_id={str(self.page_ptr_id)}"""
                 f"""&validated={validated}">Import</a>&nbsp;"""
             )
 
