@@ -38,6 +38,7 @@ env = environ.Env(
     MEDIA_URL=(str, "/media/"),
 )
 
+environ.Env.read_env()
 
 if "SENTRY_DSN" in os.environ:
     sentry_sdk.init(
@@ -230,6 +231,7 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.db.DatabaseCache",
         "LOCATION": "cache_table",
+        "EXPIRE_PERIOD": 60 * 60 * 24,
     }
 }
 
