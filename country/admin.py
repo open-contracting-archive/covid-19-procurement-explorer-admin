@@ -7,6 +7,7 @@ from django.utils.html import format_html
 from content.models import CountryPartner, DataImport
 
 from .models import (
+    Buyer,
     Country,
     DataProvider,
     EquityCategory,
@@ -15,6 +16,7 @@ from .models import (
     ImportBatch,
     Language,
     RedFlag,
+    Supplier,
     Tender,
     Topic,
 )
@@ -35,6 +37,22 @@ admin.site.register(Topic)
 # admin.site.register(Buyer)
 # admin.site.register(Supplier)
 admin.site.register(EquityCategory, EquityAdmin)
+
+
+@admin.register(Buyer)
+class BuyerAdmin(admin.ModelAdmin):
+    search_fields = ["buyer_name", "buyer_address"]
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Supplier)
+class SupplierAdmin(admin.ModelAdmin):
+    search_fields = ["supplier_name", "supplier_address"]
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(DataImport)
@@ -248,7 +266,15 @@ class CountryAdmin(admin.ModelAdmin):
 class GoodsAndServicesInline(admin.TabularInline):
     model = GoodsServices
     extra = 0
-    fields = ("classification_code", "tender_value_local", "contract_value_local", "award_value_local")
+    fields = (
+        "classification_code",
+        "contract_title",
+        "contract_desc",
+        "tender_value_local",
+        "contract_value_local",
+        "award_value_local",
+        "goods_services_category",
+    )
 
 
 class TenderForm(forms.ModelForm):
@@ -269,10 +295,10 @@ class TenderForm(forms.ModelForm):
 
 
 class TenderAdmin(admin.ModelAdmin):
-    readonly_fields = ("contract_value_usd",)
     form = TenderForm
-    list_display = ("contract_id", "contract_title", "country", "contract_date", "contract_value_usd")
+    list_display = ("contract_id", "contract_title", "country", "contract_date")
     search_fields = ("id", "contract_id", "contract_title")
+    autocomplete_fields = ["buyer", "supplier"]
     inlines = [
         GoodsAndServicesInline,
     ]
