@@ -219,7 +219,7 @@ CELERY_BEAT_SCHEDULE = {
 
 FIXER_IO_API_KEY = env("FIXER_IO_API_KEY")
 
-WAGTAIL_SITE_NAME = "Covid 19 procurement explorer"
+WAGTAIL_SITE_NAME = "Covid-19 Procurement Explorer"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = env("MEDIA_URL")

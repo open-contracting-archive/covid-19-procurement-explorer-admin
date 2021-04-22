@@ -215,37 +215,31 @@ class AverageBidsView(APIView):
             filter_args = add_filter_args("buyer", buyer, filter_args)
 
         # Month wise average of number of bids for contracts
-        monthwise_data_count = (
+        monthwise_data = (
             Tender.objects.filter(**filter_args)
             .annotate(month=TruncMonth("contract_date"))
             .values("month")
-            .annotate(count=Count("id"))
-            .order_by("-month")
-        )
-        monthwise_data_sum = (
-            Tender.objects.filter(**filter_args)
-            .annotate(month=TruncMonth("contract_date"))
-            .values("month")
-            .annotate(sum=Sum("goods_services__no_of_bidders"))
+            .annotate(count=Count("id"), sum=Sum("no_of_bidders"))
             .order_by("-month")
         )
         final_line_chart_data = [
             {
-                "date": monthwise_data_sum[i]["month"],
-                "value": round(monthwise_data_sum[i]["sum"] / monthwise_data_count[i]["count"], 1)
-                if monthwise_data_sum[i]["sum"]
+                "date": monthwise_data[i]["month"],
+                "value": round(monthwise_data[i]["sum"] / monthwise_data[i]["count"], 1)
+                if monthwise_data[i]["sum"]
                 else 0,
             }
-            for i in range(len(monthwise_data_sum))
+            for i in range(len(monthwise_data))
         ]
 
         # Difference percentage calculation
 
         # Overall average number of bids for contracts
-        overall_avg = Tender.objects.filter(**filter_args).aggregate(sum=Sum("goods_services__no_of_bidders"))
-        overall_avg_count = Tender.objects.filter(**filter_args).count()
+        overall_avg = Tender.objects.filter(**filter_args).aggregate(
+            sum=Sum("no_of_bidders"), count=Count("no_of_bidders")
+        )
         result = {
-            "average": round(overall_avg["sum"] / overall_avg_count) if overall_avg["sum"] else 0,
+            "average": round(overall_avg["sum"] / overall_avg["count"], 1) if overall_avg["sum"] else 0,
             "line_chart": final_line_chart_data,
         }
         return JsonResponse(result)
@@ -783,7 +777,7 @@ class MonopolizationView(APIView):
         )
 
         result = {
-            "average": round(overall["count_contract"] / overall["count_supplier"])
+            "average": round(overall["count_contract"] / overall["count_supplier"], 1)
             if overall["count_contract"] and overall["count_supplier"]
             else 0,
             "line_chart": final_line_chart_data,
