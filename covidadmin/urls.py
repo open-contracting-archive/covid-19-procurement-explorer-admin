@@ -27,7 +27,7 @@ from .api import api_router
 
 # import debug_toolbar
 
-admin.site.site_header = "COVID-19 Procurement Explorer"
+admin.site.site_header = "COVID-19 Contract Explorer"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
