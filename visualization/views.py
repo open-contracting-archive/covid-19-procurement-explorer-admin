@@ -2058,7 +2058,7 @@ class FilterParametersStatic(APIView):
         return JsonResponse(result, safe=False)
 
 
-class ProductSpendingComparision(APIView):
+class ProductSpendingComparison(APIView):
     @method_decorator(cache_page(60 * 60 * 24))
     def get(self, request):
         filter_args = {}
