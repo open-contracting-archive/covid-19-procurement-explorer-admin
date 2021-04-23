@@ -2059,7 +2059,7 @@ class FilterParametersStatic(APIView):
         return JsonResponse(result, safe=False)
 
 
-class ProductSpendingComparision(APIView):
+class ProductSpendingComparison(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
         filter_args = {}

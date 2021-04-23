@@ -26,8 +26,11 @@ from visualization.views import SlugBlogShow, SlugStaticPageShow, UpcomingEventV
 from .api import api_router
 
 # import debug_toolbar
+from .views import custom404, custom505
 
 admin.site.site_header = "COVID-19 Contract Explorer"
+handler404 = custom404
+handler500 = custom505
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -43,9 +46,3 @@ urlpatterns = [
     path("api/v2/", api_router.urls),
     re_path(r"^", include(wagtail_urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
-# if settings.DEBUG:
-#         urlpatterns = [
-#             path('__debug__/', include(debug_toolbar.urls)),
-#         ] + urlpatterns
