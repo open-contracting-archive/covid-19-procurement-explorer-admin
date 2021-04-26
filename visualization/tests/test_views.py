@@ -49,7 +49,8 @@ class VisualizationViewTest(TestCase):
         self.assertEquals(response.status_code, 200)
 
     def test_total_spending_GET(self):
-        response = self.client.get(reverse(self.total_spending_url))
+        url = "%s?country=GB&buyer=1&supplier=1" % reverse(self.total_spending_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_average_bids_GET(self):
@@ -73,31 +74,38 @@ class VisualizationViewTest(TestCase):
         self.assertEquals(response.status_code, 200)
 
     def test_contract_status_GET(self):
-        response = self.client.get(reverse(self.contract_status_url))
+        url = "%s?country=GB&buyer=1" % reverse(self.contract_status_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_quantity_correlation_GET(self):
-        response = self.client.get(reverse(self.quantity_correlation_url))
+        url = "%s?country=GB" % reverse(self.quantity_correlation_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_monopolization_GET(self):
-        response = self.client.get(reverse(self.monopolization_url))
+        url = "%s?country=GB&buyer=1" % reverse(self.monopolization_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_country_suppliers_GET(self):
-        response = self.client.get(reverse(self.country_suppliers_url))
+        url = "%s?country=GB" % reverse(self.country_suppliers_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_country_map_GET(self):
-        response = self.client.get(reverse(self.country_map_url))
+        url = "%s?country=GB" % reverse(self.country_map_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_world_map_GET(self):
-        response = self.client.get(reverse(self.world_map_url))
+        url = "%s?product=1" % reverse(self.world_map_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_country_map_api_GET(self):
-        response = self.client.get(reverse(self.country_map_api_url))
+        url = "%s?country=GB" % reverse(self.country_map_api_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_global_suppliers_GET(self):
@@ -105,15 +113,18 @@ class VisualizationViewTest(TestCase):
         self.assertEquals(response.status_code, 200)
 
     def test_product_distribution_GET(self):
-        response = self.client.get(reverse(self.product_distribution_url))
+        url = "%s?country=GB&buyer=1" % reverse(self.product_distribution_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_equity_indicators_GET(self):
-        response = self.client.get(reverse(self.equity_indicators_url))
+        url = "%s?country=GB&buyer=1" % reverse(self.equity_indicators_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_product_timeline_GET(self):
-        response = self.client.get(reverse(self.product_timeline_url))
+        url = "%s?country=GB&buyer=1&supplier=1" % reverse(self.product_timeline_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_product_timeline_race_GET(self):
@@ -129,19 +140,23 @@ class VisualizationViewTest(TestCase):
         self.assertEquals(response.status_code, 200)
 
     def test_country_partners_GET(self):
-        response = self.client.get(reverse(self.country_partners_url))
+        url = "%s?country=GB" % reverse(self.country_partners_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_data_providers_GET(self):
-        response = self.client.get(reverse(self.data_providers_url))
+        url = "%s?country=GB" % reverse(self.data_providers_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_buyer_summary_GET(self):
-        response = self.client.get(reverse(self.buyer_summary_url))
+        url = "%s?country=GB" % reverse(self.buyer_summary_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_supplier_summary_GET(self):
-        response = self.client.get(reverse(self.supplier_summary_url))
+        url = "%s?country=GB" % reverse(self.supplier_summary_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_filter_parameters_GET(self):
@@ -153,7 +168,8 @@ class VisualizationViewTest(TestCase):
         self.assertEquals(response.status_code, 200)
 
     def test_equity_summary_GET(self):
-        response = self.client.get(reverse(self.equity_summary_url))
+        url = "%s?country=GB" % reverse(self.equity_summary_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_products_GET(self):
@@ -161,11 +177,13 @@ class VisualizationViewTest(TestCase):
         self.assertEquals(response.status_code, 200)
 
     def test_filters_parameters_suppliers_GET(self):
-        response = self.client.get(reverse(self.filters_parameters_suppliers_url))
+        url = "%s?country=GB&buyer=1" % reverse(self.filters_parameters_suppliers_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_filters_parameters_buyers_GET(self):
-        response = self.client.get(reverse(self.filters_parameters_buyers_url))
+        url = "%s?country=GB&supplier=1" % reverse(self.filters_parameters_buyers_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_filters_parameters_static_GET(self):
@@ -173,7 +191,8 @@ class VisualizationViewTest(TestCase):
         self.assertEquals(response.status_code, 200)
 
     def test_product_spending_comparison_GET(self):
-        response = self.client.get(reverse(self.product_spending_comparison_url))
+        url = "%s?product=1" % reverse(self.product_spending_comparison_url)
+        response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
 
     def test_buyer_trend_GET(self):
