@@ -3,6 +3,7 @@ from django.urls import resolve, reverse
 
 from visualization.views import (
     AverageBidsView,
+    BuyerProfileView,
     BuyerSummaryView,
     BuyerTrendView,
     ContractRedFlagsView,
@@ -30,6 +31,7 @@ from visualization.views import (
     ProductTimelineView,
     QuantityCorrelation,
     RedFlagSummaryView,
+    SupplierProfileView,
     SupplierSummaryView,
     SupplierTrendView,
     TopBuyers,
@@ -184,3 +186,11 @@ class TestUrls(SimpleTestCase):
     def test_red_flag_summary_url_is_resolved(self):
         url = reverse("red_flag_summary")
         self.assertEquals(resolve(url).func.view_class, RedFlagSummaryView)
+
+    def test_supplier_detail_url_is_resolved(self):
+        url = reverse("supplier_detail", args=["1"])
+        self.assertEquals(resolve(url).func.view_class, SupplierProfileView)
+
+    def test_buyer_detail_url_is_resolved(self):
+        url = reverse("buyer_detail", args=["1"])
+        self.assertEquals(resolve(url).func.view_class, BuyerProfileView)
