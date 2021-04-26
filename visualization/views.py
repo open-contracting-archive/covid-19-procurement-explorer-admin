@@ -1045,7 +1045,6 @@ class GlobalSuppliersView(APIView):
         for i in countwise_sorted:
             if len(suppliers_dict[i["goods_services__goods_services_category__id"]]["countwise"]) <= count:
                 suppliers_dict[i["goods_services__goods_services_category__id"]]["countwise"].append(i["supplier__id"])
-        print(suppliers_dict)
         if supplier:
             final_suppliers_list_countwise = [supplier]
             final_suppliers_list_amountwise = [supplier]
@@ -1555,7 +1554,6 @@ class ProductTimelineRaceView(APIView):
                         )
                 else:
                     cum_dict[category.category_name] = {"local": 0, "usd": 0, "count": 0}
-                    print(local_value)
                     cum_dict[category.category_name]["local"] = cum_dict[category.category_name]["local"] + (
                         local_value[0] if local_value else 0
                     )
@@ -1731,8 +1729,6 @@ class BuyerSummaryView(APIView):
             percentage = round(
                 ((final_current_month_count[0] - final_previous_month_count[0]) / final_previous_month_count[0]) * 100
             )
-            print(final_current_month_count)
-            print(final_previous_month_count)
         except Exception:
             percentage = 0
         result["total"] = totals["total"]
