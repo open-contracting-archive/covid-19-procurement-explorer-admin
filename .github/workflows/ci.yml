@@ -42,7 +42,9 @@ jobs:
       - run: pip install -r requirements.txt
       - run: ./manage.py --help
       - run: pip install -r requirements_dev.txt
-      - run: |
+      - name: Run checks and tests
+        if: always()
+        run: |
           ./manage.py migrate
           ./manage.py makemigrations --check --dry-run
           ./manage.py check --fail-level WARNING
@@ -54,7 +56,6 @@ jobs:
           DB_PASSWORD: postgres
           DB_PORT: ${{ job.services.postgres.ports[5432] }}
           CELERY_BROKER_URL: amqp://localhost:${{ job.services.rabbitmq.ports[5672] }}
-        if: always()
       - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: coveralls --service=github
