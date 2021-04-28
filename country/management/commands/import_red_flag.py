@@ -6,14 +6,14 @@ from country.tasks import clear_redflag, process_redflag, process_redflag6, proc
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        print("Removing all the relations of Red flag")
+        self.stdout.write("Removing all the relations of Red flag")
         tenders = Tender.objects.all()
         for tender in tenders:
             id = tender.id
             clear_redflag.apply_async(args=(id,), queue="covid19")
 
-        print("All cleared")
-        print("Processing Red Flag in tender")
+        self.stdout.write("All cleared")
+        self.stdout.write("Processing Red Flag in tender")
 
         tender_instance = Tender.objects.filter(supplier__isnull=False, buyer__isnull=False).values(
             "id", "buyer__buyer_name", "supplier__supplier_name", "supplier__supplier_address"
@@ -26,5 +26,5 @@ class Command(BaseCommand):
         for tender in tenders:
             id = tender.id
             process_redflag.apply_async(args=(id,), queue="covid19")
-            print("Created task for id :" + str(id))
-        return "Done"
+            self.stdout.write("Created task for id :" + str(id))
+        self.stdout.write("Done")

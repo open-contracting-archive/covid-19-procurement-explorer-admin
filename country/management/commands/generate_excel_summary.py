@@ -12,7 +12,7 @@ class Command(BaseCommand):
     help = "Generate Excel Summary"
 
     def handle(self, *args, **kwargs):
-        print("Exporting")
+        self.stdout.write("Exporting")
         os.makedirs(os.path.join("media", "export"), exist_ok=True)
         workbook = xlsxwriter.Workbook("media/export/overall_summary.xlsx")
         worksheet = workbook.add_worksheet()
@@ -139,7 +139,7 @@ class Command(BaseCommand):
 
             try:
                 obj, created = OverallSummary.objects.get_or_create(country=country)
-                print(f"Created : {obj}, {created}")
+                self.stdout.write(f"Created : {obj}, {created}")
             except Exception as e:
-                print(e)
+                self.stderr.write(e)
         workbook.close()
