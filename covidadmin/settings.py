@@ -121,7 +121,7 @@ ROOT_URLCONF = "covidadmin.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": ["covidadmin/templates", "content/templates"],
+        "DIRS": ["content/templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
