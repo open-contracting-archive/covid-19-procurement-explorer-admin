@@ -10,15 +10,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         country_name = kwargs["country"]
-        print(f"Fetching equity data for {country_name}")
+        self.stdout.write(f"Fetching equity data for {country_name}")
         if country_name:
             try:
                 if Country.objects.filter(name=country_name).exists():
                     fetch_equity_data.apply_async(args=(country_name,), queue="covid19")
-                    print(print("Created task: import_equity_data"))
+                    self.stdout.write("Created task: import_equity_data")
             except Exception as e:
-                print(e)
+                self.stderr.write(e)
 
         else:
-            print("Enter country name as arguments")
-        return "Done"
+            self.stderr.write("Enter country name as arguments")
+        self.stdout.write("Done")
