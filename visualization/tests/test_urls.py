@@ -24,6 +24,7 @@ from visualization.views import (
     GlobalSuppliersView,
     MonopolizationView,
     ProductDistributionView,
+    ProductFlowView,
     ProductSpendingComparison,
     ProductSummaryView,
     ProductTableView,
@@ -31,6 +32,7 @@ from visualization.views import (
     ProductTimelineView,
     QuantityCorrelation,
     RedFlagSummaryView,
+    SupplierFlowView,
     SupplierProfileView,
     SupplierSummaryView,
     SupplierTrendView,
@@ -194,3 +196,11 @@ class TestUrls(SimpleTestCase):
     def test_buyer_detail_url_is_resolved(self):
         url = reverse("buyer_detail", args=["1"])
         self.assertEquals(resolve(url).func.view_class, BuyerProfileView)
+
+    def test_product_flow_view_url_is_resolved(self):
+        url = reverse("product_flow_view", args=["1"])
+        self.assertEquals(resolve(url).func.view_class, ProductFlowView)
+
+    def test_supplier_flow_view_url_is_resolved(self):
+        url = reverse("supplier_flow_view", args=["1"])
+        self.assertEquals(resolve(url).func.view_class, SupplierFlowView)
