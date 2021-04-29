@@ -20,6 +20,7 @@ from .global_over_view import GlobalOverView
 from .global_suppliers_view import GlobalSuppliersView
 from .monopolization_view import MonopolizationView
 from .product_distribution_view import ProductDistributionView
+from .product_flow_view import ProductFlowView
 from .product_spending_comparison import ProductSpendingComparison
 from .product_summary_view import ProductSummaryView
 from .product_table_view import ProductTableView
@@ -29,6 +30,7 @@ from .quantity_correlation import QuantityCorrelation
 from .red_flag_summary_view import RedFlagSummaryView
 from .slug_blog_show import SlugBlogShow
 from .slug_static_page_show import SlugStaticPageShow
+from .supplier_flow_view import SupplierFlowView
 from .supplier_profile_view import SupplierProfileView
 from .supplier_summary_view import SupplierSummaryView
 from .supplier_trend_view import SupplierTrendView

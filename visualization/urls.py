@@ -47,4 +47,6 @@ urlpatterns = [
     ),
     path("contract-red-flags/", views.ContractRedFlagsView.as_view(), name="contract_red_flags"),
     path("red-flag-summary/", views.RedFlagSummaryView.as_view(), name="red_flag_summary"),
+    path("product-flow/<int:pk>", views.ProductFlowView.as_view(), name="product_flow_view"),
+    path("supplier-flow/<int:pk>", views.SupplierFlowView.as_view(), name="supplier_flow_view"),
 ]
