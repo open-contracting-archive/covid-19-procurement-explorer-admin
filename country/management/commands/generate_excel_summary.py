@@ -138,8 +138,8 @@ class Command(BaseCommand):
                 columns += 1
 
             try:
-                obj, created = OverallSummary.objects.get_or_create(country=country)
-                self.stdout.write(f"Created : {obj}, {created}")
+                OverallSummary.objects.filter(country=country).delete()
+                OverallSummary.objects.create(statistic=data, country=country)
             except Exception as e:
                 self.stderr.write(e)
         workbook.close()
