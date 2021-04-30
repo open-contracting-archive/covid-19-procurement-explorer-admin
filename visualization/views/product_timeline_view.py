@@ -46,14 +46,15 @@ class ProductTimelineView(APIView):
                     .order_by("-month")
                 )
                 for tender in tenders_assigned:
-                    data = {}
-                    data["amount_local"] = tender["local"]
-                    data["amount_usd"] = tender["usd"]
-                    data["date"] = tender["month"]
-                    data["local_currency_code"] = currency
-                    data["product_id"] = tender["goods_services__goods_services_category__id"]
-                    data["product_name"] = tender["goods_services__goods_services_category__category_name"]
-                    data["tender_count"] = tender["count"]
+                    data = {
+                        "amount_local": tender["local"],
+                        "amount_usd": tender["usd"],
+                        "date": tender["month"],
+                        "local_currency_code": currency,
+                        "product_id": tender["goods_services__goods_services_category__id"],
+                        "product_name": tender["goods_services__goods_services_category__category_name"],
+                        "tender_count": tender["count"],
+                    }
                     result.append(data)
                 return JsonResponse(result, safe=False)
             except Exception:
@@ -89,4 +90,3 @@ class ProductTimelineView(APIView):
                 return JsonResponse(result, safe=False)
             except Exception:
                 return JsonResponse([{"error": "Invalid country_code"}], safe=False)
-            return JsonResponse(data, safe=False)

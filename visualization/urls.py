@@ -33,10 +33,10 @@ urlpatterns = [
     path("equity-summary/", views.EquitySummaryView.as_view(), name="equity_summary"),
     path("products/", views.ProductTableView.as_view(), name="products"),
     path(
-        "filters-parameters/suppliers/", views.FilterParametersSuppliers.as_view(), name="filters_parameters_suppliers"
+        "filter-parameters/suppliers/", views.FilterParametersSuppliers.as_view(), name="filters_parameters_suppliers"
     ),
-    path("filters-parameters/buyers/", views.FilterParametersBuyers.as_view(), name="filters_parameters_buyers"),
-    path("filters-parameters/static/", views.FilterParametersStatic.as_view(), name="filters_parameters_static"),
+    path("filter-parameters/buyers/", views.FilterParametersBuyers.as_view(), name="filters_parameters_buyers"),
+    path("filter-parameters/static/", views.FilterParametersStatic.as_view(), name="filters_parameters_static"),
     path(
         "product-spending-comparison/", views.ProductSpendingComparison.as_view(), name="product_spending_comparison"
     ),

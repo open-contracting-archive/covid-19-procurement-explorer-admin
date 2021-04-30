@@ -31,13 +31,14 @@ class ProductTableView(APIView):
             )
         )
         for product in product_tables:
-            data = {}
-            data["amount_local"] = product["local"]
-            data["amount_usd"] = product["usd"]
-            data["product_id"] = product["goods_services__goods_services_category__id"]
-            data["product_name"] = product["goods_services__goods_services_category__category_name"]
-            data["buyer_count"] = product["buyer"]
-            data["supplier_count"] = product["supplier"]
-            data["tender_count"] = product["total"]
+            data = {
+                "amount_local": product["local"],
+                "amount_usd": product["usd"],
+                "product_id": product["goods_services__goods_services_category__id"],
+                "product_name": product["goods_services__goods_services_category__category_name"],
+                "buyer_count": product["buyer"],
+                "supplier_count": product["supplier"],
+                "tender_count": product["total"],
+            }
             result.append(data)
         return JsonResponse(result, safe=False)

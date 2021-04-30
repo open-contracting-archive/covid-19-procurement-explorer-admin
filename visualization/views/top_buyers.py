@@ -46,21 +46,23 @@ class TopBuyers(APIView):
         by_number = []
         by_value = []
         for value in for_value:
-            a = {}
-            a["amount_local"] = value["local"] if value["usd"] else 0
-            a["amount_usd"] = value["usd"] if value["usd"] else 0
-            a["local_currency_code"] = value["country__currency"]
-            a["buyer_id"] = value["buyer__id"]
-            a["buyer_name"] = value["buyer__buyer_name"]
-            a["tender_count"] = value["count"]
+            a = {
+                "amount_local": value["local"] if value["usd"] else 0,
+                "amount_usd": value["usd"] if value["usd"] else 0,
+                "local_currency_code": value["country__currency"],
+                "buyer_id": value["buyer__id"],
+                "buyer_name": value["buyer__buyer_name"],
+                "tender_count": value["count"],
+            }
             by_value.append(a)
         for value in for_number:
-            a = {}
-            a["amount_local"] = value["local"] if value["usd"] else 0
-            a["amount_usd"] = value["usd"] if value["usd"] else 0
-            a["local_currency_code"] = value["country__currency"]
-            a["buyer_id"] = value["buyer__id"]
-            a["buyer_name"] = value["buyer__buyer_name"]
-            a["tender_count"] = value["count"]
+            a = {
+                "amount_local": value["local"] if value["usd"] else 0,
+                "amount_usd": value["usd"] if value["usd"] else 0,
+                "local_currency_code": value["country__currency"],
+                "buyer_id": value["buyer__id"],
+                "buyer_name": value["buyer__buyer_name"],
+                "tender_count": value["count"],
+            }
             by_number.append(a)
         return JsonResponse({"by_number": by_number, "by_value": by_value})

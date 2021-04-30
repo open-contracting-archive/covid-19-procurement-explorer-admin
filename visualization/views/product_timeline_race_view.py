@@ -40,9 +40,7 @@ class ProductTimelineRaceView(APIView):
         for tender in tenders:
             end_date = tender["month"] + dateutil.relativedelta.relativedelta(months=1)
             start_date = tender["month"]
-            result = {}
-            result["month"] = str(start_date.year) + "-" + str(start_date.month)
-            result["details"] = []
+            result = {"month": str(start_date.year) + "-" + str(start_date.month), "details": []}
             for category in categories:
                 data = {}
                 if country:

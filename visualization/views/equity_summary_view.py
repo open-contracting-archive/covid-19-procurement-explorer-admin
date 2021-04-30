@@ -30,12 +30,13 @@ class EquitySummaryView(APIView):
             .order_by("-month")
         )
         for detail in equity_summary:
-            data = {}
-            data["amount_local"] = detail["local"]
-            data["amount_usd"] = detail["usd"]
-            data["equity"] = detail["equity_category__category_name"]
-            data["equity_category_id"] = detail["equity_category"]
-            data["month"] = detail["month"]
-            data["tender_count"] = detail["total"]
+            data = {
+                "amount_local": detail["local"],
+                "amount_usd": detail["usd"],
+                "equity": detail["equity_category__category_name"],
+                "equity_category_id": detail["equity_category"],
+                "month": detail["month"],
+                "tender_count": detail["total"],
+            }
             result.append(data)
         return JsonResponse(result, safe=False)

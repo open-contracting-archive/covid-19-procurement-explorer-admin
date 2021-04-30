@@ -23,8 +23,7 @@ class TotalSpendingsView(APIView):
         supplier = self.request.GET.get("supplier")
 
         filter_args = {}
-        exclude_args = {}
-        exclude_args["status"] = "canceled"
+        exclude_args = {"status": "canceled"}
         if country:
             filter_args["country__country_code_alpha_2"] = country
         if buyer:

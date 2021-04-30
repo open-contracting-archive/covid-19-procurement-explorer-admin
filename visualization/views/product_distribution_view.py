@@ -17,10 +17,10 @@ class ProductDistributionView(APIView):
         if country:
             filter_args["country__country_code_alpha_2"] = country
         if buyer:
-            if buyer != "notnull":
-                filter_args["contract__buyer__buyer_id"] = buyer
-            else:
+            filter_args["contract__buyer__buyer_id"] = buyer
+            if buyer == "notnull":
                 filter_args["contract__buyer__isnull"] = False
+
         result = []
         goods_services = (
             GoodsServices.objects.filter(**filter_args)
@@ -32,14 +32,15 @@ class ProductDistributionView(APIView):
             )
         )
         for goods in goods_services:
-            data = {}
-            data["product_name"] = goods["goods_services_category__category_name"]
-            data["product_id"] = goods["goods_services_category__id"]
+            data = {
+                "product_name": goods["goods_services_category__category_name"],
+                "product_id": goods["goods_services_category__id"],
+                "local_currency_code": "USD",
+            }
             if country:
                 instance = Country.objects.get(country_code_alpha_2=country)
                 data["local_currency_code"] = instance.currency
-            else:
-                data["local_currency_code"] = "USD"
+
             data["tender_count"] = goods["tender"]
             data["amount_local"] = goods["local"]
             data["amount_usd"] = goods["usd"]
