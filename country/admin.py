@@ -293,12 +293,17 @@ class TenderForm(forms.ModelForm):
             "buyer",
         )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["buyer"].queryset = Buyer.objects.filter(tenders__country=self.instance.country)
+        self.fields["supplier"].queryset = Supplier.objects.filter(tenders__country=self.instance.country)
+
 
 class TenderAdmin(admin.ModelAdmin):
     form = TenderForm
     list_display = ("contract_id", "contract_title", "country", "contract_date")
     search_fields = ("id", "contract_id", "contract_title")
-    autocomplete_fields = ["buyer", "supplier"]
+    # autocomplete_fields = ["buyer", "supplier"]
     inlines = [
         GoodsAndServicesInline,
     ]
