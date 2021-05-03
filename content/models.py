@@ -44,7 +44,7 @@ class InsightsPage(Page):
         max_length=20,
         choices=contents_choice,
     )
-    BOOL_CHOICES = ((True, "Yes"), (False, "No"))
+    BOOL_CHOICES = (("true", "Yes"), ("false", "No"))
 
     featured = models.CharField(
         "Featured ?", choices=BOOL_CHOICES, blank=False, null=False, default=False, max_length=15
