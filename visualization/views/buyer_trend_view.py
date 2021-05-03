@@ -16,59 +16,60 @@ class BuyerTrendView(APIView):
         temp = {}
         tender_temp = {}
         data = []
-        count = (
+        monthly_contract = (
             Tender.objects.annotate(month=TruncMonth("contract_date"))
             .values("month")
-            .annotate(
-                total_buyer_count=Count("buyer__id", distinct=True), sum=Sum("goods_services__contract_value_usd")
-            )
+            .annotate(total_buyer_count=Count("buyer__id", distinct=True), sum=Sum("contract_value_usd"))
             .order_by("month")
         )
-        countries = Country.objects.all()
-        for i in count:
-            result = {}
-            end_date = i["month"] + dateutil.relativedelta.relativedelta(months=1)
-            start_date = i["month"]
-            result["details"] = []
-            result["month"] = str(start_date.year) + "-" + str(start_date.month)
-            for j in countries:
-                b = {}
+        countries = Country.objects.exclude(country_code_alpha_2="gl").all()
+        for contract in monthly_contract:
+            end_date = contract["month"] + dateutil.relativedelta.relativedelta(months=1)
+            start_date = contract["month"]
+            result = {"details": [], "month": str(start_date.year) + "-" + str(start_date.month)}
+            for country in countries:
                 tender = Tender.objects.filter(
-                    country__country_code_alpha_2=j.country_code_alpha_2,
+                    country__country_code_alpha_2=country.country_code_alpha_2,
                     contract_date__gte=start_date,
                     contract_date__lte=end_date,
                 ).aggregate(
                     total_buyer_count=Count("buyer__id", distinct=True),
-                    amount_usd=Sum("goods_services__contract_value_usd"),
+                    amount_usd=Sum("contract_value_usd"),
                 )
-                b["country"] = j.name
-                b["country_code"] = j.country_code_alpha_2
-                b["country_continent"] = j.continent
+
+                b = {
+                    "country": country.name,
+                    "country_code": country.country_code_alpha_2,
+                    "country_continent": country.continent,
+                }
                 buyer_count = tender["total_buyer_count"]
-                if tender["amount_usd"] is None:
-                    tender_val = 0
-                else:
+
+                tender_val = 0
+                if tender["amount_usd"] is not None:
                     tender_val = tender["amount_usd"]
-                if buyer_count is None:
-                    buyer_val = 0
-                else:
+
+                buyer_val = 0
+                if buyer_count is not None:
                     buyer_val = buyer_count
-                if bool(temp) and j.name in temp.keys():
-                    current_val = temp[j.name]
+
+                if bool(temp) and country.name in temp.keys():
+                    current_val = temp[country.name]
                     cum_value = current_val + tender_val
-                    temp[j.name] = cum_value
+                    temp[country.name] = cum_value
                     b["amount_usd"] = cum_value
                 else:
-                    temp[j.name] = tender_val
+                    temp[country.name] = tender_val
                     b["amount_usd"] = tender_val
-                if bool(tender_temp) and j.name in tender_temp.keys():
-                    current_val = tender_temp[j.name]
+
+                if bool(tender_temp) and country.name in tender_temp.keys():
+                    current_val = tender_temp[country.name]
                     cum_value = current_val + buyer_val
-                    tender_temp[j.name] = cum_value
+                    tender_temp[country.name] = cum_value
                     b["buyer_count"] = cum_value
                 else:
-                    tender_temp[j.name] = buyer_val
+                    tender_temp[country.name] = buyer_val
                     b["buyer_count"] = buyer_val
+
                 result["details"].append(b)
             data.append(result)
         return JsonResponse({"result": data})

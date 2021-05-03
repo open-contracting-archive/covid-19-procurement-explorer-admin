@@ -9,163 +9,60 @@ from visualization.helpers.general import page_expire_period
 from visualization.views.lib.general import add_filter_args
 
 
+def procurement_procedure_amount(**filter_args):
+    result = (
+        Tender.objects.filter(procurement_procedure__in=["open", "direct", "not_identified"], **filter_args)
+        .values("procurement_procedure")
+        .annotate(
+            count=Count("id"),
+            usd=Sum("contract_value_usd"),
+            local=Sum("contract_value_local"),
+        )
+    )
+    return result
+
+
 class DirectOpen(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
-        country = self.request.GET.get("country", None)
+        country_code = self.request.GET.get("country", None)
         buyer = self.request.GET.get("buyer")
         supplier = self.request.GET.get("supplier")
         filter_args = {}
+        country_currency = ""
+
+        results = {}
+
         if buyer:
             filter_args = add_filter_args("buyer", buyer, filter_args)
+            results = procurement_procedure_amount(**filter_args)
+
         if supplier:
             filter_args = add_filter_args("supplier", supplier, filter_args)
+            results = procurement_procedure_amount(**filter_args)
 
-        if country:
-            amount_direct = (
-                Tender.objects.filter(country__country_code_alpha_2=country, procurement_procedure="direct")
-                .values("country__currency")
-                .annotate(
-                    count=Count("contract_id", distinct=True),
-                    usd=Sum("goods_services__contract_value_usd"),
-                    local=Sum("goods_services__contract_value_local"),
-                )
-            )
-            amount_open = (
-                Tender.objects.filter(country__country_code_alpha_2=country, procurement_procedure="open")
-                .values("country__currency")
-                .annotate(
-                    count=Count("contract_id", distinct=True),
-                    usd=Sum("goods_services__contract_value_usd"),
-                    local=Sum("goods_services__contract_value_local"),
-                )
-            )
+        if country_code:
+            country_code = str(country_code).upper()
+            country_obj = Country.objects.get(country_code_alpha_2=country_code)
+            country_currency = country_obj.currency
 
-            amount_not_identified = (
-                Tender.objects.filter(country__country_code_alpha_2=country, procurement_procedure="not_identified")
-                .values("country__currency")
-                .annotate(
-                    count=Count("contract_id", distinct=True),
-                    usd=Sum("goods_services__contract_value_usd"),
-                    local=Sum("goods_services__contract_value_local"),
-                )
-            )
-        elif buyer or supplier:
-            amount_direct = (
-                Tender.objects.filter(**filter_args, procurement_procedure="direct")
-                .values("procurement_procedure")
-                .annotate(
-                    count=Count("contract_id", distinct=True),
-                    usd=Sum("goods_services__contract_value_usd"),
-                    local=Sum("goods_services__contract_value_local"),
-                )
-            )
-            amount_open = (
-                Tender.objects.filter(**filter_args, procurement_procedure="open")
-                .values("procurement_procedure")
-                .annotate(
-                    count=Count("contract_id", distinct=True),
-                    usd=Sum("goods_services__contract_value_usd"),
-                    local=Sum("goods_services__contract_value_local"),
-                )
-            )
-            amount_not_identified = (
-                Tender.objects.filter(**filter_args, procurement_procedure="not_identified")
-                .values("procurement_procedure")
-                .annotate(
-                    count=Count("contract_id", distinct=True),
-                    usd=Sum("goods_services__contract_value_usd"),
-                    local=Sum("goods_services__contract_value_local"),
-                )
-            )
-        else:
-            amount_direct = (
-                Tender.objects.filter(procurement_procedure="direct")
-                .values("procurement_procedure")
-                .annotate(
-                    count=Count("contract_id", distinct=True),
-                    usd=Sum("goods_services__contract_value_usd"),
-                    local=Sum("goods_services__contract_value_local"),
-                )
-            )
-            amount_open = (
-                Tender.objects.filter(procurement_procedure="open")
-                .values("procurement_procedure")
-                .annotate(
-                    count=Count("contract_id", distinct=True),
-                    usd=Sum("goods_services__contract_value_usd"),
-                    local=Sum("goods_services__contract_value_local"),
-                )
-            )
-            amount_not_identified = (
-                Tender.objects.filter(procurement_procedure="not_identified")
-                .values("procurement_procedure")
-                .annotate(
-                    count=Count("contract_id", distinct=True),
-                    usd=Sum("goods_services__contract_value_usd"),
-                    local=Sum("goods_services__contract_value_local"),
-                )
-            )
+            filter_args = add_filter_args("country__country_code_alpha_2", country_code, filter_args, append_only=True)
+            results = procurement_procedure_amount(**filter_args)
 
-        country_currency = []
-        if country:
-            country_obj = Country.objects.filter(name=country)
-            if country_obj:
-                country_currency = country_obj.currency
-        if amount_direct:
-            for i in amount_direct:
-                result_direct = {
-                    "amount_local": i["local"] if i["local"] else 0,
-                    "amount_usd": i["usd"] if i["usd"] else 0,
-                    "tender_count": i["count"],
-                    "local_currency_code": i["country__currency"] if "country__currency" in i else "",
-                    "procedure": "direct",
+        if not country_code and not supplier and not buyer:
+            results = procurement_procedure_amount(**filter_args)
+
+        response = []
+
+        for result in results:
+            response.append(
+                {
+                    "amount_local": result["local"] if result["local"] else 0,
+                    "amount_usd": result["usd"] if result["usd"] else 0,
+                    "tender_count": result["count"],
+                    "local_currency_code": country_currency,
+                    "status": result["procurement_procedure"] if result["procurement_procedure"] else "",
                 }
-        else:
-            result_direct = {
-                "amount_local": 0,
-                "amount_usd": 0,
-                "tender_count": 0,
-                "local_currency_code": country_currency,
-                "procedure": "direct",
-            }
+            )
 
-        if amount_open:
-            for i in amount_open:
-                result_open = {
-                    "amount_local": i["local"] if i["local"] else 0,
-                    "amount_usd": i["usd"] if i["usd"] else 0,
-                    "tender_count": i["count"],
-                    "local_currency_code": i["country__currency"] if "country__currency" in i else "",
-                    "procedure": "open",
-                }
-        else:
-            result_open = {
-                "amount_local": 0,
-                "amount_usd": 0,
-                "tender_count": 0,
-                "local_currency_code": country_currency,
-                "procedure": "open",
-            }
-
-        if amount_not_identified:
-            for i in amount_not_identified:
-                result_not_identified = {
-                    "amount_local": i["local"] if i["local"] else 0,
-                    "amount_usd": i["usd"] if i["usd"] else 0,
-                    "tender_count": i["count"],
-                    "local_currency_code": i["country__currency"] if "country__currency" in i else "",
-                    "procedure": "not_identified",
-                }
-        else:
-            result_not_identified = {
-                "amount_local": 0,
-                "amount_usd": 0,
-                "tender_count": 0,
-                "local_currency_code": country_currency,
-                "procedure": "not_identified",
-            }
-
-        result = [result_direct, result_open, result_not_identified]
-
-        return JsonResponse(result, safe=False)
+        return JsonResponse(response, safe=False)

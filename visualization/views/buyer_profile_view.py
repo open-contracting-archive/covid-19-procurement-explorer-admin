@@ -14,8 +14,8 @@ class BuyerProfileView(APIView):
     def get(self, request, *args, **kwargs):
         pk = self.kwargs["pk"]
         try:
-            instance = Buyer.objects.get(id=pk)
-            tenders = instance.tenders
+            buyer = Buyer.objects.get(id=pk)
+            tenders = buyer.tenders
             buyer_detail = (
                 tenders.values("country__name", "country__country_code_alpha_2")
                 .annotate(
@@ -25,10 +25,10 @@ class BuyerProfileView(APIView):
                 .first()
             )
             data = {
-                "name": instance.buyer_name,
+                "name": buyer.buyer_name,
                 "id": pk,
-                "code": instance.buyer_id,
-                "address": instance.buyer_address,
+                "code": buyer.buyer_id,
+                "address": buyer.buyer_address,
                 "amount_usd": buyer_detail.get("total_usd", 0),
                 "amount_local": buyer_detail.get("total_local", 0),
                 "tender_count": tenders.distinct().count(),
