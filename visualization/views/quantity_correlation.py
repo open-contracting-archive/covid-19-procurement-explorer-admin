@@ -56,14 +56,15 @@ class QuantityCorrelation(APIView):
             except Exception:
                 active_case_count = 0
                 death_count = 0
-            a = {}
-            a["active_cases"] = active_case_count
-            a["death_cases"] = death_count
-            a["amount_local"] = i["local"] if "local" in i else ""
-            a["amount_usd"] = i["usd"]
-            a["local_currency_code"] = i["country__currency"] if "country__currency" in i else ""
-            a["month"] = i["month"]
-            a["tender_count"] = i["count"]
+            a = {
+                "active_cases": active_case_count,
+                "death_cases": death_count,
+                "amount_local": i["local"] if "local" in i else "",
+                "amount_usd": i["usd"],
+                "local_currency_code": i["country__currency"] if "country__currency" in i else "",
+                "month": i["month"],
+                "tender_count": i["count"],
+            }
             contracts_quantity_list.append(a)
 
         return JsonResponse(contracts_quantity_list, safe=False)

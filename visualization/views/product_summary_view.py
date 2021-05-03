@@ -33,12 +33,13 @@ class ProductSummaryView(APIView):
             )
         )
         for tender in tenders_assigned:
-            data = {}
-            data["amount_local"] = tender["local"]
-            data["amount_usd"] = tender["usd"]
-            data["local_currency_code"] = currency
-            data["product_id"] = tender["goods_services__goods_services_category__id"]
-            data["product_name"] = tender["goods_services__goods_services_category__category_name"]
-            data["tender_count"] = tender["count"]
+            data = {
+                "amount_local": tender["local"],
+                "amount_usd": tender["usd"],
+                "local_currency_code": currency,
+                "product_id": tender["goods_services__goods_services_category__id"],
+                "product_name": tender["goods_services__goods_services_category__category_name"],
+                "tender_count": tender["count"],
+            }
             result.append(data)
         return JsonResponse(result, safe=False)

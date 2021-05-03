@@ -17,18 +17,19 @@ class CountryPartnerView(APIView):
         try:
             data_provider = CountryPartner.objects.filter(**filter_args)
         except Exception:
-            data_provider = [{"error": "Country partner doesnot exist for this country"}]
+            data_provider = [{"error": "Country partner does not exist for this country"}]
         result = []
         if data_provider:
             for i in data_provider:
-                data = {}
-                data["name"] = i.name
-                data["description"] = i.description
-                data["email"] = i.email
-                data["website"] = i.website
-                data["logo"] = str(i.logo)
-                data["order"] = i.order
-                data["country"] = str(i.country)
+                data = {
+                    "name": i.name,
+                    "description": i.description,
+                    "email": i.email,
+                    "website": i.website,
+                    "logo": str(i.logo),
+                    "order": i.order,
+                    "country": str(i.country),
+                }
                 result.append(data)
         else:
             result = {"error": "Country Partner not found for this country"}

@@ -31,12 +31,13 @@ class RedFlagSummaryView(APIView):
         )
         for detail in equity_summary:
             if detail["red_flag__implemented"]:
-                data = {}
-                data["amount_local"] = detail["local"]
-                data["amount_usd"] = detail["usd"]
-                data["red_flag"] = detail["red_flag__title"]
-                data["red_flag_id"] = detail["red_flag"]
-                data["month"] = detail["month"]
-                data["tender_count"] = detail["total"]
+                data = {
+                    "amount_local": detail["local"],
+                    "amount_usd": detail["usd"],
+                    "red_flag": detail["red_flag__title"],
+                    "red_flag_id": detail["red_flag"],
+                    "month": detail["month"],
+                    "tender_count": detail["total"],
+                }
                 result.append(data)
         return JsonResponse(result, safe=False)

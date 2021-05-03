@@ -12,7 +12,7 @@ class SupplierProfileView(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request, *args, **kwargs):
         pk = self.kwargs["pk"]
-        data = {}
+
         try:
             instance = Supplier.objects.get(id=pk)
             supplier_detail = (
@@ -24,16 +24,18 @@ class SupplierProfileView(APIView):
                 )
             )
             tender_count = Tender.objects.filter(supplier_id=pk).count()
-            data["name"] = instance.supplier_name
-            data["id"] = pk
-            data["code"] = instance.supplier_id
-            data["address"] = instance.supplier_address
-            data["amount_usd"] = supplier_detail[0]["total_usd"]
-            data["amount_local"] = supplier_detail[0]["total_local"]
-            data["tender_count"] = tender_count
-            data["country_code"] = supplier_detail[0]["country__country_code_alpha_2"]
-            data["country_name"] = supplier_detail[0]["country__name"]
+            data = {
+                "name": instance.supplier_name,
+                "id": pk,
+                "code": instance.supplier_id,
+                "address": instance.supplier_address,
+                "amount_usd": supplier_detail[0]["total_usd"],
+                "amount_local": supplier_detail[0]["total_local"],
+                "tender_count": tender_count,
+                "country_code": supplier_detail[0]["country__country_code_alpha_2"],
+                "country_name": supplier_detail[0]["country__name"],
+            }
             return JsonResponse(data, safe=False)
         except Exception:
-            data["error"] = "Enter valid ID"
-            return JsonResponse(data, safe=False)
+            error = {"error": "Enter valid ID"}
+            return JsonResponse(error, safe=False)

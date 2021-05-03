@@ -17,16 +17,17 @@ class DataProviderView(APIView):
         try:
             data_provider = DataProvider.objects.filter(**filter_args)
         except Exception:
-            data_provider = [{"error": "Data Provider doesnot exist for this country"}]
+            data_provider = [{"error": "Data Provider does not exist for this country"}]
         result = []
         if data_provider:
             for i in data_provider:
-                data = {}
-                data["name"] = i.name
-                data["country"] = str(i.country)
-                data["website"] = i.website
-                data["logo"] = str(i.logo)
-                data["remark"] = i.remark
+                data = {
+                    "name": i.name,
+                    "country": str(i.country),
+                    "website": i.website,
+                    "logo": str(i.logo),
+                    "remark": i.remark,
+                }
                 result.append(data)
         else:
             result = {"error": "Data Provider not found for this country"}

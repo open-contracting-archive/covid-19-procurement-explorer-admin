@@ -56,30 +56,33 @@ class TopSuppliers(APIView):
         )
 
         for value in for_value:
-            a = {}
-            a["amount_local"] = value["local"] if value["local"] else 0
-            a["amount_usd"] = value["usd"] if value["usd"] else 0
-            a["local_currency_code"] = value["country__currency"]
-            a["supplier_id"] = value["supplier__id"]
-            a["supplier_name"] = value["supplier__supplier_name"]
-            a["tender_count"] = value["count"]
+            a = {
+                "amount_local": value["local"] if value["local"] else 0,
+                "amount_usd": value["usd"] if value["usd"] else 0,
+                "local_currency_code": value["country__currency"],
+                "supplier_id": value["supplier__id"],
+                "supplier_name": value["supplier__supplier_name"],
+                "tender_count": value["count"],
+            }
             by_value.append(a)
         for value in for_number:
-            a = {}
-            a["amount_local"] = value["local"] if value["local"] else 0
-            a["amount_usd"] = value["usd"] if value["usd"] else 0
-            a["local_currency_code"] = value["country__currency"]
-            a["supplier_id"] = value["supplier__id"]
-            a["supplier_name"] = value["supplier__supplier_name"]
-            a["tender_count"] = value["count"]
+            a = {
+                "amount_local": value["local"] if value["local"] else 0,
+                "amount_usd": value["usd"] if value["usd"] else 0,
+                "local_currency_code": value["country__currency"],
+                "supplier_id": value["supplier__id"],
+                "supplier_name": value["supplier__supplier_name"],
+                "tender_count": value["count"],
+            }
             by_number.append(a)
 
         for value in for_buyer:
-            a = {}
-            a["supplier_id"] = value["supplier__id"]
-            a["local_currency_code"] = value["country__currency"]
-            a["supplier_name"] = value["supplier__supplier_name"]
-            a["buyer_count"] = value["count"]
+            a = {
+                "supplier_id": value["supplier__id"],
+                "local_currency_code": value["country__currency"],
+                "supplier_name": value["supplier__supplier_name"],
+                "buyer_count": value["count"],
+            }
             by_buyer.append(a)
 
         return JsonResponse({"by_number": by_number, "by_value": by_value, "by_buyer": by_buyer})

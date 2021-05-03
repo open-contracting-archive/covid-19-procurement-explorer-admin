@@ -40,9 +40,7 @@ class SupplierSummaryView(APIView):
             .aggregate(total=Count("supplier"))
         )
         for details in supplier_details:
-            data = {}
-            data["supplier_count"] = details["count"]
-            data["month"] = details["month"]
+            data = {"supplier_count": details["count"], "month": details["month"]}
             trend.append(data)
         try:
             dates_in_details = [i["month"] for i in supplier_details]

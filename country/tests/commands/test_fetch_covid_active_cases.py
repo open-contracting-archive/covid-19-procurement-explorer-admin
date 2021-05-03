@@ -20,6 +20,7 @@ class CommandTests(TransactionTestCase):
         self.assertEqual(out.getvalue(), dedent(expected_out))
 
     def test_command(self):
+        Country.objects.all().delete()
         Country.objects.create(name="Global", country_code="GLO", country_code_alpha_2="gl", currency="USD")
         Country.objects.create(name="Kenya", country_code="KEN", country_code_alpha_2="KE", currency="KES")
 
