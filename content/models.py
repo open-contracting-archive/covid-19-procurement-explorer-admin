@@ -46,7 +46,9 @@ class InsightsPage(Page):
     )
     BOOL_CHOICES = ((True, "Yes"), (False, "No"))
 
-    featured = models.BooleanField("Featured ?", choices=BOOL_CHOICES, blank=False, null=False, default=False)
+    featured = models.CharField(
+        "Featured ?", choices=BOOL_CHOICES, blank=False, null=False, default=False, max_length=15
+    )
 
     country = models.ForeignKey(
         Country, null=True, blank=False, on_delete=models.SET_NULL, default=1, related_name="+"
