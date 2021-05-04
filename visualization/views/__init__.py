@@ -16,7 +16,7 @@ from .filter_parameters_buyers import FilterParametersBuyers
 from .filter_parameters_static import FilterParametersStatic
 from .filter_parameters_suppliers import FilterParametersSuppliers
 from .filter_params import FilterParams
-from .global_over_view import GlobalOverView
+from .global_overview_view import GlobalOverview
 from .global_suppliers_view import GlobalSuppliersView
 from .insights_view import InsightsView
 from .monopolization_view import MonopolizationView

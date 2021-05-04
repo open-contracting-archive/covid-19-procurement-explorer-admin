@@ -23,6 +23,17 @@ def top_buyer(order_by, **filter_args):
     return result
 
 
+def formatted(data):
+    return {
+        "amount_local": data["amount_local"] if data["amount_local"] else 0,
+        "amount_usd": data["amount_usd"] or 0,
+        "local_currency_code": data["country__currency"],
+        "buyer_id": data["id"],
+        "buyer_name": data["buyer_name"],
+        "tender_count": data["tender_count"] if data["tender_count"] else 0,
+    }
+
+
 class TopBuyers(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
@@ -47,25 +58,9 @@ class TopBuyers(APIView):
         by_value = []
 
         for value in for_value:
-            a = {
-                "amount_local": value["amount_local"] if value["amount_local"] else 0,
-                "amount_usd": value["amount_usd"] or 0,
-                "local_currency_code": value["country__currency"],
-                "buyer_id": value["id"],
-                "buyer_name": value["buyer_name"],
-                "tender_count": value["tender_count"] if value["tender_count"] else 0,
-            }
-            by_value.append(a)
+            by_value.append(formatted(value))
 
         for value in for_number:
-            a = {
-                "amount_local": value["amount_local"] if value["amount_local"] else 0,
-                "amount_usd": value["amount_usd"] or 0,
-                "local_currency_code": value["country__currency"],
-                "buyer_id": value["id"],
-                "buyer_name": value["buyer_name"],
-                "tender_count": value["tender_count"] if value["tender_count"] else 0,
-            }
-            by_number.append(a)
+            by_number.append(formatted(value))
 
         return JsonResponse({"by_number": by_number, "by_value": by_value})

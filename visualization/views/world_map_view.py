@@ -20,7 +20,7 @@ class WorldMapView(APIView):
         for country in country_instance:
             data = {}
             tender_instance = Tender.objects.filter(country=country, **filter_args).aggregate(
-                total_usd=Sum("goods_services__contract_value_usd")
+                total_usd=Sum("contract_value_usd")
             )
             tender_count = Tender.objects.filter(country=country, **filter_args).count()
             data["country_code"] = country.country_code_alpha_2

@@ -20,7 +20,7 @@ from visualization.views import (
     FilterParametersStatic,
     FilterParametersSuppliers,
     FilterParams,
-    GlobalOverView,
+    GlobalOverview,
     GlobalSuppliersView,
     InsightsView,
     MonopolizationView,
@@ -60,7 +60,7 @@ class TestUrls(SimpleTestCase):
 
     def test_world_map_race_url_is_resolved(self):
         url = reverse("world_map_race")
-        self.assertEquals(resolve(url).func.view_class, GlobalOverView)
+        self.assertEquals(resolve(url).func.view_class, GlobalOverview)
 
     def test_top_suppliers_url_is_resolved(self):
         url = reverse("top_suppliers")

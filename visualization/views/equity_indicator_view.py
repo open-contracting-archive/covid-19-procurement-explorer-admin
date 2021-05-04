@@ -27,15 +27,15 @@ class EquityIndicatorView(APIView):
                     Tender.objects.filter(**filter_args)
                     .exclude(equity_category=None)
                     .aggregate(
-                        total_usd=Sum("goods_services__contract_value_usd"),
-                        total_local=Sum("goods_services__contract_value_local"),
+                        total_usd=Sum("contract_value_usd"),
+                        total_local=Sum("contract_value_local"),
                     )
                 )
                 assigned_count = Tender.objects.filter(**filter_args).exclude(equity_category=None).count()
                 filter_args["equity_category"] = None
                 tenders_unassigned = Tender.objects.filter(**filter_args).aggregate(
-                    total_usd=Sum("goods_services__contract_value_usd"),
-                    total_local=Sum("goods_services__contract_value_local"),
+                    total_usd=Sum("contract_value_usd"),
+                    total_local=Sum("contract_value_local"),
                 )
                 unassigned_count = Tender.objects.filter(**filter_args).count()
                 data = [
@@ -62,15 +62,15 @@ class EquityIndicatorView(APIView):
                 Tender.objects.filter(**filter_args)
                 .exclude(equity_category=None)
                 .aggregate(
-                    total_usd=Sum("goods_services__contract_value_usd"),
-                    total_local=Sum("goods_services__contract_value_local"),
+                    total_usd=Sum("contract_value_usd"),
+                    total_local=Sum("contract_value_local"),
                 )
             )
             assigned_count = Tender.objects.filter(**filter_args).exclude(equity_category=None).count()
             filter_args["equity_category"] = None
             tenders_unassigned = Tender.objects.filter(**filter_args).aggregate(
-                total_usd=Sum("goods_services__contract_value_usd"),
-                total_local=Sum("goods_services__contract_value_local"),
+                total_usd=Sum("contract_value_usd"),
+                total_local=Sum("contract_value_local"),
             )
             unassigned_count = Tender.objects.filter(**filter_args).count()
             data = [
