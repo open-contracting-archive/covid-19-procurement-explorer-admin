@@ -172,7 +172,6 @@ def fix_contract_name_value(tender_id, country):
         tender_instance.save()
         goodservices = tender_instance.goods_services.filter(country=country_obj)
         for good_service in goodservices:
-            print(good_service.id)
             for keyword in keywords:
                 keyword_value = keyword.keyword
                 if (
@@ -180,7 +179,6 @@ def fix_contract_name_value(tender_id, country):
                     or keyword_value in good_service.contract_desc.strip()
                 ):
                     category = keyword.equity_category.category_name
-                    print(category)
                     instance = EquityCategory.objects.get(category_name=category)
                     tender_instance.equity_category.add(instance)
         process_redflag7.apply_async(args=(tender_instance.id,), queue="covid19")
@@ -351,9 +349,6 @@ def import_tender_from_batch_id(batch_id, country, currency):
                     ppu_including_vat=ppu_including_vat or None,
                 )
                 goods_services_obj.save()
-
-                print(tender_obj.id, goods_services_obj.id)
-
                 # Execute local currency to USD conversion celery tasks
                 conversion_date = contract_date
                 source_currency = country_obj.currency
@@ -656,8 +651,8 @@ def store_in_temp_table(instance_id):
 
 
 @app.task(name="country_contract_excel")
-def country_contract_excel(country):
-    if not country:
+def country_contract_excel(country_code):
+    if not country_code:
         countries = Country.objects.all().exclude(country_code_alpha_2="gl")
         for country in countries:
             country_name = country.name
@@ -723,12 +718,12 @@ def country_contract_excel(country):
                     "goods_services__goods_services_category__category_name",
                 )
                 .annotate(
-                    contract_usd=Sum("goods_services__contract_value_usd"),
-                    contract_local=Sum("goods_services__contract_value_local"),
-                    award_local=Sum("goods_services__award_value_local"),
-                    award_usd=Sum("goods_services__award_value_usd"),
-                    tender_local=Sum("goods_services__tender_value_local"),
-                    tender_usd=Sum("goods_services__tender_value_usd"),
+                    contract_usd=Sum("contract_value_usd"),
+                    contract_local=Sum("contract_value_local"),
+                    award_local=Sum("award_value_local"),
+                    award_usd=Sum("award_value_usd"),
+                    tender_local=Sum("tender_value_local"),
+                    tender_usd=Sum("tender_value_usd"),
                 )
             )
             if reports:
@@ -814,7 +809,7 @@ def country_contract_excel(country):
             print("............")
 
     else:
-        country_name = Country.objects.filter(country_code_alpha_2=country).first().name
+        country_name = Country.objects.filter(country_code_alpha_2=country_code).first().name
         file_path = f"media/export/{country_name}_summary.xlsx"
         if not os.path.exists(file_path):
             Path(file_path).touch()
@@ -858,7 +853,7 @@ def country_contract_excel(country):
 
         data = {}
         reports = (
-            Tender.objects.filter(country__country_code_alpha_2=country)
+            Tender.objects.filter(country__country_code_alpha_2=country_code)
             .values(
                 "id",
                 "contract_id",
@@ -876,12 +871,12 @@ def country_contract_excel(country):
                 "goods_services__goods_services_category__category_name",
             )
             .annotate(
-                contract_usd=Sum("goods_services__contract_value_usd"),
-                contract_local=Sum("goods_services__contract_value_local"),
-                award_local=Sum("goods_services__award_value_local"),
-                award_usd=Sum("goods_services__award_value_usd"),
-                tender_local=Sum("goods_services__tender_value_local"),
-                tender_usd=Sum("goods_services__tender_value_usd"),
+                contract_usd=Sum("contract_value_usd"),
+                contract_local=Sum("contract_value_local"),
+                award_local=Sum("award_value_local"),
+                award_usd=Sum("award_value_usd"),
+                tender_local=Sum("tender_value_local"),
+                tender_usd=Sum("tender_value_usd"),
             )
         )
 

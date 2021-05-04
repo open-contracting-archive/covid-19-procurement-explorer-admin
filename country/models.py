@@ -339,7 +339,7 @@ class GoodsServices(models.Model):
     contract_value_usd = models.FloatField(verbose_name=_("Contract value USD"), null=True, blank=True, db_index=True)
 
     def __str__(self):
-        return f"{self.goods_services_category} - {self.contract_title}"
+        return str(self.id)
 
 
 class CovidMonthlyActiveCases(models.Model):
