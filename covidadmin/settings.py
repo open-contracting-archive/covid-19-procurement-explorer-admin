@@ -36,6 +36,7 @@ env = environ.Env(
     FETCH_COVID_DATA_INTERVAL=(int, 10800),
     FIXER_IO_API_KEY=(str, ""),
     MEDIA_URL=(str, "/media/"),
+    CACHE_EXPIRE_PERIOD=(int, 86400),
 )
 
 environ.Env.read_env()
@@ -231,7 +232,7 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.db.DatabaseCache",
         "LOCATION": "cache_table",
-        "EXPIRE_PERIOD": 60 * 60 * 24,
+        "EXPIRE_PERIOD": env("CACHE_EXPIRE_PERIOD"),
     }
 }
 

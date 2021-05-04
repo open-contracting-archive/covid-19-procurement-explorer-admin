@@ -12,11 +12,13 @@ from visualization.helpers.general import page_expire_period
 class EquitySummaryView(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
-        filter_args = {}
-        country = self.request.GET.get("country", None)
-        if country:
-            filter_args["country__country_code_alpha_2"] = country
-        filter_args["equity_category__isnull"] = False
+        filter_args = {"equity_category__isnull": False}
+        country_code = self.request.GET.get("country", None)
+
+        if country_code:
+            country_code = str(country_code).upper()
+            filter_args["country__country_code_alpha_2"] = country_code
+
         result = []
         equity_summary = (
             Tender.objects.filter(**filter_args)
@@ -24,8 +26,8 @@ class EquitySummaryView(APIView):
             .values("month", "equity_category", "equity_category__category_name")
             .annotate(
                 total=Count("id"),
-                local=Sum("goods_services__contract_value_local"),
-                usd=Sum("goods_services__contract_value_usd"),
+                local=Sum("contract_value_local"),
+                usd=Sum("contract_value_usd"),
             )
             .order_by("-month")
         )

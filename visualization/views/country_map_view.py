@@ -19,8 +19,8 @@ class CountryMapView(APIView):
 
             if country is not None and country_instance is not None:
                 tender_instance = Tender.objects.filter(country__country_code_alpha_2=country).aggregate(
-                    total_usd=Sum("goods_services__contract_value_usd"),
-                    total_local=Sum("goods_services__contract_value_local"),
+                    total_usd=Sum("contract_value_usd"),
+                    total_local=Sum("contract_value_local"),
                 )
                 count = Tender.objects.filter(country__country_code_alpha_2=country).count()
                 final = {

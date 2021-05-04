@@ -20,6 +20,7 @@ class FilterParametersBuyers(APIView):
             filter_args = add_filter_args("supplier", supplier_id, filter_args)
 
         if country_code:
+            country_code = str(country_code).upper()
             filter_args["country__country_code_alpha_2"] = country_code
 
         try:

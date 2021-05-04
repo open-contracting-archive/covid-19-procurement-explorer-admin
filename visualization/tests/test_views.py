@@ -4,7 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from content.models import CountryPartner
-from country.models import Buyer, Country, Language, Supplier, Tender, Topic
+from country.models import Buyer, Country, DataProvider, Language, Supplier, Tender, Topic
 
 
 def setUpModule():
@@ -49,12 +49,20 @@ def setUpModule():
     )
 
     CountryPartner.objects.create(
-        name="united kingdom",
+        name="Kenya",
         description="country description",
-        country=Country.objects.all().first(),
+        country=Country.objects.get(country_code_alpha_2="KE"),
         email="country@email.com",
         website="example.com",
         logo="country/partner/logo/gl.jpg",
+    )
+
+    DataProvider.objects.create(
+        name="",
+        country=Country.objects.get(country_code_alpha_2="KE"),
+        website="example.com",
+        logo="country/partner/logo/gl.jpg",
+        remark="country description",
     )
 
 
@@ -131,6 +139,11 @@ class VisualizationViewTest(TestCase):
 
     def test_direct_open_GET(self):
         url = "%s?country=KE&buyer=1&supplier=1" % reverse(self.direct_open_url)
+        response = self.client.get(url)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+    def test_direct_open_all_GET(self):
+        url = reverse(self.direct_open_url)
         response = self.client.get(url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
@@ -214,8 +227,18 @@ class VisualizationViewTest(TestCase):
         response = self.client.get(url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
+    def test_all_country_partners_GET(self):
+        url = reverse(self.country_partners_url)
+        response = self.client.get(url)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
     def test_data_providers_GET(self):
         url = "%s?country=KE" % reverse(self.data_providers_url)
+        response = self.client.get(url)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+    def test_data_providers_all_GET(self):
+        url = reverse(self.data_providers_url)
         response = self.client.get(url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
