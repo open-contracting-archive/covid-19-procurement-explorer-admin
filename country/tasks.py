@@ -265,6 +265,7 @@ def import_tender_from_batch_id(batch_id, country, currency):
                         supplier_id=supplier_id,
                         supplier_name=supplier_name,
                         supplier_address=supplier_address,
+                        country=country_obj,
                     )
                     supplier_obj.save()
             else:
@@ -280,6 +281,7 @@ def import_tender_from_batch_id(batch_id, country, currency):
                         buyer_id=buyer_id,
                         buyer_name=buyer_name,
                         buyer_address=buyer_address,
+                        country=country_obj,
                     )
                     buyer_obj.save()
             else:
