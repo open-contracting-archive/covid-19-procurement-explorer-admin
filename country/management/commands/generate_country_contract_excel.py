@@ -7,7 +7,7 @@ class Command(BaseCommand):
     help = "Generate Country Contract Excel"
 
     def add_arguments(self, parser):
-        parser.add_argument("--country", type=str)
+        parser.add_argument("country", type=str)
 
     def handle(self, *args, **kwargs):
         country = kwargs["country"]

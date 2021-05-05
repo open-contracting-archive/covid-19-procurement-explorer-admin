@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib import admin
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.forms import TextInput
 from django.utils.html import format_html
 
@@ -20,6 +22,7 @@ from .models import (
     Tender,
     Topic,
 )
+from .tasks import fix_contract_name_value, local_currency_to_usd
 
 
 class EquityInline(admin.TabularInline):
@@ -267,6 +270,7 @@ class GoodsAndServicesInline(admin.TabularInline):
     model = GoodsServices
     extra = 0
     fields = (
+        "id",
         "classification_code",
         "contract_title",
         "contract_desc",
@@ -274,6 +278,7 @@ class GoodsAndServicesInline(admin.TabularInline):
         "contract_value_local",
         "award_value_local",
         "goods_services_category",
+        "country",
     )
 
 
@@ -293,10 +298,10 @@ class TenderForm(forms.ModelForm):
             "buyer",
         )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["buyer"].queryset = Buyer.objects.filter(tenders__country=self.instance.country)
-        self.fields["supplier"].queryset = Supplier.objects.filter(tenders__country=self.instance.country)
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.fields["buyer"].queryset = Buyer.objects.filter(tenders__country=self.instance.country)
+    #     self.fields["supplier"].queryset = Supplier.objects.filter(tenders__country=self.instance.country)
 
 
 class TenderAdmin(admin.ModelAdmin):
@@ -308,8 +313,42 @@ class TenderAdmin(admin.ModelAdmin):
         GoodsAndServicesInline,
     ]
 
+    def save_model(self, request, obj, form, change):
+        obj.from_admin_site = True  # here we setting instance attribute which we check in `post_save`
+        super().save_model(request, obj, form, change)
+
+    def save_related(self, request, form, formsets, change):
+        conversion_date = form["contract_date"].value()
+        for form_set in formsets:
+            if form_set.has_changed():
+                for value in form_set:
+                    contract_value_local = float(value["contract_value_local"].value())
+                    tender_value_local = float(value["tender_value_local"].value())
+                    award_value_local = float(value["award_value_local"].value())
+                    country_id = value["country"].value()
+                    source_currency = Country.objects.get(id=country_id).currency
+                    source_values = {
+                        "tender_value_local": tender_value_local or None,
+                        "award_value_local": award_value_local or None,
+                        "contract_value_local": contract_value_local or None,
+                    }
+                    goods_services_row_id = value["id"].value()
+                    local_currency_to_usd.apply_async(
+                        args=(goods_services_row_id, conversion_date, source_currency, source_values), queue="covid19"
+                    )
+
+        super().save_related(request, form, formsets, change)
+
 
 admin.site.register(Tender, TenderAdmin)
+
+
+@receiver(post_save, sender=Tender)
+def save_model(sender, instance, **kwargs):
+    if getattr(instance, "from_admin_site", False):
+        tender_id = instance.id
+        tender_country = instance.country
+        fix_contract_name_value(tender_id, tender_country)
 
 
 @admin.register(RedFlag)
