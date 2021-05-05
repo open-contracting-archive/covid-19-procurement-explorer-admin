@@ -138,6 +138,8 @@ class Supplier(models.Model):
         verbose_name=_("Supplier name"), max_length=250, null=True, blank=True, db_index=True
     )
     supplier_address = models.CharField(verbose_name=_("Supplier address"), max_length=250, null=True, blank=True)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="suppliers", null=True)
+    summary = models.JSONField(null=True)
     objects = SupplierManager()
 
     def __str__(self):
@@ -148,6 +150,8 @@ class Buyer(models.Model):
     buyer_id = models.CharField(verbose_name=_("Buyer ID"), max_length=50, null=True)
     buyer_name = models.CharField(verbose_name=_("Buyer name"), max_length=250, null=True, blank=True, db_index=True)
     buyer_address = models.CharField(verbose_name=_("Buyer address"), max_length=250, null=True, blank=True)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="buyers", null=True)
+    summary = models.JSONField(null=True)
     objects = BuyerManager()
 
     def __str__(self):
