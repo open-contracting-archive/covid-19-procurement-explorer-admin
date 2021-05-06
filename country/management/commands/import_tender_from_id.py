@@ -17,7 +17,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Fetching tender data for Batch id {batch_id} for country {country}")
 
         try:
-            result = Country.objects.filter(name=country).first()
+            result = Country.objects.get(name=country)
             country = result.name
             currency = result.currency
 

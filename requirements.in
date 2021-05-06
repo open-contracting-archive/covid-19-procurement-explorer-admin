@@ -15,3 +15,4 @@ sentry_sdk
 xlsxwriter
 wagtail
 djangorestframework-serializer-extensions
+django-debug-toolbar

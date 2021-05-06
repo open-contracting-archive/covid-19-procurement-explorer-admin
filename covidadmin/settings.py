@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
 import os
 from pathlib import Path
 
@@ -53,7 +52,6 @@ if "SENTRY_DSN" in os.environ:
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -99,7 +97,7 @@ INSTALLED_APPS = [
     "taggit",
     "wagtail.api.v2",
     "ckeditor",
-    # 'debug_toolbar',
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -114,7 +112,8 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
-    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "covidadmin.middleware.NonHtmlDebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "covidadmin.urls"
@@ -137,7 +136,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "covidadmin.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
@@ -151,7 +149,6 @@ DATABASES = {
         "PORT": env("DB_PORT"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -171,7 +168,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
@@ -184,7 +180,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
@@ -203,7 +198,6 @@ REST_FRAMEWORK = {
     "ORDERING_PARAM": "order",
     "SERIALIZER_EXTENSIONS": dict(AUTO_OPTIMIZE=True),
 }
-
 
 CELERY_BROKER_URL = env("CELERY_BROKER_URL")
 CELERY_TIMEZONE = env("CELERY_TIMEZONE")
