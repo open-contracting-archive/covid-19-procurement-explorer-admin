@@ -39,7 +39,7 @@ from visualization.views import (
     TopBuyers,
     TopSuppliers,
     TotalContractsView,
-    TotalSpendingsView,
+    TotalSpendingView,
     WorldMapView,
 )
 
@@ -51,7 +51,7 @@ class TestUrls(SimpleTestCase):
 
     def test_total_spending_url_is_resolved(self):
         url = reverse("total_spending")
-        self.assertEquals(resolve(url).func.view_class, TotalSpendingsView)
+        self.assertEquals(resolve(url).func.view_class, TotalSpendingView)
 
     def test_average_bids_url_is_resolved(self):
         url = reverse("average_bids")

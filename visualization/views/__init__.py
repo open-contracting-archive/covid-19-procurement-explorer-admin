@@ -37,6 +37,6 @@ from .supplier_trend_view import SupplierTrendView
 from .top_buyers import TopBuyers
 from .top_suppliers import TopSuppliers
 from .total_contracts_view import TotalContractsView
-from .total_spendings_view import TotalSpendingsView
+from .total_spending_view import TotalSpendingView
 from .upcoming_event_view import UpcomingEventView
 from .world_map_view import WorldMapView
