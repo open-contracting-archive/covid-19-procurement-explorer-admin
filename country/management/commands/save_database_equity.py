@@ -11,14 +11,13 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         country_name = kwargs["country"]
         self.stdout.write(f"Fetching equity data for {country_name}")
-        if country_name:
-            try:
-                if Country.objects.filter(name=country_name).exists():
-                    fetch_equity_data.apply_async(args=(country_name,), queue="covid19")
-                    self.stdout.write("Created task: import_equity_data")
-            except Exception as e:
-                self.stderr.write(e)
 
-        else:
-            self.stderr.write("Enter country name as arguments")
+        try:
+            if Country.objects.filter(name=country_name).exists():
+                fetch_equity_data.apply_async(args=(country_name,), queue="covid19")
+                self.stdout.write("Created task: import_equity_data")
+        except Exception as e:
+            self.stderr.write(e)
+            return
+
         self.stdout.write("Done")
