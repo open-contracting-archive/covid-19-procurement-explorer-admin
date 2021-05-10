@@ -5,7 +5,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework.views import APIView
 
-from country.models import Country, Tender
+from country.models import Tender
 from visualization.helpers.general import page_expire_period
 from visualization.views.lib.general import add_filter_args
 
@@ -24,42 +24,7 @@ class ProductTimelineView(APIView):
         if supplier:
             filter_args = add_filter_args("supplier", supplier, filter_args)
         result = []
-        if country:
-            try:
-                country_instance = Country.objects.get(country_code_alpha_2=country)
-                currency = country_instance.currency
-                filter_args["country"] = country_instance
-                tenders_assigned = (
-                    Tender.objects.filter(**filter_args)
-                    .exclude(goods_services__goods_services_category=None)
-                    .annotate(month=TruncMonth("contract_date"))
-                    .values(
-                        "month",
-                        "goods_services__goods_services_category__category_name",
-                        "goods_services__goods_services_category__id",
-                    )
-                    .annotate(
-                        count=Count("id"),
-                        local=Sum("goods_services__contract_value_local"),
-                        usd=Sum("goods_services__contract_value_usd"),
-                    )
-                    .order_by("-month")
-                )
-                for tender in tenders_assigned:
-                    data = {
-                        "amount_local": tender["local"],
-                        "amount_usd": tender["usd"],
-                        "date": tender["month"],
-                        "local_currency_code": currency,
-                        "product_id": tender["goods_services__goods_services_category__id"],
-                        "product_name": tender["goods_services__goods_services_category__category_name"],
-                        "tender_count": tender["count"],
-                    }
-                    result.append(data)
-                return JsonResponse(result, safe=False)
-            except Exception:
-                return JsonResponse([{"error": "Invalid country_code"}], safe=False)
-        else:
+        try:
             tenders_assigned = (
                 Tender.objects.filter(**filter_args)
                 .exclude(goods_services__goods_services_category=None)
@@ -68,25 +33,26 @@ class ProductTimelineView(APIView):
                     "month",
                     "goods_services__goods_services_category__category_name",
                     "goods_services__goods_services_category__id",
+                    "country__currency",
                 )
                 .annotate(
                     count=Count("id"),
-                    local=Sum("goods_services__contract_value_local"),
-                    usd=Sum("goods_services__contract_value_usd"),
+                    local=Sum("contract_value_local"),
+                    usd=Sum("contract_value_usd"),
                 )
                 .order_by("-month")
             )
-            try:
-                for tender in tenders_assigned:
-                    data = {}
-                    data["amount_local"] = tender["local"]
-                    data["amount_usd"] = tender["usd"]
-                    data["date"] = tender["month"]
-                    data["local_currency_code"] = "USD"
-                    data["product_id"] = tender["goods_services__goods_services_category__id"]
-                    data["product_name"] = tender["goods_services__goods_services_category__category_name"]
-                    data["tender_count"] = tender["count"]
-                    result.append(data)
-                return JsonResponse(result, safe=False)
-            except Exception:
-                return JsonResponse([{"error": "Invalid country_code"}], safe=False)
+            for tender in tenders_assigned:
+                data = {
+                    "amount_local": tender["local"],
+                    "amount_usd": tender["usd"],
+                    "date": tender["month"],
+                    "local_currency_code": tender["country__currency"],
+                    "product_id": tender["goods_services__goods_services_category__id"],
+                    "product_name": tender["goods_services__goods_services_category__category_name"],
+                    "tender_count": tender["count"],
+                }
+                result.append(data)
+            return JsonResponse(result, safe=False)
+        except Exception:
+            return JsonResponse([{"error": "Invalid country_code"}], safe=False)
