@@ -13,7 +13,7 @@ import requests
 import xlsxwriter
 from celery import Celery
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Count, Q, Sum
 from requests.exceptions import Timeout
 
 from content.models import DataImport
@@ -1020,3 +1020,82 @@ def fill_contract_values(tender_id):
     tender_instance.award_value_usd = award_value_usd
     tender_instance.save()
     print("Done for tender id : " + str(tender_id))
+
+
+@app.task(name="summarize_buyer")
+def summarize_buyer(buyer_id):
+    buyer_instance = (
+        Buyer.objects.filter(id=buyer_id)
+        .values("tenders__country__country_code_alpha_2", "tenders__country__name")
+        .annotate(
+            amount_usd=Sum("tenders__contract_value_usd"),
+            amount_local=Sum("tenders__contract_value_local"),
+            tender_count=Count("tenders__id", distinct=True),
+            supplier_count=Count("tenders__supplier_id", filter=Q(tenders__supplier_id__isnull=False), distinct=True),
+            product_count=Count("tenders__goods_services__goods_services_category", distinct=True),
+            red_flag_count=Count("tenders__red_flag", distinct=True),
+        )
+        .first()
+    )
+    summary = {
+        "amount_local": buyer_instance["amount_local"],
+        "amount_usd": buyer_instance["amount_usd"],
+        "tender_count": buyer_instance["tender_count"],
+        "supplier_count": buyer_instance["supplier_count"],
+        "product_count": buyer_instance["product_count"],
+        "country_code": buyer_instance["tenders__country__country_code_alpha_2"],
+        "country_name": buyer_instance["tenders__country__name"],
+        "red_flag_tender_count": buyer_instance["red_flag_count"],
+        "red_flag_tender_percentage": 0
+        if buyer_instance["tender_count"] == 0
+        else float(buyer_instance["red_flag_count"] / buyer_instance["tender_count"]),
+    }
+    try:
+        country = Country.objects.get(country_code_alpha_2=buyer_instance["tenders__country__country_code_alpha_2"])
+        buyer = Buyer.objects.get(id=buyer_id)
+        buyer.country = country
+        buyer.summary = summary
+        buyer.save()
+    except Exception:
+        return "Buyer id doesnt exists!"
+    return "Completed"
+
+
+@app.task(name="summarize_supplier")
+def summarize_supplier(supplier_id):
+    supplier_instance = (
+        Supplier.objects.filter(id=supplier_id)
+        .values("tenders__country__country_code_alpha_2", "tenders__country__name")
+        .annotate(
+            amount_usd=Sum("tenders__contract_value_usd"),
+            amount_local=Sum("tenders__contract_value_local"),
+            tender_count=Count("tenders__id", distinct=True),
+            buyer_count=Count("tenders__buyer_id", filter=Q(tenders__buyer_id__isnull=False), distinct=True),
+            product_count=Count("tenders__goods_services__goods_services_category", distinct=True),
+            red_flag_count=Count("tenders__red_flag", distinct=True),
+        )
+        .first()
+    )
+    summary = {
+        "amount_local": supplier_instance["amount_local"],
+        "amount_usd": supplier_instance["amount_usd"],
+        "tender_count": supplier_instance["tender_count"],
+        "buyer_count": supplier_instance["buyer_count"],
+        "product_count": supplier_instance["product_count"],
+        "country_code": supplier_instance["tenders__country__country_code_alpha_2"],
+        "country_name": supplier_instance["tenders__country__name"],
+        "red_flag_tender_count": supplier_instance["red_flag_count"],
+        "red_flag_tender_percentage": 0
+        if supplier_instance["tender_count"] == 0
+        else float(supplier_instance["red_flag_count"] / supplier_instance["tender_count"]),
+    }
+
+    try:
+        country = Country.objects.get(country_code_alpha_2=supplier_instance["tenders__country__country_code_alpha_2"])
+        supplier = Supplier.objects.get(id=supplier_id)
+        supplier.country = country
+        supplier.summary = summary
+        supplier.save()
+    except Exception as e:
+        return e
+    return "Completed"

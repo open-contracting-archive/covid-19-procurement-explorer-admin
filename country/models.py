@@ -96,42 +96,6 @@ class CurrencyConversionCache(models.Model):
     conversion_rate = models.FloatField(verbose_name=_("Conversion rate"), null=True)
 
 
-class SupplierManager(models.Manager):
-    def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .annotate(
-                # amount_local=Sum("tenders__goods_services__contract_value_local"),
-                # amount_usd=Sum("tenders__goods_services__contract_value_usd"),
-                # country_name=F("tenders__country__name"),
-                # red_flag_count=Count("tenders__red_flag", distinct=True),
-                # product_category_count=Count("tenders__goods_services__goods_services_category", distinct=True),
-                # tender_count=Count("tenders__id", distinct=True),
-                # buyer_count=Count("tenders__buyer_id", filter=Q(tenders__buyer_id__isnull=False), distinct=True),
-            )
-        )
-
-
-class BuyerManager(models.Manager):
-    def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .annotate(
-                # amount_usd=Sum("tenders__goods_services__contract_value_usd"),
-                # amount_local=Sum("tenders__goods_services__contract_value_local"),
-                # country_name=F("tenders__country__name"),
-                # red_flag_count=Count("tenders__red_flag", distinct=True),
-                # # product_category_count=Count("tenders__goods_services__goods_services_category", distinct=True),
-                # tender_count=Count("tenders__id", distinct=True),
-                # supplier_count=Count(
-                #     "tenders__supplier_id", filter=Q(tenders__supplier_id__isnull=False), distinct=True
-                # ),
-            )
-        )
-
-
 class Supplier(models.Model):
     supplier_id = models.CharField(verbose_name=_("Supplier ID"), max_length=50, null=True)
     supplier_name = models.CharField(
@@ -140,7 +104,6 @@ class Supplier(models.Model):
     supplier_address = models.CharField(verbose_name=_("Supplier address"), max_length=250, null=True, blank=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="suppliers", null=True)
     summary = models.JSONField(null=True)
-    objects = SupplierManager()
 
     def __str__(self):
         return f"{self.supplier_id} - {self.supplier_name}"
@@ -152,7 +115,6 @@ class Buyer(models.Model):
     buyer_address = models.CharField(verbose_name=_("Buyer address"), max_length=250, null=True, blank=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="buyers", null=True)
     summary = models.JSONField(null=True)
-    objects = BuyerManager()
 
     def __str__(self):
         return f"{self.buyer_id} - {self.buyer_name}"

@@ -298,10 +298,10 @@ class TenderForm(forms.ModelForm):
             "buyer",
         )
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     self.fields["buyer"].queryset = Buyer.objects.filter(tenders__country=self.instance.country)
-    #     self.fields["supplier"].queryset = Supplier.objects.filter(tenders__country=self.instance.country)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["buyer"].queryset = Buyer.objects.filter(country=self.instance.country)
+        self.fields["supplier"].queryset = Supplier.objects.filter(country=self.instance.country)
 
 
 class TenderAdmin(admin.ModelAdmin):
