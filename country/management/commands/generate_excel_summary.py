@@ -3,7 +3,7 @@ import socket
 
 import xlsxwriter
 from django.core.management.base import BaseCommand
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Max, Min, Q, Sum
 
 from country.models import Country, OverallSummary, Tender
 
@@ -14,11 +14,10 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.stdout.write("Exporting")
         os.makedirs(os.path.join("media", "export"), exist_ok=True)
-        workbook = xlsxwriter.Workbook("media/export/overall_summary.xlsx")
+        workbook = xlsxwriter.Workbook("media/export/Overall Country Summary.xlsx")
         worksheet = workbook.add_worksheet()
         row = 0
         column = 0
-        columns = 0
         column_names = [
             "Country",
             "Total Contracts",
@@ -34,14 +33,16 @@ class Command(BaseCommand):
             "Open Contracts Amount",
             "Selective Contracts Amount",
             "Not Identified Contracts Amount",
-            "Active Contracts",
-            "Completed Contracts",
-            "Cancelled Contracts",
-            "Not Identified Contract Status",
-            "Active Contracts Amount",
-            "Completed Contracts Amount",
-            "Cancelled Contracts Amount",
-            "Not Identified Amount",
+            "No. of Buyers",
+            "No. of Suppliers",
+            "Quantity of red flags",
+            "Total value of contracts with red flags",
+            "Quantity of Equity Contracts",
+            "Total value of equity contracts",
+            "Time Span",
+            "GDP per Capita",
+            "Healthcare budget",
+            "Percentage of GDP to healthcare budget",
             "Country Data Download",
         ]
         for item in column_names:
@@ -58,8 +59,8 @@ class Command(BaseCommand):
                 .values("id")
                 .aggregate(
                     total_contracts=Count("id", distinct=True),
-                    total_usd=Sum("goods_services__contract_value_usd", distinct=True),
-                    total_local=Sum("goods_services__contract_value_local", distinct=True),
+                    total_usd=Sum("contract_value_usd"),
+                    total_local=Sum("contract_value_local"),
                     direct_contracts=Count("id", distinct=True, filter=Q(procurement_procedure="direct")),
                     limited_contracts=Count("id", distinct=True, filter=Q(procurement_procedure="limited")),
                     open_contracts=Count("id", distinct=True, filter=Q(procurement_procedure="open")),
@@ -67,65 +68,71 @@ class Command(BaseCommand):
                     not_identified_method_contracts=Count(
                         "id", distinct=True, filter=Q(procurement_procedure="not_identified")
                     ),
-                    direct_amount=Sum(
-                        "goods_services__contract_value_usd", distinct=True, filter=Q(procurement_procedure="direct")
-                    ),
-                    limited_amount=Sum(
-                        "goods_services__contract_value_usd", distinct=True, filter=Q(procurement_procedure="limited")
-                    ),
-                    open_amount=Sum(
-                        "goods_services__contract_value_usd", distinct=True, filter=Q(procurement_procedure="open")
-                    ),
+                    direct_amount=Sum("contract_value_usd", filter=Q(procurement_procedure="direct")),
+                    limited_amount=Sum("contract_value_usd", filter=Q(procurement_procedure="limited")),
+                    open_amount=Sum("contract_value_usd", filter=Q(procurement_procedure="open")),
                     selective_amount=Sum(
-                        "goods_services__contract_value_usd",
-                        distinct=True,
+                        "contract_value_usd",
                         filter=Q(procurement_procedure="selective"),
                     ),
                     not_identified_contracts_amount=Sum(
-                        "goods_services__contract_value_usd",
-                        distinct=True,
+                        "contract_value_usd",
                         filter=Q(procurement_procedure="not_identified"),
                     ),
-                    active_contracts=Count("id", distinct=True, filter=Q(status="active")),
-                    completed_contracts=Count("id", distinct=True, filter=Q(status="completed")),
-                    cancelled_contracts=Count("id", distinct=True, filter=Q(status="cancelled")),
-                    not_identified_contracts=Count("id", distinct=True, filter=Q(status="not_identified")),
-                    not_identified_contracts_sum=Sum(
-                        "goods_services__contract_value_usd", distinct=True, filter=Q(status="not_identified")
-                    ),
-                    active_contracts_sum=Sum(
-                        "goods_services__contract_value_usd", distinct=True, filter=Q(status="active")
-                    ),
-                    completed_contracts_sum=Sum(
-                        "goods_services__contract_value_usd", distinct=True, filter=Q(status="completed")
-                    ),
-                    cancelled_contracts_sum=Sum(
-                        "goods_services__contract_value_usd", distinct=True, filter=Q(status="cancelled")
-                    ),
+                    no_of_buyers=Count("buyer_id", distinct=True),
+                    no_of_suppliers=Count("supplier_id", distinct=True),
+                    time_span_max=Max("contract_date"),
+                    time_span_min=Min("contract_date"),
+                    quantity_red_flag=Count("red_flag"),
+                    sum_red_flag=Sum("contract_value_usd", exclude=Q(red_flag=None)),
+                    quantity_of_equity_contracts=Count("equity_category"),
+                    total_value_of_equity_contracts=Sum("contract_value_usd", exclude=Q(equity_category=None)),
                 )
             )
+            if report["time_span_max"] and report["time_span_min"] is not None:
+                timespan = report["time_span_max"] - report["time_span_min"]
+            else:
+                timespan = ""
             data["country"] = country.name
             data["total_contracts"] = report["total_contracts"]
-            data["total_amount_usd"] = report["total_usd"]
-            data["total_amount_local"] = report["total_local"]
+            data["total_amount_usd"] = round(report["total_usd"], 2) if report["total_usd"] is not None else 0
+            data["total_amount_local"] = round(report["total_local"], 2) if report["total_local"] is not None else 0
             data["direct_contracts"] = report["direct_contracts"]
             data["limited_contracts"] = report["limited_contracts"]
             data["open_contracts"] = report["open_contracts"]
             data["selective_contracts"] = report["selective_contracts"]
             data["not_identified_method_contracts"] = report["not_identified_method_contracts"]
-            data["direct_contracts_amount"] = report["direct_amount"]
-            data["limited_contracts_amount"] = report["limited_amount"]
-            data["open_contracts_amount"] = report["open_amount"]
-            data["selective_contracts_amount"] = report["selective_amount"]
-            data["not_identified_contracts_amount"] = report["not_identified_contracts_amount"]
-            data["active_contracts"] = report["active_contracts"]
-            data["completed_contracts"] = report["completed_contracts"]
-            data["cancelled_contracts"] = report["cancelled_contracts"]
-            data["not_identified_contracts"] = report["not_identified_contracts"]
-            data["active_contracts_sum"] = report["active_contracts_sum"]
-            data["completed_contracts_sum"] = report["completed_contracts_sum"]
-            data["cancelled_contracts_sum"] = report["cancelled_contracts_sum"]
-            data["not_identified_contracts_sum"] = report["not_identified_contracts_sum"]
+            data["direct_contracts_amount"] = (
+                round(report["direct_amount"], 2) if report["direct_amount"] is not None else 0
+            )
+            data["limited_contracts_amount"] = (
+                round(report["limited_amount"], 2) if report["limited_amount"] is not None else 0
+            )
+            data["open_contracts_amount"] = round(report["open_amount"], 2) if report["open_amount"] is not None else 0
+            data["selective_contracts_amount"] = (
+                round(report["selective_amount"], 2) if report["selective_amount"] is not None else 0
+            )
+            data["not_identified_contracts_amount"] = (
+                round(report["not_identified_contracts_amount"], 2)
+                if report["not_identified_contracts_amount"] is not None
+                else 0
+            )
+            data["no_of_buyers"] = report["no_of_buyers"]
+            data["no_of_suppliers"] = report["no_of_suppliers"]
+            data["quantity_of_red_flags"] = report["quantity_red_flag"]
+            data["value_of_red_flag_contracts"] = (
+                round(report["sum_red_flag"], 2) if report["sum_red_flag"] is not None else 0
+            )
+            data["quantity_of_equity_contracts"] = report["quantity_of_equity_contracts"]
+            data["total_value_of_equity_contracts"] = (
+                round(report["total_value_of_equity_contracts"], 2)
+                if report["total_value_of_equity_contracts"] is not None
+                else 0
+            )
+            data["time_span"] = str(timespan)[:-9]
+            data["gdp_per_capita"] = country.gdp
+            data["healthcare_budget"] = country.healthcare_budget
+            data["percentage_of_gdp_to_healthcare_budget"] = country.healthcare_gdp_pc
             data["country_data_download"] = (
                 "https://"
                 + socket.gethostbyname(socket.gethostname())
@@ -133,6 +140,7 @@ class Command(BaseCommand):
                 + country.name
                 + "_summary.xlsx"
             )
+
             for key, value in data.items():
                 worksheet.write(row, columns, value)
                 columns += 1
@@ -141,5 +149,5 @@ class Command(BaseCommand):
                 OverallSummary.objects.filter(country=country).delete()
                 OverallSummary.objects.create(statistic=data, country=country)
             except Exception as e:
-                self.stderr.write(e)
+                self.stderr.write(str(e))
         workbook.close()

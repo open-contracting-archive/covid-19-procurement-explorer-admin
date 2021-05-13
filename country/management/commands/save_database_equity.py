@@ -17,7 +17,7 @@ class Command(BaseCommand):
                 fetch_equity_data.apply_async(args=(country_name,), queue="covid19")
                 self.stdout.write("Created task: import_equity_data")
         except Exception as e:
-            self.stderr.write(e)
+            self.stderr.write(str(e))
             return
 
         self.stdout.write("Done")
