@@ -256,10 +256,15 @@ def import_tender_from_batch_id(batch_id, country, currency):
             country_obj = Country.objects.filter(name=country).first()
 
             # Get or Create Supplier
-            if supplier_id or supplier_name:
+            if supplier_id or supplier_name or supplier_address:
                 supplier_id = str(supplier_id).strip() if supplier_id else " "
                 supplier_name = str(supplier_name).strip() if supplier_name else " "
-                supplier_obj = Supplier.objects.filter(supplier_id=supplier_id, supplier_name=supplier_name).first()
+                supplier_address = str(supplier_address).strip() if supplier_address else " "
+                supplier_obj = Supplier.objects.filter(
+                    supplier_id__iexact=supplier_id,
+                    supplier_name__iexact=supplier_name,
+                    supplier_address__iexact=supplier_address,
+                ).first()
                 if not supplier_obj:
                     supplier_obj = Supplier(
                         supplier_id=supplier_id,
@@ -272,10 +277,13 @@ def import_tender_from_batch_id(batch_id, country, currency):
                 supplier_obj = None
 
             # Get or Create Buyer
-            if buyer_id or buyer_name:
+            if buyer_id or buyer_name or buyer_address:
                 buyer_id = str(buyer_id).strip() if buyer_id else " "
                 buyer_name = str(buyer_name).strip() if buyer_name else " "
-                buyer_obj = Buyer.objects.filter(buyer_id=buyer_id, buyer_name=buyer_name).first()
+                buyer_address = str(buyer_address).strip() if buyer_address else " "
+                buyer_obj = Buyer.objects.filter(
+                    buyer_id__iexact=buyer_id, buyer_name__iexact=buyer_name, buyer_address__iexact=buyer_address
+                ).first()
                 if not buyer_obj:
                     buyer_obj = Buyer(
                         buyer_id=buyer_id,

@@ -19,9 +19,7 @@ class SupplierTrendView(APIView):
         count = (
             Tender.objects.annotate(month=TruncMonth("contract_date"))
             .values("month")
-            .annotate(
-                total_buyer_count=Count("supplier__id", distinct=True), sum=Sum("goods_services__contract_value_usd")
-            )
+            .annotate(total_buyer_count=Count("supplier__id", distinct=True), sum=Sum("contract_value_usd"))
             .order_by("month")
         )
         countries = Country.objects.all()
@@ -39,7 +37,7 @@ class SupplierTrendView(APIView):
                     contract_date__lte=end_date,
                 ).aggregate(
                     total_supplier_count=Count("supplier__id", distinct=True),
-                    amount_usd=Sum("goods_services__contract_value_usd"),
+                    amount_usd=Sum("contract_value_usd"),
                 )
                 b["country"] = j.name
                 b["country_code"] = j.country_code_alpha_2
