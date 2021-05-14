@@ -20,25 +20,18 @@ class QuantityCorrelation(APIView):
         filter_args = {}
         if country:
             filter_args["country__country_code_alpha_2"] = country
-        if country:
-            contracts_quantity = (
-                Tender.objects.filter(country__country_code_alpha_2=country)
-                .annotate(month=TruncMonth("contract_date"))
-                .values("month", "country__currency")
-                .annotate(
-                    count=Count("id"),
-                    usd=Sum("goods_services__contract_value_usd"),
-                    local=Sum("goods_services__contract_value_local"),
-                )
-                .order_by("-month")
+
+        contracts_quantity = (
+            Tender.objects.filter(**filter_args)
+            .annotate(month=TruncMonth("contract_date"))
+            .values("month", "country__currency")
+            .annotate(
+                count=Count("id"),
+                usd=Sum("contract_value_usd"),
+                local=Sum("contract_value_local"),
             )
-        else:
-            contracts_quantity = (
-                Tender.objects.annotate(month=TruncMonth("contract_date"))
-                .values("month")
-                .annotate(count=Count("id"), usd=Sum("goods_services__contract_value_usd"))
-                .order_by("-month")
-            )
+            .order_by("-month")
+        )
 
         contracts_quantity_list = []
 
@@ -54,17 +47,18 @@ class QuantityCorrelation(APIView):
                         active_case_count += j["active_cases_count"]
                         death_count += j["death_count"]
             except Exception:
-                active_case_count = 0
-                death_count = 0
-            a = {
-                "active_cases": active_case_count,
-                "death_cases": death_count,
-                "amount_local": i["local"] if "local" in i else "",
-                "amount_usd": i["usd"],
-                "local_currency_code": i["country__currency"] if "country__currency" in i else "",
-                "month": i["month"],
-                "tender_count": i["count"],
-            }
-            contracts_quantity_list.append(a)
+                pass
+
+            contracts_quantity_list.append(
+                {
+                    "active_cases": active_case_count,
+                    "death_cases": death_count,
+                    "amount_local": i["local"] if "local" in i else "",
+                    "amount_usd": i["usd"],
+                    "local_currency_code": i["country__currency"] if "country__currency" in i else "",
+                    "month": i["month"],
+                    "tender_count": i["count"],
+                }
+            )
 
         return JsonResponse(contracts_quantity_list, safe=False)
