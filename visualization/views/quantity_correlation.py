@@ -20,18 +20,24 @@ class QuantityCorrelation(APIView):
         filter_args = {}
         if country:
             filter_args["country__country_code_alpha_2"] = country
-
-        contracts_quantity = (
-            Tender.objects.filter(**filter_args)
-            .annotate(month=TruncMonth("contract_date"))
-            .values("month", "country__currency")
-            .annotate(
-                count=Count("id"),
-                usd=Sum("contract_value_usd"),
-                local=Sum("contract_value_local"),
+            contracts_quantity = (
+                Tender.objects.filter(**filter_args)
+                .annotate(month=TruncMonth("contract_date"))
+                .values("month", "country__currency")
+                .annotate(
+                    count=Count("id"),
+                    usd=Sum("contract_value_usd"),
+                    local=Sum("contract_value_local"),
+                )
+                .order_by("-month")
             )
-            .order_by("-month")
-        )
+        else:
+            contracts_quantity = (
+                Tender.objects.annotate(month=TruncMonth("contract_date"))
+                .values("month")
+                .annotate(count=Count("id"), usd=Sum("contract_value_usd"))
+                .order_by("-month")
+            )
 
         contracts_quantity_list = []
 
