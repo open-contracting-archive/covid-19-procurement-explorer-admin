@@ -21,6 +21,8 @@ class SupplierView(viewsets.ModelViewSet):
         "country__name",
         "amount_usd",
         "amount_local",
+        "supplier_code",
+        "red_flag_tender_percentage",
     ]
     ordering = ["-id"]
     extensions_auto_optimize = True
@@ -33,10 +35,16 @@ class SupplierView(viewsets.ModelViewSet):
     def get_queryset(self):
         country_code = self.request.GET.get("country", None)
         supplier_name = self.request.GET.get("supplier_name", None)
+        supplier_code = self.request.GET.get("supplier_code", None)
         product_id = self.request.GET.get("product", None)
         contract_value_usd = self.request.GET.get("contract_value_usd", None)
         value_comparison = self.request.GET.get("value_comparison", None)
-        filter_args = {}
+        filter_args = {
+            "country__isnull": False,
+            "summary__tender_count__isnull": False,
+            "summary__amount_local__isnull": False,
+            "summary__amount_usd__isnull": False,
+        }
         annotate_args = {}
 
         if country_code:
@@ -44,6 +52,9 @@ class SupplierView(viewsets.ModelViewSet):
 
         if supplier_name:
             filter_args["supplier_name__icontains"] = supplier_name
+
+        if supplier_code:
+            filter_args["supplier_id__contains"] = supplier_code
 
         if product_id:
             filter_args["tenders__goods_services__goods_services_category"] = product_id
@@ -62,5 +73,8 @@ class SupplierView(viewsets.ModelViewSet):
             product_category_count=KeyTransform("product_count", "summary__product_count"),
             amount_usd=KeyTransform("amount_usd", "summary__amount_usd"),
             amount_local=KeyTransform("amount_local", "summary__amount_local"),
+            red_flag_tender_percentage=KeyTransform(
+                "red_flag_tender_percentage", "summary__red_flag_tender_percentage"
+            ),
             **annotate_args
         ).filter(**filter_args)

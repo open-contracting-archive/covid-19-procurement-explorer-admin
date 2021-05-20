@@ -21,6 +21,8 @@ class BuyerView(viewsets.ModelViewSet):
         "country__name",
         "amount_usd",
         "amount_local",
+        "buyer_code",
+        "red_flag_tender_percentage",
     ]
     ordering = ["-id"]
     extensions_auto_optimize = True
@@ -32,13 +34,18 @@ class BuyerView(viewsets.ModelViewSet):
         return Response(self.get_serializer(instance).data)
 
     def get_queryset(self):
-        #    country, buyer name, value range, red flag range
         country = self.request.GET.get("country", None)
         buyer_name = self.request.GET.get("buyer_name", None)
+        buyer_code = self.request.GET.get("buyer_code", None)
         product_id = self.request.GET.get("product", None)
         contract_value_usd = self.request.GET.get("contract_value_usd", None)
         value_comparison = self.request.GET.get("value_comparison", None)
-        filter_args = {}
+        filter_args = {
+            "country__isnull": False,
+            "summary__tender_count__isnull": False,
+            "summary__amount_local__isnull": False,
+            "summary__amount_usd__isnull": False,
+        }
         annotate_args = {}
 
         if country:
@@ -46,6 +53,9 @@ class BuyerView(viewsets.ModelViewSet):
 
         if buyer_name:
             filter_args["buyer_name__contains"] = buyer_name
+
+        if buyer_code:
+            filter_args["buyer_id__contains"] = buyer_code
 
         if product_id:
             filter_args["tenders__goods_services__goods_services_category"] = product_id
@@ -64,5 +74,8 @@ class BuyerView(viewsets.ModelViewSet):
             product_category_count=KeyTransform("product_count", "summary__product_count"),
             amount_usd=KeyTransform("amount_usd", "summary__amount_usd"),
             amount_local=KeyTransform("amount_local", "summary__amount_local"),
+            red_flag_tender_percentage=KeyTransform(
+                "red_flag_tender_percentage", "summary__red_flag_tender_percentage"
+            ),
             **annotate_args
         ).filter(**filter_args)

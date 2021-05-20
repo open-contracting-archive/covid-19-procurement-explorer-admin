@@ -23,7 +23,6 @@ class TotalSpendingView(APIView):
         supplier = self.request.GET.get("supplier")
 
         filter_args = {}
-        exclude_args = {"status": "canceled"}
         if country:
             filter_args["country__country_code_alpha_2"] = country
         if buyer:
@@ -33,7 +32,6 @@ class TotalSpendingView(APIView):
 
         bar_chart = (
             Tender.objects.filter(**filter_args)
-            .exclude(**exclude_args)
             .values("procurement_procedure")
             .annotate(usd=Sum("contract_value_usd"), local=Sum("contract_value_local"))
         )
@@ -52,7 +50,6 @@ class TotalSpendingView(APIView):
 
         line_chart = (
             Tender.objects.filter(**filter_args)
-            .exclude(**exclude_args)
             .annotate(month=TruncMonth("contract_date"))
             .values("month")
             .annotate(usd=Sum("contract_value_usd"), local=Sum("contract_value_local"))
