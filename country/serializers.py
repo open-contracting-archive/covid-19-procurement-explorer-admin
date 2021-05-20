@@ -152,7 +152,7 @@ class SupplierSerializer(serializers.ModelSerializer, SerializerExtensionsMixin)
 
     def get_red_flag_tender_percentage(self, obj):
         try:
-            red_flag_tender_percentage = obj.summary["red_flag_tender_percentage"]
+            red_flag_tender_percentage = round(obj.summary["red_flag_tender_percentage"], 2)
         except TypeError:
             red_flag_tender_percentage = 0
         return red_flag_tender_percentage
@@ -253,7 +253,7 @@ class BuyerSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
 
     def get_red_flag_tender_percentage(self, obj):
         try:
-            red_flag_tender_percentage = obj.summary["red_flag_tender_percentage"]
+            red_flag_tender_percentage = round(obj.summary["red_flag_tender_percentage"], 2)
         except TypeError:
             red_flag_tender_percentage = 0
         return red_flag_tender_percentage
@@ -310,8 +310,6 @@ class TenderSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     country_name = serializers.CharField(source="country.name", read_only=True)
     country_alpha_code = serializers.CharField(source="country.country_code_alpha_2", read_only=True)
     contract_currency_local = serializers.CharField(source="country.currency", read_only=True)
-    contract_value_usd = serializers.SerializerMethodField()
-    contract_value_local = serializers.SerializerMethodField()
     supplier_name = serializers.SerializerMethodField()
     buyer_name = serializers.SerializerMethodField()
     supplier_id = serializers.SerializerMethodField()
@@ -322,10 +320,6 @@ class TenderSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     buyer_code = serializers.SerializerMethodField()
     product_category = serializers.SerializerMethodField()
     bidders_no = serializers.SerializerMethodField()
-    tender_local = serializers.SerializerMethodField()
-    tender_usd = serializers.SerializerMethodField()
-    award_local = serializers.SerializerMethodField()
-    award_usd = serializers.SerializerMethodField()
     equity_category = serializers.SerializerMethodField()
     # red_flag_count = serializers.SerializerMethodField()
     red_flag = RedFlagSerializer(many=True, read_only=True)
@@ -360,10 +354,10 @@ class TenderSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
             "data_source",
             "product_category",
             "bidders_no",
-            "tender_local",
-            "tender_usd",
-            "award_local",
-            "award_usd",
+            "tender_value_local",
+            "tender_value_usd",
+            "award_value_local",
+            "award_value_usd",
             "equity_category",
             # 'red_flag_count',
             "red_flag",
@@ -374,47 +368,16 @@ class TenderSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
             "contract_currency_local",
         )
 
-    def get_contract_value_usd(self, obj):
-        return obj.goods_services.aggregate(total=Sum("contract_value_usd"))["total"]
-
-    def get_contract_value_local(self, obj):
-        return obj.goods_services.aggregate(total=Sum("contract_value_local"))["total"]
-
     def get_product_category(self, obj):
-        tender = (
-            Tender.objects.filter(id=obj.id)
-            .values("goods_services__goods_services_category__category_name")
-            .distinct()
-        )
-        return tender[0]["goods_services__goods_services_category__category_name"]
+        try:
+            categories = obj.goods_services.values("goods_services_category__category_name").distinct()
+            return categories[0]["goods_services_category__category_name"]
+        except Exception:
+            return ""
 
     def get_bidders_no(self, obj):
         try:
             return obj.no_of_bidders
-        except Exception:
-            return 0
-
-    def get_tender_local(self, obj):
-        try:
-            return obj.goods_services.aggregate(tender_value_local=Sum("tender_value_local"))["tender_value_local"]
-        except Exception:
-            return 0
-
-    def get_tender_usd(self, obj):
-        try:
-            return obj.goods_services.aggregate(tender_value_usd=Sum("tender_value_usd"))["tender_value_usd"]
-        except Exception:
-            return 0
-
-    def get_award_local(self, obj):
-        try:
-            return obj.goods_services.aggregate(award_value_local=Sum("award_value_local"))["award_value_local"]
-        except Exception:
-            return 0
-
-    def get_award_usd(self, obj):
-        try:
-            return obj.goods_services.aggregate(award_value_usd=Sum("award_value_usd"))["award_value_usd"]
         except Exception:
             return 0
 
@@ -458,7 +421,7 @@ class TenderSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
             return obj.buyer.buyer_id
 
     def get_goods_services(self, obj):
-        a = obj.goods_services.all().values(
+        a = obj.goods_services.values(
             "goods_services_category__category_name",
             "contract_desc",
             "contract_value_usd",
@@ -467,7 +430,8 @@ class TenderSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
             "contract_value_local",
             "classification_code",
         )
-        return list(a)
+        if obj.goods_services:
+            return list(a)
 
 
 class OverallStatSummarySerializer(serializers.ModelSerializer, SerializerExtensionsMixin):

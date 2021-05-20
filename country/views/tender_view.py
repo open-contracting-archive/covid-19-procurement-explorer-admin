@@ -62,10 +62,10 @@ class TenderView(viewsets.ModelViewSet):
             filter_args["contract_date__range"] = [date_from, date_to]
         if contract_value_usd and value_comparison:
             if value_comparison == "gt":
-                annotate_args["sum"] = Sum("goods_services__contract_value_usd")
+                annotate_args["sum"] = Sum("contract_value_usd")
                 filter_args["sum__gte"] = contract_value_usd
             elif value_comparison == "lt":
-                annotate_args["sum"] = Sum("goods_services__contract_value_usd")
+                annotate_args["sum"] = Sum("contract_value_usd")
                 filter_args["sum__lte"] = contract_value_usd
         if status == "others":
             exclude_args["status__in"] = ["active", "canceled", "completed"]
