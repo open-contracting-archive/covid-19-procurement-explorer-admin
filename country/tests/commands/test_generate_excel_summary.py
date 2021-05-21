@@ -45,4 +45,4 @@ def setUpModule():
 
 class GenerateExcelSummaryTests(TransactionTestCase):
     def test_command(self):
-        self.assertEquals(call_command("generate_excel_summary"), None)
+        self.assertEquals(call_command("generate_excel_summary"), "Finished")
