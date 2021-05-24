@@ -22,6 +22,7 @@ from visualization.views import (
     FilterParams,
     GlobalOverView,
     GlobalSuppliersView,
+    InsightsView,
     MonopolizationView,
     ProductDistributionView,
     ProductFlowView,
@@ -204,3 +205,7 @@ class TestUrls(SimpleTestCase):
     def test_supplier_flow_view_url_is_resolved(self):
         url = reverse("supplier_flow_view", args=["1"])
         self.assertEquals(resolve(url).func.view_class, SupplierFlowView)
+
+    def test_insights_view_url_is_resolved(self):
+        url = reverse("insights_view")
+        self.assertEquals(resolve(url).func.view_class, InsightsView)

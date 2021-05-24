@@ -22,7 +22,7 @@ from wagtail.admin import urls as wagtailadmin_urls
 # from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
-from visualization.views import SlugBlogShow, SlugStaticPageShow, UpcomingEventView
+from visualization.views import InsightsView, SlugBlogShow, SlugStaticPageShow, UpcomingEventView
 
 from .api import api_router
 
@@ -39,6 +39,7 @@ urlpatterns = [
     path("api/contents/<str:type>/<str:slug>/", SlugBlogShow.as_view()),
     path("api/staticpage/<str:type>", SlugStaticPageShow.as_view()),
     path("api/upcoming-events", UpcomingEventView.as_view()),
+    path("api/contents/insights", InsightsView.as_view(), name="insights_view"),
     path("", include("country.urls")),
     path("api-auth/", include("rest_framework.urls")),
     path("cms/", include(wagtailadmin_urls)),

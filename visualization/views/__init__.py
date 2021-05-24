@@ -18,6 +18,7 @@ from .filter_parameters_suppliers import FilterParametersSuppliers
 from .filter_params import FilterParams
 from .global_over_view import GlobalOverView
 from .global_suppliers_view import GlobalSuppliersView
+from .insights_view import InsightsView
 from .monopolization_view import MonopolizationView
 from .product_distribution_view import ProductDistributionView
 from .product_flow_view import ProductFlowView
