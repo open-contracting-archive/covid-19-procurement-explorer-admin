@@ -53,7 +53,7 @@ class CountrySerializer(serializers.HyperlinkedModelSerializer, SerializerExtens
                 None
 
         except Exception:
-            return obj.tenders.all().aggregate(amount_usd=Sum("goods_services__contract_value_usd"))["amount_usd"]
+            return obj.tenders.aggregate(amount_usd=Sum("contract_value_usd"))["amount_usd"]
 
     def get_amount_local(self, obj):
         try:
@@ -63,9 +63,7 @@ class CountrySerializer(serializers.HyperlinkedModelSerializer, SerializerExtens
                 return None
 
         except Exception:
-            return obj.tenders.all().aggregate(amount_local=Sum("goods_services__contract_value_local"))[
-                "amount_local"
-            ]
+            return obj.tenders.aggregate(amount_local=Sum("contract_value_local"))["amount_local"]
 
     def get_tender_count(self, obj):
         try:
@@ -75,7 +73,7 @@ class CountrySerializer(serializers.HyperlinkedModelSerializer, SerializerExtens
                 return None
 
         except Exception:
-            return obj.tenders.all().aggregate(tender_count=Count("id"))["tender_count"]
+            return obj.tenders.aggregate(tender_count=Count("id"))["tender_count"]
 
     def get_last_contract_date(self, obj):
         try:
@@ -85,7 +83,7 @@ class CountrySerializer(serializers.HyperlinkedModelSerializer, SerializerExtens
                 return None
 
         except Exception:
-            return obj.tenders.all().aggregate(contract_last_date=Max("contract_date"))["contract_last_date"]
+            return obj.tenders.aggregate(contract_last_date=Max("contract_date"))["contract_last_date"]
 
 
 class LanguageSerializer(serializers.ModelSerializer, SerializerExtensionsMixin):

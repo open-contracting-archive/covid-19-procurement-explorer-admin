@@ -24,8 +24,8 @@ class ProductTableView(APIView):
             )
             .annotate(
                 total=Count("id", distinct=True),
-                local=Sum("goods_services__contract_value_local"),
-                usd=Sum("goods_services__contract_value_usd"),
+                local=Sum("contract_value_local"),
+                usd=Sum("contract_value_usd"),
                 buyer=Count("buyer", distinct=True),
                 supplier=Count("supplier", distinct=True),
             )

@@ -1,4 +1,5 @@
 from .buyer_view import BuyerView
+from .country_detail_view import CountryDetailView
 from .country_view import CountryView
 from .data_edit_view import DataEditView
 from .data_import_view import DataImportView
