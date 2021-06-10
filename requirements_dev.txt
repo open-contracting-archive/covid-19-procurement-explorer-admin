@@ -73,14 +73,16 @@ decorator==4.4.2
     # via
     #   ipython
     #   traitlets
-django-debug-toolbar==3.2.1
-    # via -r requirements_dev.in
 distlib==0.3.1
     # via virtualenv
 django-ckeditor==6.0.0
     # via -r requirements.txt
 django-cors-headers==3.5.0
     # via -r requirements.txt
+django-debug-toolbar==3.2.1
+    # via
+    #   -r requirements.txt
+    #   -r requirements_dev.in
 django-environ==0.4.5
     # via -r requirements.txt
 django-filter==2.4.0
@@ -103,7 +105,7 @@ django-treebeard==4.3.1
     # via
     #   -r requirements.txt
     #   wagtail
-django==3.1.8
+django==3.1.12
     # via
     #   -r requirements.txt
     #   django-cors-headers
@@ -210,7 +212,7 @@ pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-pillow==8.1.2
+pillow==8.2.0
     # via
     #   -r requirements.txt
     #   wagtail
@@ -253,7 +255,7 @@ pyyaml==5.4.1
     # via pre-commit
 regex==2021.3.17
     # via black
-requests==2.24.0
+requests==2.25.1
     # via
     #   -r requirements.txt
     #   coveralls
@@ -300,7 +302,7 @@ typed-ast==1.4.1
     # via black
 typing-extensions==3.7.4.3
     # via black
-urllib3==1.25.11
+urllib3==1.26.5
     # via
     #   -r requirements.txt
     #   requests
