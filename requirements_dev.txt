@@ -18,7 +18,7 @@ appdirs==1.4.4
     #   virtualenv
 appnope==0.1.0
     # via ipython
-asgiref==3.2.10
+asgiref==3.3.4
     # via
     #   -r requirements.txt
     #   django
@@ -105,7 +105,7 @@ django-treebeard==4.3.1
     # via
     #   -r requirements.txt
     #   wagtail
-django==3.1.12
+django==3.2.4
     # via
     #   -r requirements.txt
     #   django-cors-headers
@@ -304,8 +304,11 @@ transifex-client==0.14.1
     # via -r requirements_dev.in
 typed-ast==1.4.3
     # via black
-typing-extensions==3.7.4.3
-    # via black
+typing-extensions==3.10.0.0
+    # via
+    #   -r requirements.txt
+    #   asgiref
+    #   black
 urllib3==1.26.5
     # via
     #   -r requirements.txt
