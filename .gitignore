@@ -45,8 +45,8 @@ erl_crash.dump
 /htmlcov
 
 # Deployment scripts used by Young Innovations
- /script.sh
- /deploy.sh
+script.sh
+deploy.sh
 
 #Pycharm
 *.idea/

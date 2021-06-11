@@ -14,17 +14,17 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         country = kwargs["country"]
         batch_id = kwargs["batch_id"]
-        print(f"Fetching tender data for Batch id {batch_id} for country {country}")
+        self.stdout.write(f"Fetching tender data for Batch id {batch_id} for country {country}")
 
         try:
-            result = Country.objects.filter(name=country).first()
+            result = Country.objects.get(name=country)
             country = result.name
             currency = result.currency
 
             if not result:
-                print(f'Country "{country}" does not exists in our database.')
+                self.stderr.write(f'Country "{country}" does not exists in our database.')
             else:
                 import_tender_from_batch_id.apply_async(args=(batch_id, country, currency), queue="covid19")
-                print("Created task: import_tender_from_batch_id")
+                self.stdout.write("Created task: import_tender_from_batch_id")
         except Exception as e:
-            print(e)
+            self.stderr.write(e)

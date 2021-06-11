@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.template.defaultfilters import slugify
@@ -31,14 +30,16 @@ class Country(models.Model):
     population = models.BigIntegerField(
         verbose_name=_("Population"), null=True, blank=True, validators=[MinValueValidator(0)]
     )
-    gdp = models.FloatField(verbose_name=_("GDP"), null=True, blank=True, validators=[MinValueValidator(0)])
+    gdp = models.FloatField(
+        verbose_name=_("GDP per capita, $"), null=True, blank=True, validators=[MinValueValidator(0)]
+    )
     country_code = models.CharField(verbose_name=_("Country code"), max_length=10, null=False)
     country_code_alpha_2 = models.CharField(
         verbose_name=_("Country code alpha-2"), max_length=2, null=False, db_index=True
     )
     currency = models.CharField(verbose_name=_("Currency"), max_length=50, null=False)
     healthcare_budget = models.FloatField(
-        verbose_name=_("Healthcare budget"), null=True, blank=True, validators=[MinValueValidator(0)]
+        verbose_name=_("Healthcare spending, $ per capita"), null=True, blank=True, validators=[MinValueValidator(0)]
     )
     healthcare_gdp_pc = models.FloatField(
         verbose_name=_("% of GDP to healthcare"),
@@ -95,49 +96,14 @@ class CurrencyConversionCache(models.Model):
     conversion_rate = models.FloatField(verbose_name=_("Conversion rate"), null=True)
 
 
-class SupplierManager(models.Manager):
-    def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .annotate(
-                # amount_local=Sum("tenders__goods_services__contract_value_local"),
-                # amount_usd=Sum("tenders__goods_services__contract_value_usd"),
-                # country_name=F("tenders__country__name"),
-                # red_flag_count=Count("tenders__red_flag", distinct=True),
-                # product_category_count=Count("tenders__goods_services__goods_services_category", distinct=True),
-                # tender_count=Count("tenders__id", distinct=True),
-                # buyer_count=Count("tenders__buyer_id", filter=Q(tenders__buyer_id__isnull=False), distinct=True),
-            )
-        )
-
-
-class BuyerManager(models.Manager):
-    def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .annotate(
-                # amount_usd=Sum("tenders__goods_services__contract_value_usd"),
-                # amount_local=Sum("tenders__goods_services__contract_value_local"),
-                # country_name=F("tenders__country__name"),
-                # red_flag_count=Count("tenders__red_flag", distinct=True),
-                # # product_category_count=Count("tenders__goods_services__goods_services_category", distinct=True),
-                # tender_count=Count("tenders__id", distinct=True),
-                # supplier_count=Count(
-                #     "tenders__supplier_id", filter=Q(tenders__supplier_id__isnull=False), distinct=True
-                # ),
-            )
-        )
-
-
 class Supplier(models.Model):
     supplier_id = models.CharField(verbose_name=_("Supplier ID"), max_length=50, null=True)
     supplier_name = models.CharField(
         verbose_name=_("Supplier name"), max_length=250, null=True, blank=True, db_index=True
     )
     supplier_address = models.CharField(verbose_name=_("Supplier address"), max_length=250, null=True, blank=True)
-    objects = SupplierManager()
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="suppliers", null=True)
+    summary = models.JSONField(null=True)
 
     def __str__(self):
         return f"{self.supplier_id} - {self.supplier_name}"
@@ -147,7 +113,8 @@ class Buyer(models.Model):
     buyer_id = models.CharField(verbose_name=_("Buyer ID"), max_length=50, null=True)
     buyer_name = models.CharField(verbose_name=_("Buyer name"), max_length=250, null=True, blank=True, db_index=True)
     buyer_address = models.CharField(verbose_name=_("Buyer address"), max_length=250, null=True, blank=True)
-    objects = BuyerManager()
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="buyers", null=True)
+    summary = models.JSONField(null=True)
 
     def __str__(self):
         return f"{self.buyer_id} - {self.buyer_name}"
@@ -280,8 +247,11 @@ class Tender(models.Model):
     contract_value_local = models.FloatField(verbose_name=_("Contract value local"), null=True, blank=True)
     contract_value_usd = models.FloatField(verbose_name=_("Contract value USD"), null=True, blank=True)
     contract_desc = models.TextField(verbose_name=_("Contract description"), null=True, blank=True)
+    tender_value_local = models.FloatField(verbose_name=_("Tender value local"), null=True, blank=True)
+    tender_value_usd = models.FloatField(verbose_name=_("Tender value USD"), null=True, blank=True)
+    award_value_local = models.FloatField(verbose_name=_("Award value local"), null=True, blank=True)
+    award_value_usd = models.FloatField(verbose_name=_("Award value USD"), null=True, blank=True)
 
-    equity_categories = ArrayField(models.CharField(max_length=100, null=True, blank=True), default=list, null=True)
     equity_category = models.ManyToManyField(EquityCategory)
     red_flag = models.ManyToManyField(RedFlag)
     temp_table_id = models.ForeignKey(
@@ -335,7 +305,7 @@ class GoodsServices(models.Model):
     contract_value_usd = models.FloatField(verbose_name=_("Contract value USD"), null=True, blank=True, db_index=True)
 
     def __str__(self):
-        return f"{self.goods_services_category} - {self.contract_title}"
+        return str(self.id)
 
 
 class CovidMonthlyActiveCases(models.Model):

@@ -1,6 +1,7 @@
 import os
 import sys
 import traceback
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
@@ -12,7 +13,7 @@ import requests
 import xlsxwriter
 from celery import Celery
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Count, Q, Sum
 from requests.exceptions import Timeout
 
 from content.models import DataImport
@@ -118,10 +119,78 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
             return None
 
 
+# @app.task(name="fix_contract_name_value")
+def fix_contract_name_value(tender_id, country):
+    country_obj = Country.objects.filter(name=country).first()
+    keywords = EquityKeywords.objects.filter(country=country_obj)
+    if type(tender_id) is not list:
+        tender_list = [tender_id]
+    else:
+        tender_list = tender_id
+    for tender in tender_list:
+        tender_instance = Tender.objects.get(id=tender)
+        tender_instance.red_flag.clear()  # Clearing red-flag
+        goods_services = list(
+            tender_instance.goods_services.all().values(
+                "contract_title",
+                "contract_value_usd",
+                "award_value_usd",
+                "tender_value_usd",
+                "contract_value_local",
+                "award_value_local",
+                "tender_value_local",
+            )
+        )
+        contract_title = [i.get("contract_title") for i in goods_services if i.get("contract_title") is not None]
+        contract_title.append(tender_instance.contract_title)
+        contract_names = ", ".join(set(contract_title))
+        contract_value_usd = sum(
+            [i.get("contract_value_usd") for i in goods_services if i.get("contract_value_usd") is not None]
+        )
+        award_value_usd = sum(
+            [i.get("award_value_usd") for i in goods_services if i.get("award_value_usd") is not None]
+        )
+        tender_value_usd = sum(
+            [i.get("tender_value_usd") for i in goods_services if i.get("tender_value_usd") is not None]
+        )
+        contract_value_local = sum(
+            [i.get("contract_value_local") for i in goods_services if i.get("contract_value_local") is not None]
+        )
+        award_value_local = sum(
+            [i.get("award_value_local") for i in goods_services if i.get("award_value_local") is not None]
+        )
+        tender_value_local = sum(
+            [i.get("tender_value_local") for i in goods_services if i.get("tender_value_local") is not None]
+        )
+        tender_instance.contract_title = contract_names
+        tender_instance.contract_value_usd = contract_value_usd
+        tender_instance.contract_value_local = contract_value_local
+        tender_instance.tender_value_local = tender_value_local
+        tender_instance.tender_value_usd = tender_value_usd
+        tender_instance.award_value_local = award_value_local
+        tender_instance.award_value_usd = award_value_usd
+        tender_instance.save()
+        goodservices = tender_instance.goods_services.filter(country=country_obj)
+        for good_service in goodservices:
+            for keyword in keywords:
+                keyword_value = keyword.keyword
+                if (
+                    keyword_value in good_service.contract_title.strip()
+                    or keyword_value in good_service.contract_desc.strip()
+                ):
+                    category = keyword.equity_category.category_name
+                    instance = EquityCategory.objects.get(category_name=category)
+                    tender_instance.equity_category.add(instance)
+        process_redflag7.apply_async(args=(tender_instance.id,), queue="covid19")
+        process_redflag6.apply_async(args=(tender_instance.id,), queue="covid19")
+        process_redflag.apply_async(args=(tender_instance.id,), queue="covid19")
+
+
 @app.task(name="import_tender_from_batch_id")
 def import_tender_from_batch_id(batch_id, country, currency):
     print(f"import_tender_data from Batch_id {batch_id}")
     total_rows_imported_count = 0
+    imported_list_id = []
 
     try:
         temp_data = TempDataImportTable.objects.filter(import_batch_id=batch_id)
@@ -187,30 +256,40 @@ def import_tender_from_batch_id(batch_id, country, currency):
             country_obj = Country.objects.filter(name=country).first()
 
             # Get or Create Supplier
-            if supplier_id or supplier_name:
+            if supplier_id or supplier_name or supplier_address:
                 supplier_id = str(supplier_id).strip() if supplier_id else " "
                 supplier_name = str(supplier_name).strip() if supplier_name else " "
-                supplier_obj = Supplier.objects.filter(supplier_id=supplier_id, supplier_name=supplier_name).first()
+                supplier_address = str(supplier_address).strip() if supplier_address else " "
+                supplier_obj = Supplier.objects.filter(
+                    supplier_id__iexact=supplier_id,
+                    supplier_name__iexact=supplier_name,
+                    supplier_address__iexact=supplier_address,
+                ).first()
                 if not supplier_obj:
                     supplier_obj = Supplier(
                         supplier_id=supplier_id,
                         supplier_name=supplier_name,
                         supplier_address=supplier_address,
+                        country=country_obj,
                     )
                     supplier_obj.save()
             else:
                 supplier_obj = None
 
             # Get or Create Buyer
-            if buyer_id or buyer_name:
+            if buyer_id or buyer_name or buyer_address:
                 buyer_id = str(buyer_id).strip() if buyer_id else " "
                 buyer_name = str(buyer_name).strip() if buyer_name else " "
-                buyer_obj = Buyer.objects.filter(buyer_id=buyer_id, buyer_name=buyer_name).first()
+                buyer_address = str(buyer_address).strip() if buyer_address else " "
+                buyer_obj = Buyer.objects.filter(
+                    buyer_id__iexact=buyer_id, buyer_name__iexact=buyer_name, buyer_address__iexact=buyer_address
+                ).first()
                 if not buyer_obj:
                     buyer_obj = Buyer(
                         buyer_id=buyer_id,
                         buyer_name=buyer_name,
                         buyer_address=buyer_address,
+                        country=country_obj,
                     )
                     buyer_obj.save()
             else:
@@ -242,6 +321,7 @@ def import_tender_from_batch_id(batch_id, country, currency):
                         temp_table_id=row,
                     )
                     tender_obj.save()
+                    imported_list_id.append(tender_obj.id)
             else:
                 tender_obj = None
 
@@ -279,9 +359,6 @@ def import_tender_from_batch_id(batch_id, country, currency):
                     ppu_including_vat=ppu_including_vat or None,
                 )
                 goods_services_obj.save()
-
-                print(tender_obj.id, goods_services_obj.id)
-
                 # Execute local currency to USD conversion celery tasks
                 conversion_date = contract_date
                 source_currency = country_obj.currency
@@ -307,6 +384,7 @@ def import_tender_from_batch_id(batch_id, country, currency):
             traceback.print_exc(file=sys.stdout)
             print("------------------------------")
 
+    fix_contract_name_value(imported_list_id, country)
     data_import_id = ImportBatch.objects.get(id=batch_id).data_import_id
     DataImport.objects.filter(page_ptr_id=data_import_id).update(imported=True)
 
@@ -409,35 +487,50 @@ def clear_redflag(id):
 
 
 @app.task(name="process_red_flag7")
-def process_redflag7(id, tender):
-    flag7_obj = RedFlag.objects.get(function_name="flag7")
-    concentration = Tender.objects.filter(
-        buyer__buyer_name=tender["buyer__buyer_name"], supplier__supplier_name=tender["supplier__supplier_name"]
+def process_redflag7(id):
+    tender = Tender.objects.filter(id=id).values("supplier_id").first()
+    supplier_tenders = list(
+        Tender.objects.filter(supplier=tender["supplier_id"]).values("id", "supplier_id", "buyer_id")
     )
-    # supplier who has signed X(10) percent or more of their contracts with the same buyer
-    # (wins tenders from the same buyer)
-    if len(concentration) > 10:
-        for i in concentration:
-            obj = Tender.objects.get(id=i.id)
-            obj.red_flag.add(flag7_obj)
+    total_tenders = len(supplier_tenders)
+    if total_tenders > 10:
+        grouped_list = defaultdict(list)
+        for item in supplier_tenders:
+            grouped_list[item["buyer_id"]].append(item)
+        parsed_list = [{"name": key, "data": value, "count": len(value)} for key, value in grouped_list.items()]
+
+        final_list = []
+        for group in parsed_list:
+            if group["count"] > 10 and (((group["count"] / total_tenders) * 100) > 50):
+                for tender in group["data"]:
+                    final_list.append(tender["id"])
+        if len(final_list) > 0:
+            flag7_obj = RedFlag.objects.get(function_name="flag7")
+            # supplier who has signed X(50) percent or more of their contracts with the same buyer
+            # (wins tenders from the same buyer)
+            flag7_obj.tender_set.add(*final_list)
 
 
 @app.task(name="process_red_flag6")
-def process_redflag6(id, tender):
+def process_redflag6(id):
     flag6_obj = RedFlag.objects.get(function_name="flag6")
-    a = (
-        Tender.objects.values("buyer__buyer_name")
-        .filter(
-            supplier__supplier_name=tender["supplier__supplier_name"],
-            supplier__supplier_address=tender["supplier__supplier_address"],
-        )
-        .distinct("buyer__buyer_name")
+    tenders = Tender.objects.filter(id=id).values(
+        "id", "buyer__buyer_name", "supplier__supplier_name", "supplier__supplier_address"
     )
-    if len(a) > 2:
-        if a[0]["buyer__buyer_name"] == a[1]["buyer__buyer_name"]:
-            for obj in a:
-                objs = Tender.objects.get(id=obj.id)
-                objs.red_flag.add(flag6_obj)
+    for tender in tenders:
+        a = (
+            Tender.objects.values("buyer__buyer_name")
+            .filter(
+                supplier__supplier_name=tender["supplier__supplier_name"],
+                supplier__supplier_address=tender["supplier__supplier_address"],
+            )
+            .distinct("buyer__buyer_name")
+        )
+        if len(a) > 2:
+            if a[0]["buyer__buyer_name"] == a[1]["buyer__buyer_name"]:
+                for obj in a:
+                    objs = Tender.objects.get(id=obj.id)
+                    objs.red_flag.add(flag6_obj)
 
 
 @app.task(name="store_in_temp_table")
@@ -568,8 +661,8 @@ def store_in_temp_table(instance_id):
 
 
 @app.task(name="country_contract_excel")
-def country_contract_excel(country):
-    if not country:
+def country_contract_excel(country_code):
+    if not country_code:
         countries = Country.objects.all().exclude(country_code_alpha_2="gl")
         for country in countries:
             country_name = country.name
@@ -635,12 +728,12 @@ def country_contract_excel(country):
                     "goods_services__goods_services_category__category_name",
                 )
                 .annotate(
-                    contract_usd=Sum("goods_services__contract_value_usd"),
-                    contract_local=Sum("goods_services__contract_value_local"),
-                    award_local=Sum("goods_services__award_value_local"),
-                    award_usd=Sum("goods_services__award_value_usd"),
-                    tender_local=Sum("goods_services__tender_value_local"),
-                    tender_usd=Sum("goods_services__tender_value_usd"),
+                    contract_usd=Sum("contract_value_usd"),
+                    contract_local=Sum("contract_value_local"),
+                    award_local=Sum("award_value_local"),
+                    award_usd=Sum("award_value_usd"),
+                    tender_local=Sum("tender_value_local"),
+                    tender_usd=Sum("tender_value_usd"),
                 )
             )
             if reports:
@@ -726,7 +819,7 @@ def country_contract_excel(country):
             print("............")
 
     else:
-        country_name = Country.objects.filter(country_code_alpha_2=country).first().name
+        country_name = Country.objects.filter(country_code_alpha_2=country_code).first().name
         file_path = f"media/export/{country_name}_summary.xlsx"
         if not os.path.exists(file_path):
             Path(file_path).touch()
@@ -770,7 +863,7 @@ def country_contract_excel(country):
 
         data = {}
         reports = (
-            Tender.objects.filter(country__country_code_alpha_2=country)
+            Tender.objects.filter(country__country_code_alpha_2=country_code)
             .values(
                 "id",
                 "contract_id",
@@ -788,12 +881,12 @@ def country_contract_excel(country):
                 "goods_services__goods_services_category__category_name",
             )
             .annotate(
-                contract_usd=Sum("goods_services__contract_value_usd"),
-                contract_local=Sum("goods_services__contract_value_local"),
-                award_local=Sum("goods_services__award_value_local"),
-                award_usd=Sum("goods_services__award_value_usd"),
-                tender_local=Sum("goods_services__tender_value_local"),
-                tender_usd=Sum("goods_services__tender_value_usd"),
+                contract_usd=Sum("contract_value_usd"),
+                contract_local=Sum("contract_value_local"),
+                award_local=Sum("award_value_local"),
+                award_usd=Sum("award_value_usd"),
+                tender_local=Sum("tender_value_local"),
+                tender_usd=Sum("tender_value_usd"),
             )
         )
 
@@ -891,3 +984,126 @@ def delete_dataset(data_import_id):
         print("Done for temp data " + str(temp_data_id))
     import_batch.delete()
     return "Done"
+
+
+@app.task(name="fill_contract_values")
+def fill_contract_values(tender_id):
+    tender_instance = Tender.objects.get(id=tender_id)
+    goods_services = list(
+        tender_instance.goods_services.all().values(
+            "contract_title",
+            "contract_value_usd",
+            "award_value_usd",
+            "tender_value_usd",
+            "contract_value_local",
+            "award_value_local",
+            "tender_value_local",
+        )
+    )
+    contract_title = [i.get("contract_title") for i in goods_services if i.get("contract_title") is not None]
+    contract_title.append(tender_instance.contract_title)
+    contract_names = ", ".join(set(contract_title))
+    contract_value_usd = sum(
+        [i.get("contract_value_usd") for i in goods_services if i.get("contract_value_usd") is not None]
+    )
+    award_value_usd = sum([i.get("award_value_usd") for i in goods_services if i.get("award_value_usd") is not None])
+    tender_value_usd = sum(
+        [i.get("tender_value_usd") for i in goods_services if i.get("tender_value_usd") is not None]
+    )
+    contract_value_local = sum(
+        [i.get("contract_value_local") for i in goods_services if i.get("contract_value_local") is not None]
+    )
+    award_value_local = sum(
+        [i.get("award_value_local") for i in goods_services if i.get("award_value_local") is not None]
+    )
+    tender_value_local = sum(
+        [i.get("tender_value_local") for i in goods_services if i.get("tender_value_local") is not None]
+    )
+    tender_instance.contract_title = contract_names
+    tender_instance.contract_value_usd = contract_value_usd
+    tender_instance.contract_value_local = contract_value_local
+    tender_instance.tender_value_local = tender_value_local
+    tender_instance.tender_value_usd = tender_value_usd
+    tender_instance.award_value_local = award_value_local
+    tender_instance.award_value_usd = award_value_usd
+    tender_instance.save()
+    print("Done for tender id : " + str(tender_id))
+
+
+@app.task(name="summarize_buyer")
+def summarize_buyer(buyer_id):
+    buyer_instance = (
+        Buyer.objects.filter(id=buyer_id)
+        .values("tenders__country__country_code_alpha_2", "tenders__country__name")
+        .annotate(
+            amount_usd=Sum("tenders__contract_value_usd"),
+            amount_local=Sum("tenders__contract_value_local"),
+            tender_count=Count("tenders__id", distinct=True),
+            supplier_count=Count("tenders__supplier_id", filter=Q(tenders__supplier_id__isnull=False), distinct=True),
+            product_count=Count("tenders__goods_services__goods_services_category", distinct=True),
+            red_flag_count=Count("tenders__red_flag", distinct=True),
+        )
+        .first()
+    )
+    summary = {
+        "amount_local": buyer_instance["amount_local"],
+        "amount_usd": buyer_instance["amount_usd"],
+        "tender_count": buyer_instance["tender_count"],
+        "supplier_count": buyer_instance["supplier_count"],
+        "product_count": buyer_instance["product_count"],
+        "country_code": buyer_instance["tenders__country__country_code_alpha_2"],
+        "country_name": buyer_instance["tenders__country__name"],
+        "red_flag_tender_count": buyer_instance["red_flag_count"],
+        "red_flag_tender_percentage": 0
+        if buyer_instance["tender_count"] == 0
+        else float(buyer_instance["red_flag_count"] / buyer_instance["tender_count"]),
+    }
+    try:
+        country = Country.objects.get(country_code_alpha_2=buyer_instance["tenders__country__country_code_alpha_2"])
+        buyer = Buyer.objects.get(id=buyer_id)
+        buyer.country = country
+        buyer.summary = summary
+        buyer.save()
+    except Exception:
+        return "Buyer id doesnt exists!"
+    return "Completed"
+
+
+@app.task(name="summarize_supplier")
+def summarize_supplier(supplier_id):
+    supplier_instance = (
+        Supplier.objects.filter(id=supplier_id)
+        .values("tenders__country__country_code_alpha_2", "tenders__country__name")
+        .annotate(
+            amount_usd=Sum("tenders__contract_value_usd"),
+            amount_local=Sum("tenders__contract_value_local"),
+            tender_count=Count("tenders__id", distinct=True),
+            buyer_count=Count("tenders__buyer_id", filter=Q(tenders__buyer_id__isnull=False), distinct=True),
+            product_count=Count("tenders__goods_services__goods_services_category", distinct=True),
+            red_flag_count=Count("tenders__red_flag", distinct=True),
+        )
+        .first()
+    )
+    summary = {
+        "amount_local": supplier_instance["amount_local"],
+        "amount_usd": supplier_instance["amount_usd"],
+        "tender_count": supplier_instance["tender_count"],
+        "buyer_count": supplier_instance["buyer_count"],
+        "product_count": supplier_instance["product_count"],
+        "country_code": supplier_instance["tenders__country__country_code_alpha_2"],
+        "country_name": supplier_instance["tenders__country__name"],
+        "red_flag_tender_count": supplier_instance["red_flag_count"],
+        "red_flag_tender_percentage": 0
+        if supplier_instance["tender_count"] == 0
+        else float(supplier_instance["red_flag_count"] / supplier_instance["tender_count"]),
+    }
+
+    try:
+        country = Country.objects.get(country_code_alpha_2=supplier_instance["tenders__country__country_code_alpha_2"])
+        supplier = Supplier.objects.get(id=supplier_id)
+        supplier.country = country
+        supplier.summary = summary
+        supplier.save()
+    except Exception as e:
+        return e
+    return "Completed"

@@ -1,0 +1,252 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-04-16 09:30+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: content/models.py:243 content/models.py:344 country/models.py:184
+msgid "Description"
+msgstr ""
+
+#: content/models.py:249
+msgid "No of rows"
+msgstr ""
+
+#: content/models.py:343 country/models.py:26 country/models.py:362
+msgid "Name"
+msgstr ""
+
+#: content/models.py:352
+msgid "Country Partner"
+msgstr ""
+
+#: content/models.py:353
+msgid "Country Partners"
+msgstr ""
+
+#: country/models.py:28
+msgid "Continent"
+msgstr ""
+
+#: country/models.py:31
+msgid "Population"
+msgstr ""
+
+#: country/models.py:34
+msgid "GDP per capita, $"
+msgstr ""
+
+#: country/models.py:36
+msgid "Country code"
+msgstr ""
+
+#: country/models.py:38
+msgid "Country code alpha-2"
+msgstr ""
+
+#: country/models.py:40
+msgid "Currency"
+msgstr ""
+
+#: country/models.py:42
+msgid "Healthcare spending, $ per capita"
+msgstr ""
+
+#: country/models.py:45
+#, python-format
+msgid "% of GDP to healthcare"
+msgstr ""
+
+#: country/models.py:51
+msgid "Total COVID-19 cases"
+msgstr ""
+
+#: country/models.py:54
+msgid "Total deaths by Covid-19"
+msgstr ""
+
+#: country/models.py:61
+msgid "Countries"
+msgstr ""
+
+#: country/models.py:93
+msgid "Source currency"
+msgstr ""
+
+#: country/models.py:94
+msgid "Dst currency"
+msgstr ""
+
+#: country/models.py:95
+msgid "Conversion date"
+msgstr ""
+
+#: country/models.py:96
+msgid "Conversion rate"
+msgstr ""
+
+#: country/models.py:136
+msgid "Supplier ID"
+msgstr ""
+
+#: country/models.py:138
+msgid "Supplier name"
+msgstr ""
+
+#: country/models.py:140
+msgid "Supplier address"
+msgstr ""
+
+#: country/models.py:148
+msgid "Buyer ID"
+msgstr ""
+
+#: country/models.py:149
+msgid "Buyer name"
+msgstr ""
+
+#: country/models.py:150
+msgid "Buyer address"
+msgstr ""
+
+#: country/models.py:163 country/models.py:301
+msgid "Category name"
+msgstr ""
+
+#: country/models.py:176
+msgid "Title"
+msgstr ""
+
+#: country/models.py:181
+msgid "A short description of the red flag, as shown in the frontend."
+msgstr ""
+
+#: country/models.py:184
+msgid "Not used."
+msgstr ""
+
+#: country/models.py:187
+msgid "Function"
+msgstr ""
+
+#: country/models.py:192
+msgid ""
+"This corresponds to a function in the code. Do not edit it unless you are a "
+"developer."
+msgstr ""
+
+#: country/models.py:198
+msgid ""
+"Display the red flag. Do not enable unless you know the red flag is "
+"implemented."
+msgstr ""
+
+#: country/models.py:267
+msgid "Contract ID"
+msgstr ""
+
+#: country/models.py:268
+msgid "Contract date"
+msgstr ""
+
+#: country/models.py:270
+msgid "Procurement procedure"
+msgstr ""
+
+#: country/models.py:273
+msgid "Contract status"
+msgstr ""
+
+#: country/models.py:275
+msgid "Link to contract"
+msgstr ""
+
+#: country/models.py:276
+msgid "Link to tender"
+msgstr ""
+
+#: country/models.py:277
+msgid "Data source"
+msgstr ""
+
+#: country/models.py:279
+msgid "Number of Bidders"
+msgstr ""
+
+#: country/models.py:280 country/models.py:321
+msgid "Contract title"
+msgstr ""
+
+#: country/models.py:281 country/models.py:337
+msgid "Contract value local"
+msgstr ""
+
+#: country/models.py:282 country/models.py:339
+msgid "Contract value USD"
+msgstr ""
+
+#: country/models.py:283 country/models.py:322
+msgid "Contract description"
+msgstr ""
+
+#: country/models.py:284 country/models.py:332
+msgid "Tender value local"
+msgstr ""
+
+#: country/models.py:285 country/models.py:333
+msgid "Tender value USD"
+msgstr ""
+
+#: country/models.py:286 country/models.py:334
+msgid "Award value local"
+msgstr ""
+
+#: country/models.py:287 country/models.py:335
+msgid "Award value USD"
+msgstr ""
+
+#: country/models.py:303
+msgid "Category description"
+msgstr ""
+
+#: country/models.py:317
+msgid "Classification code"
+msgstr ""
+
+#: country/models.py:319
+msgid "Number of bidders"
+msgstr ""
+
+#: country/models.py:348
+msgid "Active cases count"
+msgstr ""
+
+#: country/models.py:349
+msgid "Death count"
+msgstr ""
+
+#: country/models.py:357
+msgid "Keyword"
+msgstr ""
+
+#: country/models.py:366
+msgid "Remark"
+msgstr ""
+
+#: country/models.py:369
+msgid "Data Providers"
+msgstr ""

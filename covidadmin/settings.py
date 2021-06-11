@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
 import os
 from pathlib import Path
 
@@ -36,8 +35,10 @@ env = environ.Env(
     FETCH_COVID_DATA_INTERVAL=(int, 10800),
     FIXER_IO_API_KEY=(str, ""),
     MEDIA_URL=(str, "/media/"),
+    CACHE_EXPIRE_PERIOD=(int, 86400),
 )
 
+environ.Env.read_env()
 
 if "SENTRY_DSN" in os.environ:
     sentry_sdk.init(
@@ -51,7 +52,6 @@ if "SENTRY_DSN" in os.environ:
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -78,7 +78,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "django_filters",
-    "vizualization",
+    "visualization",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.contrib.modeladmin",
@@ -97,7 +97,7 @@ INSTALLED_APPS = [
     "taggit",
     "wagtail.api.v2",
     "ckeditor",
-    # 'debug_toolbar',
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -112,7 +112,8 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
-    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "covidadmin.middleware.NonHtmlDebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "covidadmin.urls"
@@ -120,7 +121,7 @@ ROOT_URLCONF = "covidadmin.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": ["covidadmin/templates", "content/templates"],
+        "DIRS": ["content/templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -135,7 +136,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "covidadmin.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
@@ -149,7 +149,6 @@ DATABASES = {
         "PORT": env("DB_PORT"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -169,7 +168,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
@@ -182,7 +180,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
@@ -202,7 +199,6 @@ REST_FRAMEWORK = {
     "SERIALIZER_EXTENSIONS": dict(AUTO_OPTIMIZE=True),
 }
 
-
 CELERY_BROKER_URL = env("CELERY_BROKER_URL")
 CELERY_TIMEZONE = env("CELERY_TIMEZONE")
 CELERY_TASK_ROUTES = {
@@ -219,7 +215,7 @@ CELERY_BEAT_SCHEDULE = {
 
 FIXER_IO_API_KEY = env("FIXER_IO_API_KEY")
 
-WAGTAIL_SITE_NAME = "Covid 19 procurement explorer"
+WAGTAIL_SITE_NAME = "Covid-19 Contract Explorer"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = env("MEDIA_URL")
@@ -230,5 +226,8 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.db.DatabaseCache",
         "LOCATION": "cache_table",
+        "EXPIRE_PERIOD": env("CACHE_EXPIRE_PERIOD"),
     }
 }
+
+# LOCALE_PATHS = [os.path.join(BASE_DIR, "locale")]

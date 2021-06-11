@@ -44,9 +44,11 @@ class InsightsPage(Page):
         max_length=20,
         choices=contents_choice,
     )
-    BOOL_CHOICES = ((True, "Yes"), (False, "No"))
+    BOOL_CHOICES = (("true", "Yes"), ("false", "No"))
 
-    featured = models.BooleanField("Featured ?", choices=BOOL_CHOICES, blank=False, null=False, default=False)
+    featured = models.CharField(
+        "Featured ?", choices=BOOL_CHOICES, blank=False, null=False, default=False, max_length=15
+    )
 
     country = models.ForeignKey(
         Country, null=True, blank=False, on_delete=models.SET_NULL, default=1, related_name="+"
@@ -187,9 +189,7 @@ class ResourcesPage(Page):
 
     link = models.URLField(max_length=10000, null=True, blank=True)
 
-    language = models.CharField(max_length=2000, null=True, blank=True)
     lang = models.ForeignKey(Language, on_delete=models.PROTECT, blank=False, null=False)
-    topic = models.CharField(max_length=2000, null=True, blank=True)
     topics = models.ForeignKey(Topic, on_delete=models.SET_NULL, blank=True, null=True)
 
     published_date = models.DateField("Published date")
@@ -201,9 +201,7 @@ class ResourcesPage(Page):
         FieldPanel("country"),
         DocumentChooserPanel("document"),
         FieldPanel("link"),
-        FieldPanel("language"),
         FieldPanel("lang"),
-        FieldPanel("topic"),
         FieldPanel("topics"),
         FieldPanel("published_date"),
         FieldPanel("author", classname="full"),
@@ -215,9 +213,7 @@ class ResourcesPage(Page):
         APIField("country"),
         APIField("document"),
         APIField("link"),
-        APIField("language"),
         APIField("lang"),
-        APIField("topic"),
         APIField("topics"),
         APIField("published_date"),
         APIField("author"),
@@ -254,6 +250,8 @@ class DataImport(Page):
     validated = models.BooleanField(null=False, blank=True, default=False)
     no_of_rows = models.CharField(verbose_name=_("No of rows"), null=True, max_length=10, default=0)
     imported = models.BooleanField(null=False, blank=True, default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("description"),

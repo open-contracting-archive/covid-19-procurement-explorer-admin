@@ -42,19 +42,20 @@ jobs:
       - run: pip install -r requirements.txt
       - run: ./manage.py --help
       - run: pip install -r requirements_dev.txt
-      - run: |
+      - name: Run checks and tests
+        if: always()
+        run: |
           ./manage.py migrate
           ./manage.py makemigrations --check --dry-run
           ./manage.py check --fail-level WARNING
           ./manage.py loaddata country redflag equitycategory equitykeywords
-          coverage run --source content,country,covidadmin,vizualization,country/management/commands manage.py test --keepdb
+          coverage run --source content,country,covidadmin,visualization,country/management/commands manage.py test --keepdb
         env:
           DB_NAME: postgres
           DB_USER: postgres
           DB_PASSWORD: postgres
           DB_PORT: ${{ job.services.postgres.ports[5432] }}
           CELERY_BROKER_URL: amqp://localhost:${{ job.services.rabbitmq.ports[5672] }}
-        if: always()
       - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: coveralls --service=github
