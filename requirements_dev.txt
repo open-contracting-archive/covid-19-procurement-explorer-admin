@@ -322,7 +322,7 @@ vine==5.0.0
     #   celery
 virtualenv==20.4.3
     # via pre-commit
-wagtail==2.13.1
+wagtail==2.13.2
     # via -r requirements.txt
 wcwidth==0.2.5
     # via

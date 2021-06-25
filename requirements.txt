@@ -144,7 +144,7 @@ vine==5.0.0
     # via
     #   amqp
     #   celery
-wagtail==2.13.1
+wagtail==2.13.2
     # via -r requirements.in
 wcwidth==0.2.5
     # via prompt-toolkit
