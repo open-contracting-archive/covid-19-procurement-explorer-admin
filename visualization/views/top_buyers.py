@@ -1,4 +1,4 @@
-from django.contrib.postgres.fields.jsonb import KeyTransform
+from django.db.models import F
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -13,9 +13,9 @@ def top_buyer(order_by, **filter_args):
         Buyer.objects.filter(**filter_args)
         .values("id", "buyer_name", "country__currency")
         .annotate(
-            tender_count=KeyTransform("tender_count", "summary__tender_count"),
-            amount_usd=KeyTransform("amount_usd", "summary__amount_usd"),
-            amount_local=KeyTransform("amount_local", "summary__amount_local"),
+            tender_count=F("summary__tender_count"),
+            amount_usd=F("summary__amount_usd"),
+            amount_local=F("summary__amount_local"),
         )
         .order_by(f"-{order_by}")[:10]
     )
