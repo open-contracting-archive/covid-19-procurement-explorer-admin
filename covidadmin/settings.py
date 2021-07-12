@@ -44,9 +44,7 @@ if "SENTRY_DSN" in os.environ:
     sentry_sdk.init(
         dsn=env("SENTRY_DSN"),
         integrations=[DjangoIntegration()],
-        traces_sample_rate=1.0,
-        # If you wish to associate users to errors (assuming you are using
-        # django.contrib.auth) you may enable sending PII data.
+        traces_sample_rate=0,  # The Sentry plan does not include Performance.
         send_default_pii=True,
     )
 
