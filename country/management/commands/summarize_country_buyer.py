@@ -14,7 +14,7 @@ class Command(BaseCommand):
             country = Country.objects.get(country_code_alpha_2=country_alpha_code)
         except Exception:
             return self.stdout.write("Country alpha code doesnt exist")
-        buyers = Buyer.objects.filter(tenders__country=country)
+        buyers = Buyer.objects.filter(country=country)
         for buyer in buyers:
-            self.stdout.write("Created tasks for buyer_id" + str(buyer.id))
+            self.stdout.write("Created tasks for buyer_id " + str(buyer.id))
             summarize_buyer.apply_async(args=(buyer.id,), queue="covid19")
