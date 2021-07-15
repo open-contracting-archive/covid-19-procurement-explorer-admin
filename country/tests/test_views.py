@@ -6,12 +6,12 @@ from rest_framework import status
 class CountryViewTest(TestCase):
     def setUp(self):
         self.buyer_list_api_url = "BuyerView-list"
-        self.country_list_api_url = "country-list"
+        self.country_list_api_url = "country_view"
         self.language_list_api_url = "language-list"
         self.supplier_list_api_url = "SupplierView-list"
         self.tender_list_api_url = "TenderView-list"
         self.overview_summary_list_api_url = "OverallStatSummaryView-list"
-        self.country_choices_api_url = "country-choices"
+        self.country_choices_api_url = "country_detail_view"
         self.data_edit_url = "data_edits"
         self.data_imports_url = "data_imports"
         self.data_validate_url = "data_validate"
@@ -28,7 +28,7 @@ class CountryViewTest(TestCase):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
     def test_country_choice_list_GET(self):
-        url = reverse(self.country_choices_api_url)
+        url = reverse(self.country_choices_api_url, args=["kenya"])
         response = self.client.get(url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 

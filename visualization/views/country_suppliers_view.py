@@ -25,7 +25,7 @@ class CountrySuppliersView(APIView):
                 **filter_args, supplier__isnull=False, goods_services__goods_services_category__isnull=False
             )
             .values("supplier__id", "goods_services__goods_services_category__id")
-            .annotate(usd=Sum("goods_services__contract_value_usd"))
+            .annotate(usd=Sum("contract_value_usd"))
             .exclude(usd__isnull=True)
             .order_by("-usd")
         )
@@ -49,14 +49,11 @@ class CountrySuppliersView(APIView):
             if len(suppliers_dict[i["goods_services__goods_services_category__id"]]["countwise"]) <= 5:
                 suppliers_dict[i["goods_services__goods_services_category__id"]]["countwise"].append(i["supplier__id"])
 
-        final_suppliers_list_countwise = list(
-            itertools.chain.from_iterable([i["countwise"] for i in suppliers_dict.values()])
-        )
         final_suppliers_list_amountwise = list(
             itertools.chain.from_iterable([i["amountwise"] for i in suppliers_dict.values()])
         )
 
-        by_value_supplier_product = (
+        product_supplier = (
             Tender.objects.filter(
                 **filter_args,
                 supplier__id__in=final_suppliers_list_amountwise,
@@ -70,57 +67,16 @@ class CountrySuppliersView(APIView):
                 "goods_services__goods_services_category__category_name",
             )
             .annotate(
-                local=Sum("goods_services__contract_value_local"),
-                usd=Sum("goods_services__contract_value_usd"),
+                local=Sum("contract_value_local"),
+                usd=Sum("contract_value_usd"),
                 count=Count("id"),
             )
-            .order_by("-usd")[:count]
-        )
-        by_value_product_buyer = (
-            Tender.objects.filter(
-                **filter_args,
-                supplier__id__in=final_suppliers_list_amountwise,
-                buyer__isnull=False,
-                goods_services__goods_services_category__isnull=False,
-            )
-            .values(
-                "goods_services__goods_services_category__id",
-                "goods_services__goods_services_category__category_name",
-                "buyer__id",
-                "buyer__buyer_name",
-            )
-            .annotate(
-                local=Sum("goods_services__contract_value_local"),
-                usd=Sum("goods_services__contract_value_usd"),
-                count=Count("id"),
-            )
-            .order_by("-usd")[:count]
         )
 
-        by_number_supplier_product = (
+        product_buyer = (
             Tender.objects.filter(
                 **filter_args,
-                supplier__id__in=final_suppliers_list_countwise,
-                supplier__isnull=False,
-                goods_services__goods_services_category__isnull=False,
-            )
-            .values(
-                "supplier__id",
-                "supplier__supplier_name",
-                "goods_services__goods_services_category__id",
-                "goods_services__goods_services_category__category_name",
-            )
-            .annotate(
-                local=Sum("goods_services__contract_value_local"),
-                usd=Sum("goods_services__contract_value_usd"),
-                count=Count("id"),
-            )
-            .order_by("-count")[:count]
-        )
-        by_number_product_buyer = (
-            Tender.objects.filter(
-                **filter_args,
-                supplier__id__in=final_suppliers_list_countwise,
+                supplier__id__in=final_suppliers_list_amountwise,
                 buyer__isnull=False,
                 goods_services__goods_services_category__isnull=False,
             )
@@ -131,12 +87,17 @@ class CountrySuppliersView(APIView):
                 "buyer__buyer_name",
             )
             .annotate(
-                local=Sum("goods_services__contract_value_local"),
-                usd=Sum("goods_services__contract_value_usd"),
+                local=Sum("contract_value_local"),
+                usd=Sum("contract_value_usd"),
                 count=Count("id"),
             )
-            .order_by("-count")[:count]
         )
+
+        by_value_product_buyer = (product_buyer.order_by("-usd"))[:count]
+        by_number_product_buyer = (product_buyer.order_by("-count"))[:count]
+
+        by_value_product_supplier = (product_supplier.order_by("-usd"))[:count]
+        by_number_product_supplier = (product_supplier.order_by("-count"))[:count]
 
         results = {
             "by_number": {
@@ -162,7 +123,7 @@ class CountrySuppliersView(APIView):
                         "supplier_name": i["supplier__supplier_name"],
                         "tender_count": i["count"],
                     }
-                    for i in by_number_supplier_product
+                    for i in by_number_product_supplier
                 ],
             },
             "by_value": {
@@ -188,7 +149,7 @@ class CountrySuppliersView(APIView):
                         "supplier_name": i["supplier__supplier_name"],
                         "tender_count": i["count"],
                     }
-                    for i in by_value_supplier_product
+                    for i in by_value_product_supplier
                 ],
             },
         }
