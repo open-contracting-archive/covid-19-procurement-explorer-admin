@@ -112,7 +112,7 @@ class InsightsView(ViewPaginatorMixin, APIView):
                     result = sorted(result, key=lambda k: k[order])
 
             if query is not None:
-                result = list(filter(lambda i: i["title"].find(query) != -1, result))
+                result = [i for i in result if i["title"].find(query) != -1]
 
             return JsonResponse({"data": self.paginate(result, page, count=count)})
 
