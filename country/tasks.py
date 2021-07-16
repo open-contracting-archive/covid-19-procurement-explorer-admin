@@ -1,8 +1,8 @@
+import datetime
 import os
 import sys
 import traceback
 from collections import defaultdict
-from datetime import datetime
 from pathlib import Path
 
 import dateutil.parser
@@ -13,6 +13,7 @@ import requests
 import xlsxwriter
 from celery import Celery
 from django.conf import settings
+from django.core import management
 from django.db.models import Count, Q, Sum
 from requests.exceptions import Timeout
 
@@ -32,6 +33,7 @@ from country.models import (
     Tender,
 )
 from country.red_flag import RedFlags
+from visualization.helpers.scheduler import ScheduleRunner
 
 app = Celery()
 
@@ -170,8 +172,8 @@ def fix_contract_name_value(tender_id, country):
         tender_instance.award_value_local = award_value_local
         tender_instance.award_value_usd = award_value_usd
         tender_instance.save()
-        goodservices = tender_instance.goods_services.filter(country=country_obj)
-        for good_service in goodservices:
+        good_services = tender_instance.goods_services.filter(country=country_obj)
+        for good_service in good_services:
             for keyword in keywords:
                 keyword_value = keyword.keyword
                 if (
@@ -184,6 +186,20 @@ def fix_contract_name_value(tender_id, country):
         process_redflag7.apply_async(args=(tender_instance.id,), queue="covid19")
         process_redflag6.apply_async(args=(tender_instance.id,), queue="covid19")
         process_redflag.apply_async(args=(tender_instance.id,), queue="covid19")
+    instance = ScheduleRunner()
+    instance.task_scheduler(
+        task_name="evaluate_country_buyer",
+        interval_name="every_hour",
+        interval=8,
+        country_alpha_code=country_obj.country_code_alpha_2,
+    )
+    instance.task_scheduler(
+        task_name="evaluate_country_supplier",
+        interval_name="every_hour",
+        interval=8,
+        country_alpha_code=country_obj.country_code_alpha_2,
+    )
+    management.call_command("generate_excel_summary", country_obj.country_code_alpha_2)
 
 
 @app.task(name="import_tender_from_batch_id")
@@ -385,6 +401,20 @@ def import_tender_from_batch_id(batch_id, country, currency):
             print("------------------------------")
 
     fix_contract_name_value(imported_list_id, country)
+    instance = ScheduleRunner()
+    instance.task_scheduler(
+        task_name="evaluate_country_buyer",
+        interval_name="every_hour",
+        interval=8,
+        country_alpha_code=country_obj.country_code_alpha_2,
+    )
+    instance.task_scheduler(
+        task_name="evaluate_country_supplier",
+        interval_name="every_hour",
+        interval=8,
+        country_alpha_code=country_obj.country_code_alpha_2,
+    )
+    management.call_command("generate_excel_summary", country_obj.country_code_alpha_2)
     data_import_id = ImportBatch.objects.get(id=batch_id).data_import_id
     DataImport.objects.filter(page_ptr_id=data_import_id).update(imported=True)
 
@@ -975,6 +1005,7 @@ def country_contract_excel(country_code):
 @app.task(name="delete_dataset")
 def delete_dataset(data_import_id):
     import_batch = ImportBatch.objects.get(data_import_id=data_import_id)
+    country_obj = Country.objects.filter(country_code_alpha_2=import_batch.country.country_code_alpha_2).first()
     all_temp_data_id = [i.id for i in import_batch.import_batch.all()]
     for temp_data_id in all_temp_data_id:
         obj = TempDataImportTable.objects.get(id=temp_data_id)
@@ -983,51 +1014,21 @@ def delete_dataset(data_import_id):
         tender_obj.delete()
         print("Done for temp data " + str(temp_data_id))
     import_batch.delete()
+    instance = ScheduleRunner()
+    instance.task_scheduler(
+        task_name="evaluate_country_buyer",
+        interval_name="every_hour",
+        interval=8,
+        country_alpha_code=country_obj.country_code_alpha_2,
+    )
+    instance.task_scheduler(
+        task_name="evaluate_country_supplier",
+        interval_name="every_hour",
+        interval=8,
+        country_alpha_code=country_obj.country_code_alpha_2,
+    )
+    management.call_command("generate_excel_summary", country_obj.country_code_alpha_2)
     return "Done"
-
-
-@app.task(name="fill_contract_values")
-def fill_contract_values(tender_id):
-    tender_instance = Tender.objects.get(id=tender_id)
-    goods_services = list(
-        tender_instance.goods_services.all().values(
-            "contract_title",
-            "contract_value_usd",
-            "award_value_usd",
-            "tender_value_usd",
-            "contract_value_local",
-            "award_value_local",
-            "tender_value_local",
-        )
-    )
-    contract_title = [i.get("contract_title") for i in goods_services if i.get("contract_title") is not None]
-    contract_title.append(tender_instance.contract_title)
-    contract_names = ", ".join(set(contract_title))
-    contract_value_usd = sum(
-        [i.get("contract_value_usd") for i in goods_services if i.get("contract_value_usd") is not None]
-    )
-    award_value_usd = sum([i.get("award_value_usd") for i in goods_services if i.get("award_value_usd") is not None])
-    tender_value_usd = sum(
-        [i.get("tender_value_usd") for i in goods_services if i.get("tender_value_usd") is not None]
-    )
-    contract_value_local = sum(
-        [i.get("contract_value_local") for i in goods_services if i.get("contract_value_local") is not None]
-    )
-    award_value_local = sum(
-        [i.get("award_value_local") for i in goods_services if i.get("award_value_local") is not None]
-    )
-    tender_value_local = sum(
-        [i.get("tender_value_local") for i in goods_services if i.get("tender_value_local") is not None]
-    )
-    tender_instance.contract_title = contract_names
-    tender_instance.contract_value_usd = contract_value_usd
-    tender_instance.contract_value_local = contract_value_local
-    tender_instance.tender_value_local = tender_value_local
-    tender_instance.tender_value_usd = tender_value_usd
-    tender_instance.award_value_local = award_value_local
-    tender_instance.award_value_usd = award_value_usd
-    tender_instance.save()
-    print("Done for tender id : " + str(tender_id))
 
 
 @app.task(name="summarize_buyer")
@@ -1117,3 +1118,29 @@ def summarize_supplier(supplier_id):
     except Exception as e:
         return e
     return "Completed"
+
+
+@app.task(name="evaluate_country_buyer")
+def evaluate_country_buyer(country_code):
+    buyers = Buyer.objects.filter(country__country_code_alpha_2=country_code)
+    for buyer in buyers:
+        summarize_buyer(buyer.id)
+
+
+@app.task(name="evaluate_country_supplier")
+def evaluate_country_supplier(country_code):
+    suppliers = Supplier.objects.filter(country__country_code_alpha_2=country_code)
+    for supplier in suppliers:
+        summarize_supplier(supplier.id)
+
+
+@app.task(name="evaluate_contract_red_flag")
+def evaluate_contract_red_flag(country_code):
+    country = Country.objects.get(country_code_alpha_2=country_code)
+    country_tenders = Tender.objects.filter(country_id=country.id, supplier__isnull=False, buyer__isnull=False)
+    for tender in country_tenders:
+        tender_id = tender.id
+        clear_redflag.apply_async(args=(tender_id,), queue="covid19")
+        process_redflag6.apply_async(args=(tender_id,), queue="covid19")
+        process_redflag7.apply_async(args=(tender_id,), queue="covid19")
+        process_redflag.apply_async(args=(tender_id,), queue="covid19")

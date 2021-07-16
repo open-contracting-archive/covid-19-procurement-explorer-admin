@@ -9,7 +9,7 @@ class Command(BaseCommand):
         parser.add_argument("country", type=str)
 
     def handle(self, *args, **kwargs):
-        country_alpha_code = kwargs["country"]
+        country_alpha_code = kwargs["country"].upper()
         try:
             country = Country.objects.get(country_code_alpha_2=country_alpha_code)
         except Exception:

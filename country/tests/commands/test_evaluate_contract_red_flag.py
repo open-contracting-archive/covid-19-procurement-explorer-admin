@@ -50,7 +50,7 @@ class EvaluateContractRedFlagTests(TransactionTestCase):
             call_command("evaluate_contract_red_flag")
 
     def test_with_country_code(self):
-        self.assertEquals(call_command("evaluate_contract_red_flag", "mx"), None)
+        self.assertEquals(call_command("evaluate_contract_red_flag", "MX"), "Done")
 
     def test_with_country_wrong_code(self):
         self.assertEquals(call_command("evaluate_contract_red_flag", "mxss"), None)

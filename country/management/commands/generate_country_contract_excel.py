@@ -10,5 +10,5 @@ class Command(BaseCommand):
         parser.add_argument("country", type=str)
 
     def handle(self, *args, **kwargs):
-        country = kwargs["country"]
+        country = kwargs["country"].upper()
         country_contract_excel.apply_async(args=(country,), queue="covid19")
