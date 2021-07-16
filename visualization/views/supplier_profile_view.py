@@ -19,8 +19,8 @@ class SupplierProfileView(APIView):
                 Tender.objects.filter(supplier_id=pk)
                 .values("country__name", "country__country_code_alpha_2")
                 .annotate(
-                    total_usd=Sum("goods_services__contract_value_usd"),
-                    total_local=Sum("goods_services__contract_value_local"),
+                    total_usd=Sum("contract_value_usd"),
+                    total_local=Sum("contract_value_local"),
                 )
             )
             tender_count = Tender.objects.filter(supplier_id=pk).count()

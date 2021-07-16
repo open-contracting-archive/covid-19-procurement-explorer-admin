@@ -28,8 +28,8 @@ class ProductSummaryView(APIView):
             )
             .annotate(
                 count=Count("id"),
-                local=Sum("goods_services__contract_value_local"),
-                usd=Sum("goods_services__contract_value_usd"),
+                local=Sum("contract_value_local"),
+                usd=Sum("contract_value_usd"),
             )
         )
         for tender in tenders_assigned:

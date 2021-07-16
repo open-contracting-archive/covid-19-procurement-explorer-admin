@@ -24,8 +24,8 @@ class RedFlagSummaryView(APIView):
             .values("month", "red_flag", "red_flag__title", "red_flag__implemented")
             .annotate(
                 total=Count("id"),
-                local=Sum("goods_services__contract_value_local"),
-                usd=Sum("goods_services__contract_value_usd"),
+                local=Sum("contract_value_local"),
+                usd=Sum("contract_value_usd"),
             )
             .order_by("-month")
         )

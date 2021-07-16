@@ -10,7 +10,7 @@ from country.models import Country, Tender
 from visualization.helpers.general import page_expire_period
 
 
-class GlobalOverView(APIView):
+class GlobalOverview(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
         temp = {}
@@ -19,7 +19,10 @@ class GlobalOverView(APIView):
         count = (
             Tender.objects.annotate(month=TruncMonth("contract_date"))
             .values("month")
-            .annotate(total_contract=Count("id"), total_amount=Sum("goods_services__contract_value_usd"))
+            .annotate(
+                total_contract=Count("id"),
+                total_amount=Sum("contract_value_usd"),
+            )
             .order_by("month")
         )
         countries = Country.objects.all().exclude(country_code_alpha_2="gl")
@@ -40,14 +43,14 @@ class GlobalOverView(APIView):
                     country__country_code_alpha_2=j.country_code_alpha_2,
                     contract_date__gte=start_date,
                     contract_date__lte=end_date,
-                ).aggregate(Sum("goods_services__contract_value_usd"))
+                ).aggregate(Sum("contract_value_usd"))
                 b["country"] = j.name
                 b["country_code"] = j.country_code_alpha_2
                 b["country_continent"] = j.continent
-                if tender["goods_services__contract_value_usd__sum"] is None:
+                if tender["contract_value_usd__sum"] is None:
                     tender_val = 0
                 else:
-                    tender_val = tender["goods_services__contract_value_usd__sum"]
+                    tender_val = tender["contract_value_usd__sum"]
                 if tender_count is None:
                     contract_val = 0
                 else:

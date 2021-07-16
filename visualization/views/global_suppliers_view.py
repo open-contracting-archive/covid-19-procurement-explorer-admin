@@ -20,7 +20,7 @@ class GlobalSuppliersView(APIView):
         usd_amountwise_sorted = (
             Tender.objects.filter(supplier__isnull=False, goods_services__goods_services_category__isnull=False)
             .values("supplier__id", "goods_services__goods_services_category__id")
-            .annotate(usd=Sum("goods_services__contract_value_usd"))
+            .annotate(usd=Sum("contract_value_usd"))
             .exclude(usd__isnull=True)
             .order_by("-usd")
         )
@@ -66,8 +66,8 @@ class GlobalSuppliersView(APIView):
                     "goods_services__goods_services_category__category_name",
                 )
                 .annotate(
-                    local=Sum("goods_services__contract_value_local"),
-                    usd=Sum("goods_services__contract_value_usd"),
+                    local=Sum("contract_value_local"),
+                    usd=Sum("contract_value_usd"),
                     count=Count("id"),
                 )
                 .order_by("-usd")
@@ -86,8 +86,8 @@ class GlobalSuppliersView(APIView):
                     "country__name",
                 )
                 .annotate(
-                    local=Sum("goods_services__contract_value_local"),
-                    usd=Sum("goods_services__contract_value_usd"),
+                    local=Sum("contract_value_local"),
+                    usd=Sum("contract_value_usd"),
                     count=Count("id"),
                 )
                 .order_by("-usd")
@@ -106,8 +106,8 @@ class GlobalSuppliersView(APIView):
                     "goods_services__goods_services_category__category_name",
                 )
                 .annotate(
-                    local=Sum("goods_services__contract_value_local"),
-                    usd=Sum("goods_services__contract_value_usd"),
+                    local=Sum("contract_value_local"),
+                    usd=Sum("contract_value_usd"),
                     count=Count("id"),
                 )
                 .order_by("-count")
@@ -126,8 +126,8 @@ class GlobalSuppliersView(APIView):
                     "country__name",
                 )
                 .annotate(
-                    local=Sum("goods_services__contract_value_local"),
-                    usd=Sum("goods_services__contract_value_usd"),
+                    local=Sum("contract_value_local"),
+                    usd=Sum("contract_value_usd"),
                     count=Count("id"),
                 )
                 .order_by("-count")
@@ -146,8 +146,8 @@ class GlobalSuppliersView(APIView):
                     "goods_services__goods_services_category__category_name",
                 )
                 .annotate(
-                    local=Sum("goods_services__contract_value_local"),
-                    usd=Sum("goods_services__contract_value_usd"),
+                    local=Sum("contract_value_local"),
+                    usd=Sum("contract_value_usd"),
                     count=Count("id"),
                 )
                 .order_by("-usd")
@@ -165,8 +165,8 @@ class GlobalSuppliersView(APIView):
                     "country__name",
                 )
                 .annotate(
-                    local=Sum("goods_services__contract_value_local"),
-                    usd=Sum("goods_services__contract_value_usd"),
+                    local=Sum("contract_value_local"),
+                    usd=Sum("contract_value_usd"),
                     count=Count("id"),
                 )
                 .order_by("-usd")
@@ -185,8 +185,8 @@ class GlobalSuppliersView(APIView):
                     "goods_services__goods_services_category__category_name",
                 )
                 .annotate(
-                    local=Sum("goods_services__contract_value_local"),
-                    usd=Sum("goods_services__contract_value_usd"),
+                    local=Sum("contract_value_local"),
+                    usd=Sum("contract_value_usd"),
                     count=Count("id"),
                 )
                 .order_by("-count")
@@ -204,8 +204,8 @@ class GlobalSuppliersView(APIView):
                     "country__name",
                 )
                 .annotate(
-                    local=Sum("goods_services__contract_value_local"),
-                    usd=Sum("goods_services__contract_value_usd"),
+                    local=Sum("contract_value_local"),
+                    usd=Sum("contract_value_usd"),
                     count=Count("id"),
                 )
                 .order_by("-count")

@@ -18,8 +18,8 @@ class RedFlags:
 
     def flag4(self, contract_id):
         tender_instance = Tender.objects.filter(id=contract_id).aggregate(
-            contract_value=Sum("goods_services__contract_value_usd"),
-            tender_value=Sum("goods_services__tender_value_usd"),
+            contract_value=Sum("contract_value_usd"),
+            tender_value=Sum("tender_value_usd"),
         )
         contract_value = tender_instance["contract_value"]
         tender_value = tender_instance["tender_value"]
@@ -30,8 +30,8 @@ class RedFlags:
 
     def flag8(self, contract_id):
         tender_instance = Tender.objects.filter(id=contract_id).aggregate(
-            contract_value=Sum("goods_services__contract_value_usd"),
-            tender_value=Sum("goods_services__tender_value_usd"),
+            contract_value=Sum("contract_value_usd"),
+            tender_value=Sum("tender_value_usd"),
         )
         contract_value = tender_instance["contract_value"]
         tender_value = tender_instance["tender_value"]
