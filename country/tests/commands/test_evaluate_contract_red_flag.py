@@ -4,6 +4,8 @@ from django.test import TransactionTestCase
 
 from country.models import Buyer, Country, Supplier, Tender
 
+command_name = "evaluate_contract_red_flag"
+
 
 def setUpModule():
     Country.objects.all().delete()
@@ -44,13 +46,13 @@ def setUpModule():
     )
 
 
-class EvaluateContractRedFlagTests(TransactionTestCase):
+class EvaluateContractRedFlagTest(TransactionTestCase):
     def test_without_country_code(self):
         with self.assertRaises(CommandError):
-            call_command("evaluate_contract_red_flag")
+            call_command(command_name)
 
     def test_with_country_code(self):
-        self.assertEquals(call_command("evaluate_contract_red_flag", "MX"), "Done")
+        self.assertEquals(call_command(command_name, "MX"), "Done")
 
     def test_with_country_wrong_code(self):
-        self.assertEquals(call_command("evaluate_contract_red_flag", "mxss"), None)
+        self.assertEquals(call_command(command_name, "mxss"), None)

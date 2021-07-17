@@ -3,6 +3,8 @@ from django.test import TransactionTestCase
 
 from country.models import Buyer, Country, Supplier, Tender
 
+command_name = "export_summary_report"
+
 
 def setUpModule():
     Country.objects.all().delete()
@@ -43,6 +45,6 @@ def setUpModule():
     )
 
 
-class GenerateExcelSummaryTests(TransactionTestCase):
+class ExportSummaryReportTest(TransactionTestCase):
     def test_command(self):
-        self.assertEquals(call_command("generate_excel_summary"), "Finished")
+        self.assertEquals(call_command(command_name), "Done")

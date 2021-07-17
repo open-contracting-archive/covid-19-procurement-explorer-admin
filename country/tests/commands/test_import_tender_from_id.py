@@ -3,6 +3,8 @@ from django.test import TransactionTestCase
 
 from country.models import Buyer, Country, Supplier, Tender
 
+command_name = "import_tender_from_id"
+
 
 def setUpModule():
     Country.objects.all().delete()
@@ -46,11 +48,11 @@ def setUpModule():
 class TenderImportCommand(TransactionTestCase):
     def test_command_without_country_batch(self):
         with self.assertRaises(CommandError):
-            call_command("import_tender_from_id")
+            call_command(command_name)
 
     def test_command_with_wrong_country_batch(self):
         with self.assertRaises(AttributeError):
-            call_command("import_tender_from_id", "no_country", 1)
+            call_command(command_name, "no_country", 1)
 
     def test_command_with_country_batch(self):
-        self.assertEquals(call_command("import_tender_from_id", "Mexico", 1), None)
+        self.assertEquals(call_command(command_name, "Mexico", 1), "Done")

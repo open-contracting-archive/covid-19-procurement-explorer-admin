@@ -1,11 +1,11 @@
 from django.core.management.base import BaseCommand
 
 from country.models import Country
-from country.tasks import evaluate_contract_red_flag
+from country.tasks import country_contract_excel
 
 
 class Command(BaseCommand):
-    help = "Evaluate country contracts for red flags"
+    help = "Export country contracts into excel file."
 
     def add_arguments(self, parser):
         parser.add_argument("country_code", type=str, help="Country code")
@@ -18,9 +18,4 @@ class Command(BaseCommand):
         except Exception:
             return self.stdout.write("Invalid country code provided")
 
-        evaluate_contract_red_flag.apply_async(
-            args=(country_code,),
-            queue="covid19",
-        )
-
-        return "Done"
+        country_contract_excel.apply_async(args=(country_code,), queue="covid19")

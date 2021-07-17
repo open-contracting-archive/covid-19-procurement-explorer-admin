@@ -8,8 +8,10 @@ from django.test import TransactionTestCase
 
 from country.models import Country, CovidMonthlyActiveCases
 
+command_name = "fetch_covid_active_cases"
 
-class CommandTests(TransactionTestCase):
+
+class FetchCovidActiveCasesTest(TransactionTestCase):
     def assertCommand(self, *args, expected_out="", expected_err="", **kwargs):
         out = StringIO()
         err = StringIO()
@@ -29,7 +31,7 @@ class CommandTests(TransactionTestCase):
             mock.date.side_effect = lambda *args, **kw: datetime.date(*args, **kw)
 
             self.assertCommand(
-                "fetch_covid_active_cases",
+                command_name,
                 expected_out="""\
                     Fetching https://covid-api.com/api/reports?iso=KEN&date=2020-01-31... NO DATA
                     Fetching https://covid-api.com/api/reports?iso=KEN&date=2020-02-29... NO DATA
@@ -50,6 +52,6 @@ class CommandTests(TransactionTestCase):
                 ],
             )
 
-            self.assertCommand("fetch_covid_active_cases")
+            self.assertCommand(command_name)
 
             self.assertEqual(CovidMonthlyActiveCases.objects.count(), 2)
