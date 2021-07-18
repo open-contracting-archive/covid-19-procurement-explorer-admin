@@ -3,6 +3,8 @@ from django.test import TransactionTestCase
 
 from country.models import Buyer, Country, GoodsServices, GoodsServicesCategory, Supplier, Tender
 
+command_name = "process_currency_conversion"
+
 
 def setUpModule():
     Country.objects.all().delete()
@@ -68,4 +70,4 @@ def setUpModule():
 
 class ProcessCurrencyConversionCommandTest(TransactionTestCase):
     def test_command(self):
-        self.assertEquals(call_command("process_currency_conversion"), None)
+        self.assertEquals(call_command(command_name), None)

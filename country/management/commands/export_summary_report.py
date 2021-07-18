@@ -9,20 +9,22 @@ from country.models import Country, OverallSummary, Tender
 
 
 class Command(BaseCommand):
-    help = "Generate Excel Summary"
+    help = "Export overall summary report"
 
     def add_arguments(self, parser):
-        parser.add_argument("country", type=str, nargs="?", default=False)
+        parser.add_argument("country_code", type=str, nargs="?", default=False, help="Country code")
 
     def handle(self, *args, **kwargs):
         self.stdout.write("Exporting")
-        country_alpha_code = kwargs["country"] or None
-        if country_alpha_code:
-            country_alpha_code = country_alpha_code.upper()
-            country = Country.objects.filter(country_code_alpha_2=country_alpha_code).first()
+        country_code = kwargs["country_code"] or None
+
+        if country_code:
+            country_code = country_code.upper()
+            country = Country.objects.filter(country_code_alpha_2=country_code).first()
             data = get_statistics(country)
             OverallSummary.objects.filter(country=country).delete()
             OverallSummary.objects.create(statistic=data, country=country)
+
             return "Done"
         os.makedirs(os.path.join("media", "export"), exist_ok=True)
         workbook = xlsxwriter.Workbook("media/export/Overall Country Summary.xlsx")
@@ -56,11 +58,13 @@ class Command(BaseCommand):
             "Percentage of GDP to healthcare budget",
             "Country Data Download",
         ]
+
         for item in column_names:
             worksheet.write(row, column, item)
             column += 1
 
         countries = Country.objects.all().exclude(country_code_alpha_2="gl")
+
         for country in countries:
             columns = 0
             row += 1
@@ -75,8 +79,10 @@ class Command(BaseCommand):
                 OverallSummary.objects.create(statistic=data, country=country)
             except Exception as e:
                 self.stderr.write(str(e))
+
         workbook.close()
-        return "Finished"
+
+        return "Done"
 
 
 def get_statistics(country):
@@ -116,6 +122,7 @@ def get_statistics(country):
             total_value_of_equity_contracts=Sum("contract_value_usd", exclude=Q(equity_category=None)),
         )
     )
+
     if report["time_span_max"] and report["time_span_min"] is not None:
         timespan = report["time_span_max"] - report["time_span_min"]
     else:
@@ -159,4 +166,5 @@ def get_statistics(country):
     data["country_data_download"] = (
         "https://" + socket.gethostbyname(socket.gethostname()) + "/media/export/" + country.name + "_summary.xlsx"
     )
+
     return data

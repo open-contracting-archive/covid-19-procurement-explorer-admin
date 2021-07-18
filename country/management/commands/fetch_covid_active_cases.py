@@ -9,7 +9,7 @@ from country.models import Country, CovidMonthlyActiveCases
 
 
 class Command(BaseCommand):
-    help = "Import COVID statistics from covid-api.com"
+    help = "Fetch Covid-19 case statistics from covid-api.com"
 
     def handle(self, *args, **kwargs):
         today = datetime.date.today()
@@ -30,8 +30,8 @@ class Command(BaseCommand):
             .annotate(date=ArrayAgg("covid_monthly_active_cases__covid_data_date"))
             .values_list("country_code", "date")
         )
-
         countries = Country.objects.all().exclude(country_code_alpha_2="gl").order_by("country_code")
+
         for country in countries:
             country_code = country.country_code
             country_dates = set(dates_with_data[country_code])
@@ -46,17 +46,20 @@ class Command(BaseCommand):
                 url = f"https://covid-api.com/api/reports?iso={country_code}&date={date}"
 
                 response = requests.get(url)
+
                 if not response.ok:
                     self.stderr.write(f"Fetching {url}... {response.status_code}")
                     continue
 
                 data = response.json()["data"]
+
                 if not data:
                     self.stdout.write(f"Fetching {url}... NO DATA")
                     continue
 
                 active_cases_count = 0
                 death_count = 0
+
                 for item in data:
                     active_cases_count += item["active"]
                     death_count += item["deaths"]

@@ -16,7 +16,9 @@ from wagtail.documents.edit_handlers import DocumentChooserPanel
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.search import index
 
-from country.models import Country, Language, Topic
+from country.models.country import Country
+from country.models.language import Language
+from country.models.topic import Topic
 
 from .validators import validate_file_extension
 

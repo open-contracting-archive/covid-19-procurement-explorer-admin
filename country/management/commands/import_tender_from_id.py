@@ -28,3 +28,5 @@ class Command(BaseCommand):
                 self.stdout.write("Created task: import_tender_from_batch_id")
         except Exception as e:
             self.stderr.write(e)
+
+        return "Done"
