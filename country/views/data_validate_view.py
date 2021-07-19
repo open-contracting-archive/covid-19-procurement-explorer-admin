@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.http.response import HttpResponseRedirect
 from rest_framework.views import APIView
 
-from country.tasks import store_in_temp_table
+from country.tasks.store_in_temp_table import store_in_temp_table
 
 
 class DataValidateView(APIView):
@@ -10,7 +10,7 @@ class DataValidateView(APIView):
         instance_id = self.request.GET.get("data_import_id", None)
         if instance_id is not None:
             try:
-                store_in_temp_table.apply_async(args=(instance_id,), queue="covid19")
+                store_in_temp_table.now(args=(instance_id,), queue="covid19")
                 messages.info(request, "Validation is in progress!! Please wait for a while")
                 return HttpResponseRedirect("/admin/content/dataimport")
 

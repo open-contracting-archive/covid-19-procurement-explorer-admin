@@ -2,13 +2,15 @@ from celery import Celery
 from django.core import management
 
 from country.models import Country, EquityCategory, EquityKeywords, Tender
-from country.tasks import process_redflag, process_redflag6, process_redflag7
+from country.tasks.process_redflag import process_redflag
+from country.tasks.process_redflag6 import process_redflag6
+from country.tasks.process_redflag7 import process_redflag7
 from visualization.helpers.scheduler import ScheduleRunner
 
 app = Celery()
 
 
-# @app.task(name="fix_contract_name_value")
+@app.task(name="fix_contract_name_value")
 def fix_contract_name_value(tender_id, country):
     country_obj = Country.objects.filter(name=country).first()
     keywords = EquityKeywords.objects.filter(country=country_obj)
@@ -86,4 +88,4 @@ def fix_contract_name_value(tender_id, country):
         interval=8,
         country_alpha_code=country_obj.country_code_alpha_2,
     )
-    management.call_command("export_summary_report", country_obj.country_code_alpha_2)
+    management.call_command("export_summary_report")

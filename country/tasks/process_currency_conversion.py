@@ -1,7 +1,7 @@
 from celery import Celery
 
 from country.models import GoodsServices
-from country.tasks import convert_local_to_usd
+from country.tasks.convert_local_to_usd import convert_local_to_usd
 
 app = Celery()
 

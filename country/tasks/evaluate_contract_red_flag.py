@@ -1,7 +1,10 @@
 from celery import Celery
 
 from country.models import Country, Tender
-from country.tasks import clear_redflag, process_redflag, process_redflag6, process_redflag7
+from country.tasks.clear_redflag import clear_redflag
+from country.tasks.process_redflag import process_redflag
+from country.tasks.process_redflag6 import process_redflag6
+from country.tasks.process_redflag7 import process_redflag7
 
 app = Celery()
 
