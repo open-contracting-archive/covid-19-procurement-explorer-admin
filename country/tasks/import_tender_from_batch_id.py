@@ -2,7 +2,6 @@ import sys
 import traceback
 
 from celery import Celery
-from django.core import management
 
 from content.models import DataImport
 from country.models import (
@@ -15,7 +14,8 @@ from country.models import (
     TempDataImportTable,
     Tender,
 )
-from country.tasks import fix_contract_name_value, local_currency_to_usd
+from country.tasks.fix_contract_name_value import fix_contract_name_value
+from country.tasks.local_currency_to_usd import local_currency_to_usd
 from visualization.helpers.scheduler import ScheduleRunner
 
 app = Celery()
@@ -233,6 +233,16 @@ def import_tender_from_batch_id(batch_id, country, currency):
         interval=8,
         country_alpha_code=country_obj.country_code_alpha_2,
     )
-    management.call_command("export_summary_report", country_obj.country_code_alpha_2)
+    instance.task_scheduler(
+        task_name="summarize_country_contracts",
+        interval_name="every_hour",
+        interval=8,
+        country_alpha_code=country_obj.country_code_alpha_2,
+    )
+    instance.task_scheduler(
+        task_name="export_summary_report",
+        interval_name="every_hour",
+        interval=12,
+    )
     data_import_id = ImportBatch.objects.get(id=batch_id).data_import_id
     DataImport.objects.filter(page_ptr_id=data_import_id).update(imported=True)

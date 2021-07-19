@@ -3,7 +3,7 @@ from django.http.response import HttpResponseRedirect
 from rest_framework.views import APIView
 
 from content.models import DataImport
-from country.tasks import delete_dataset
+from country.tasks.delete_dataset import delete_dataset
 
 
 class DeleteDataSetView(APIView):

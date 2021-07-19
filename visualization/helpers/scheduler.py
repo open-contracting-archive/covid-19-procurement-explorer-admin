@@ -1,6 +1,11 @@
 from celery import Celery
 
-from country import tasks
+from country.tasks.country_contract_excel import country_contract_excel
+from country.tasks.evaluate_contract_red_flag import evaluate_contract_red_flag
+from country.tasks.evaluate_country_buyer import evaluate_country_buyer
+from country.tasks.evaluate_country_supplier import evaluate_country_supplier
+from country.tasks.export_summary_report import export_summary_report
+from country.tasks.summarize_country_contracts import summarize_country_contracts
 
 
 class ScheduleRunner:
@@ -13,10 +18,12 @@ class ScheduleRunner:
         self.scheduled_machine = list(self.scheduled_list.keys())[0]
         # task_list = self.instance.registered_tasks()[self.scheduled_machine]
         self.celery_task_list = {
-            "evaluate_country_supplier": tasks.evaluate_country_supplier,
-            "evaluate_country_buyer": tasks.evaluate_country_buyer,
-            "country_contract_excel": tasks.country_contract_excel,
-            "evaluate_contract_red_flag": tasks.evaluate_contract_red_flag,
+            "evaluate_country_supplier": evaluate_country_supplier,
+            "evaluate_country_buyer": evaluate_country_buyer,
+            "country_contract_excel": country_contract_excel,
+            "evaluate_contract_red_flag": evaluate_contract_red_flag,
+            "export_summary_report": export_summary_report,
+            "summarize_country_contracts": summarize_country_contracts,
         }
         self.datetime_now = datetime.datetime.now()
 

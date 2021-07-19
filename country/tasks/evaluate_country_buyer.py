@@ -1,7 +1,7 @@
 from celery import Celery
 
 from country.models import Buyer
-from country.tasks import summarize_buyer
+from country.tasks.summarize_buyer import summarize_buyer
 
 app = Celery()
 
