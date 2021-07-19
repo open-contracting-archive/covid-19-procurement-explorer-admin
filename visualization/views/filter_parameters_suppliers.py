@@ -12,12 +12,12 @@ class FilterParametersSuppliers(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
         country_code = self.request.GET.get("country", None)
-        buyer = self.request.GET.get("buyer", None)
+        buyer_id = self.request.GET.get("buyer", None)
 
         filter_args = {"supplier__isnull": False}
 
-        if buyer:
-            filter_args = add_filter_args("buyer", buyer, filter_args)
+        if buyer_id:
+            filter_args = add_filter_args("buyer", buyer_id, filter_args)
 
         if country_code:
             country_code = str(country_code).upper()

@@ -26,50 +26,45 @@ class GlobalOverview(APIView):
             .order_by("month")
         )
         countries = Country.objects.all().exclude(country_code_alpha_2="gl")
-        for i in count:
+        for item in count:
             result = {}
-            end_date = i["month"] + dateutil.relativedelta.relativedelta(months=1)
-            start_date = i["month"]
+            end_date = item["month"] + dateutil.relativedelta.relativedelta(months=1)
+            start_date = item["month"]
             result["details"] = []
             result["month"] = str(start_date.year) + "-" + str(start_date.month)
-            for j in countries:
+            for country in countries:
                 b = {}
-                tender_count = Tender.objects.filter(
-                    country__country_code_alpha_2=j.country_code_alpha_2,
-                    contract_date__gte=start_date,
-                    contract_date__lte=end_date,
-                ).count()
                 tender = Tender.objects.filter(
-                    country__country_code_alpha_2=j.country_code_alpha_2,
+                    country__country_code_alpha_2=country.country_code_alpha_2,
                     contract_date__gte=start_date,
                     contract_date__lte=end_date,
-                ).aggregate(Sum("contract_value_usd"))
-                b["country"] = j.name
-                b["country_code"] = j.country_code_alpha_2
-                b["country_continent"] = j.continent
+                ).aggregate(Sum("contract_value_usd"), Count("id"))
+                b["country"] = country.name
+                b["country_code"] = country.country_code_alpha_2
+                b["country_continent"] = country.continent
                 if tender["contract_value_usd__sum"] is None:
                     tender_val = 0
                 else:
                     tender_val = tender["contract_value_usd__sum"]
-                if tender_count is None:
+                if tender["id__count"] is None:
                     contract_val = 0
                 else:
-                    contract_val = tender_count
-                if bool(temp) and j.name in temp.keys():
-                    current_val = temp[j.name]
+                    contract_val = tender["id__count"]
+                if bool(temp) and country.name in temp.keys():
+                    current_val = temp[country.name]
                     cum_value = current_val + tender_val
-                    temp[j.name] = cum_value
+                    temp[country.name] = cum_value
                     b["amount_usd"] = cum_value
                 else:
-                    temp[j.name] = tender_val
+                    temp[country.name] = tender_val
                     b["amount_usd"] = tender_val
-                if bool(tender_temp) and j.name in tender_temp.keys():
-                    current_val = tender_temp[j.name]
+                if bool(tender_temp) and country.name in tender_temp.keys():
+                    current_val = tender_temp[country.name]
                     cum_value = current_val + contract_val
-                    tender_temp[j.name] = cum_value
+                    tender_temp[country.name] = cum_value
                     b["tender_count"] = cum_value
                 else:
-                    tender_temp[j.name] = contract_val
+                    tender_temp[country.name] = contract_val
                     b["tender_count"] = contract_val
                 result["details"].append(b)
             data.append(result)

@@ -22,14 +22,14 @@ class ContractStatusView(APIView):
         currency_code = ""
 
         country_code = self.request.GET.get("country", None)
-        buyer = self.request.GET.get("buyer")
+        buyer_id = self.request.GET.get("buyer")
 
         if country_code:
             country_code = str(country_code).upper()
             filter_args["country__country_code_alpha_2"] = country_code
 
-        if buyer:
-            filter_args = add_filter_args("buyer", buyer, filter_args)
+        if buyer_id:
+            filter_args = add_filter_args("buyer", buyer_id, filter_args)
 
         if country_code:
             try:

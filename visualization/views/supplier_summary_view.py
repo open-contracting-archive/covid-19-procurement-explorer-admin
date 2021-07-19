@@ -16,14 +16,15 @@ class SupplierSummaryView(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
         filter_args = {}
-        country = self.request.GET.get("country", None)
+        country_code = self.request.GET.get("country", None)
         result = {}
         trend = []
         current_time = datetime.datetime.now()
         previous_month_date = current_time - dateutil.relativedelta.relativedelta(months=-1)
         previous_month = previous_month_date.replace(day=1).date()
-        if country:
-            filter_args["country__country_code_alpha_2"] = country
+        if country_code:
+            country_code = str(country_code).upper()
+            filter_args["country__country_code_alpha_2"] = country_code
         supplier_details = (
             Tender.objects.filter(**filter_args)
             .exclude(supplier__isnull=True)

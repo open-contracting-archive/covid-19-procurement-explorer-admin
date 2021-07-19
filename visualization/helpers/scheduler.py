@@ -1,6 +1,8 @@
 from celery import Celery
 
 from country.tasks.country_contract_excel import country_contract_excel
+from country.tasks.delete_unused_buyers import delete_unused_buyers
+from country.tasks.delete_unused_suppliers import delete_unused_suppliers
 from country.tasks.evaluate_contract_red_flag import evaluate_contract_red_flag
 from country.tasks.evaluate_country_buyer import evaluate_country_buyer
 from country.tasks.evaluate_country_supplier import evaluate_country_supplier
@@ -24,6 +26,8 @@ class ScheduleRunner:
             "evaluate_contract_red_flag": evaluate_contract_red_flag,
             "export_summary_report": export_summary_report,
             "summarize_country_contracts": summarize_country_contracts,
+            "delete_unused_suppliers": delete_unused_suppliers,
+            "delete_unused_buyers": delete_unused_buyers,
         }
         self.datetime_now = datetime.datetime.now()
 

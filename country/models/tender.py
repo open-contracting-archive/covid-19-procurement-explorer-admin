@@ -24,8 +24,8 @@ class Tender(models.Model):
     ]
 
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="tenders")
-    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name="tenders", null=True, blank=True)
-    buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="tenders", null=True, blank=True)
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, related_name="tenders", null=True, blank=True)
+    buyer = models.ForeignKey(Buyer, on_delete=models.PROTECT, related_name="tenders", null=True, blank=True)
 
     contract_id = models.CharField(verbose_name=_("Contract ID"), max_length=150, null=True)
     contract_date = models.DateField(verbose_name=_("Contract date"), null=True, db_index=True)

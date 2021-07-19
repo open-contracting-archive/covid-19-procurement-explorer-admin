@@ -16,10 +16,11 @@ class QuantityCorrelation(APIView):
 
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
-        country = self.request.GET.get("country", None)
+        country_code = self.request.GET.get("country", None)
         filter_args = {}
-        if country:
-            filter_args["country__country_code_alpha_2"] = country
+        if country_code:
+            country_code = str(country_code).upper()
+            filter_args["country__country_code_alpha_2"] = country_code
             contracts_quantity = (
                 Tender.objects.filter(**filter_args)
                 .annotate(month=TruncMonth("contract_date"))

@@ -55,8 +55,6 @@ def setUpModule():
         no_of_bidders=112,
         contract_title="title",
         contract_desc="desc",
-        supplier=supplier,
-        buyer=buyer,
         quantity_units=1233,
         ppu_including_vat=1234.0,
         tender_value_local=1234.0,

@@ -16,15 +16,16 @@ class AverageBidsView(APIView):
         """
         Returns average bids for contracts
         """
-        country = self.request.GET.get("country", None)
-        buyer = self.request.GET.get("buyer")
+        country_code = self.request.GET.get("country", None)
+        buyer_id = self.request.GET.get("buyer")
 
         filter_args = {}
         filter_args["no_of_bidders__gte"] = 1
-        if country:
-            filter_args["country__country_code_alpha_2"] = country
-        if buyer:
-            filter_args = add_filter_args("buyer", buyer, filter_args)
+        if country_code:
+            country_code = str(country_code).upper()
+            filter_args["country__country_code_alpha_2"] = country_code
+        if buyer_id:
+            filter_args = add_filter_args("buyer", buyer_id, filter_args)
 
         # Month wise average of number of bids for contracts
         monthwise_data = (

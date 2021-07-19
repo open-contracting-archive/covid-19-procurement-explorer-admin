@@ -1,10 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from country.models.buyer import Buyer
 from country.models.country import Country
 from country.models.goods_services_category import GoodsServicesCategory
-from country.models.supplier import Supplier
 from country.models.tender import Tender
 
 
@@ -22,11 +20,6 @@ class GoodsServices(models.Model):
 
     contract_title = models.TextField(verbose_name=_("Contract title"), null=True, blank=True)
     contract_desc = models.TextField(verbose_name=_("Contract description"), null=True, blank=True)
-
-    supplier = models.ForeignKey(
-        Supplier, on_delete=models.CASCADE, related_name="goods_services", null=True, blank=True
-    )
-    buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="goods_services", null=True, blank=True)
 
     quantity_units = models.CharField(verbose_name=_("Quantity,units"), max_length=1500, null=True)
     ppu_including_vat = models.CharField(verbose_name=_("Price per units including VAT"), max_length=1500, null=True)

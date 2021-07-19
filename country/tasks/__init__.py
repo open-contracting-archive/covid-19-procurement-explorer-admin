@@ -2,6 +2,8 @@ from .clear_redflag import clear_redflag
 from .convert_local_to_usd import convert_local_to_usd
 from .country_contract_excel import country_contract_excel
 from .delete_dataset import delete_dataset
+from .delete_unused_buyers import delete_unused_buyers
+from .delete_unused_suppliers import delete_unused_suppliers
 from .evaluate_contract_equity import evaluate_contract_equity
 from .evaluate_contract_red_flag import evaluate_contract_red_flag
 from .evaluate_country_buyer import evaluate_country_buyer

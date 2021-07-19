@@ -47,6 +47,7 @@ class TopBuyers(APIView):
         }
 
         if country_code:
+            country_code = str(country_code).upper()
             filter_args["country__country_code_alpha_2"] = country_code
 
         if supplier_id:
