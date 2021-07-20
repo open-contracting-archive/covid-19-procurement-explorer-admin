@@ -5,11 +5,11 @@ from country.models import Country
 
 
 class Supplier(models.Model):
-    supplier_id = models.CharField(verbose_name=_("Supplier ID"), max_length=50, null=True)
+    supplier_id = models.CharField(verbose_name=_("Supplier ID"), max_length=250, null=True)
     supplier_name = models.CharField(
         verbose_name=_("Supplier name"), max_length=250, null=True, blank=True, db_index=True
     )
-    supplier_address = models.CharField(verbose_name=_("Supplier address"), max_length=250, null=True, blank=True)
+    supplier_address = models.TextField(verbose_name=_("Supplier address"), null=True, blank=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="suppliers", null=True)
     summary = models.JSONField(null=True)
 

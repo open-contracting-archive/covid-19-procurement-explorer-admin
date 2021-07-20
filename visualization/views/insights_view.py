@@ -5,7 +5,7 @@ from django.views.decorators.cache import cache_page
 from rest_framework.views import APIView
 
 from content.models import InsightsPage, ResourcesPage
-from visualization.helpers.general import page_expire_period
+from helpers.general import page_expire_period
 
 
 class ViewPaginatorMixin(object):

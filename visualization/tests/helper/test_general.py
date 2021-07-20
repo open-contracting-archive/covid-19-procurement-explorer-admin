@@ -2,7 +2,7 @@ from django.conf import settings
 from django.test import SimpleTestCase
 from django.test.utils import override_settings
 
-from visualization.helpers.general import page_expire_period
+from helpers.general import page_expire_period
 from visualization.views.lib.general import add_filter_args
 
 

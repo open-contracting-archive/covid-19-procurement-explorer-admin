@@ -41,7 +41,7 @@ urlpatterns = [
     path("api/staticpage/<str:type>", SlugStaticPageShow.as_view()),
     path("api/upcoming-events", UpcomingEventView.as_view()),
     path("api/contents/insights", InsightsView.as_view(), name="insights_view"),
-    path("api/v1/country", CountryView.as_view(), name="country_view"),
+    path("api/v1/country/", CountryView.as_view(), name="country_view"),
     path("api/v1/country/<str:slug>", CountryDetailView.as_view(), name="country_detail_view"),
     path("", include("country.urls")),
     path("api-auth/", include("rest_framework.urls")),

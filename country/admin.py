@@ -1,8 +1,6 @@
 from django import forms
 from django.contrib import admin
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.forms import TextInput
 from django.utils.html import format_html
 
@@ -22,7 +20,7 @@ from .models import (
     Tender,
     Topic,
 )
-from .tasks import fix_contract_name_value, local_currency_to_usd
+from .tasks import process_currency_conversion
 
 
 class EquityInline(admin.TabularInline):
@@ -58,6 +56,22 @@ class SupplierAdmin(admin.ModelAdmin):
         return False
 
 
+def detail_view(items):
+    field_html = ""
+    for key, value in items:
+        if key == "errors":
+            error_list_html = ""
+            if len(value) > 0:
+                for error in value:
+                    error_list_html += f"<li>{error}</li>"
+            else:
+                error_list_html = "No Errors to show."
+            field_html += f"<li><strong>{key.capitalize()}</strong> : <ul>{error_list_html}</ul></li>"
+            continue
+        field_html += f"<li><strong>{key.capitalize()}</strong> : {value}</li>"
+    return format_html(field_html)
+
+
 @admin.register(DataImport)
 class DataImportAdmin(admin.ModelAdmin):
     exclude = (
@@ -73,7 +87,43 @@ class DataImportAdmin(admin.ModelAdmin):
         "show_in_menus",
         "seo_title",
         "content_type",
+        "validation",
+        "import_details",
     )
+
+    @admin.display()
+    def validation(self):
+        field_html = ""
+        for key, value in self.validation.items():
+            if key == "errors":
+                error_list_html = ""
+                if len(value) > 0:
+                    for error in value:
+                        error_list_html += f"<li>{error}</li>"
+                else:
+                    error_list_html = "No Errors to show."
+                field_html += f"<li><strong>{key.capitalize()}</strong> : <ul>{error_list_html}</ul></li>"
+                continue
+            field_html += f"<li><strong>{key.capitalize()}</strong> : {value}</li>"
+        return format_html(field_html)
+
+    @admin.display()
+    def import_details(self):
+        field_html = ""
+        for key, value in self.import_details.items():
+            if key == "errors":
+                error_list_html = ""
+                if len(value) > 0:
+                    for error in value:
+                        error_list_html += f"<li>{error}</li>"
+                else:
+                    error_list_html = "No Errors to show."
+                field_html += f"<li><strong>{key.capitalize()}</strong> : <ul>{error_list_html}</ul></li>"
+                continue
+            field_html += f"<li><strong>{key.capitalize()}</strong> : {value}</li>"
+        return format_html(field_html)
+
+    readonly_fields = (validation, import_details)
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -93,14 +143,13 @@ class DataImportAdmin(admin.ModelAdmin):
         else:
             return format_html(
                 f"""<img src="/static/admin/img/icon-no.svg" alt="False">
-                <a class="button" href="/data_validate?data_import_id={data_import_id}">
+                <a class="button" href="/data-validate?data_import_id={data_import_id}">
                 Validate</a>&nbsp;"""
             )
 
     custom_title.short_description = "Validation"
 
     def import_status(self):
-        # import_file = str(self.import_file).split("/")[-1]
         validated = bool(self.validated)
         if validated and self.imported:
             return format_html(
@@ -111,8 +160,9 @@ class DataImportAdmin(admin.ModelAdmin):
             return format_html("""<a class="button" disabled="True">Import</a>&nbsp;""")
         else:
             return format_html(
-                f"""<a class="button"
-                href="/data_import?country={str(self.country)}&data_import_id={str(self.page_ptr_id)}"""
+                f"""<a class="button" """
+                f"""href="/data-import?country_code={str(self.country.country_code_alpha_2)}"""
+                f"""&data_import_id={str(self.page_ptr_id)}"""
                 f"""&validated={validated}">Import</a>&nbsp;"""
             )
 
@@ -135,22 +185,22 @@ class DataImportAdmin(admin.ModelAdmin):
 
     def import_actions(self):
         data_import_id = str(self.page_ptr_id)
-        importbatch = ImportBatch.objects.get(data_import_id=data_import_id)
+        import_batch = ImportBatch.objects.filter(data_import_id=data_import_id).first()
         file_source = f"/media/{self.import_file}"
         if self.imported and self.validated:
             return format_html(
-                f"""<a class="button" disabled="True" >Edit</a>&nbsp;
+                f"""<a class="button" disabled="True">Edit</a>&nbsp;
                      <a class="button" href={file_source} download>Download Source File</a>&nbsp;
                      <a class="button" onclick="return confirm('Are you sure you want to delete?')"
-            href="/delete_dataset?data_import_id={data_import_id}"
+            href="/delete-dataset?data_import_id={data_import_id}"
             id="delete">Delete</a>&nbsp;"""
             )
         else:
             return format_html(
-                f"""<a class="button" href="/data_edit?data_import_id={importbatch.id}">Edit</a>&nbsp;
+                f"""<a class="button" href="/data-edit?data_import_id={import_batch.id if import_batch else ''}">Edit</a>&nbsp;
                 <a class="button" href={file_source} download>Download Source File</a>&nbsp;
             <a class="button" onclick="return confirm('Are you sure you want to delete?')"
-            href="/delete_dataset?data_import_id={data_import_id}"
+            href="/delete-dataset?data_import_id={data_import_id}"
             id="delete">Delete</a>&nbsp;"""
             )
 
@@ -321,19 +371,13 @@ class TenderAdmin(admin.ModelAdmin):
         for form_set in formsets:
             if form_set.has_changed():
                 for value in form_set:
-                    contract_value_local = float(value["contract_value_local"].value())
-                    tender_value_local = float(value["tender_value_local"].value())
-                    award_value_local = float(value["award_value_local"].value())
+                    # todo: do not fetch country object in loop
                     country_id = value["country"].value()
                     source_currency = Country.objects.get(id=country_id).currency
-                    source_values = {
-                        "tender_value_local": tender_value_local or None,
-                        "award_value_local": award_value_local or None,
-                        "contract_value_local": contract_value_local or None,
-                    }
+
                     goods_services_row_id = value["id"].value()
-                    local_currency_to_usd.apply_async(
-                        args=(goods_services_row_id, conversion_date, source_currency, source_values), queue="covid19"
+                    process_currency_conversion.apply_async(
+                        args=(goods_services_row_id, conversion_date, source_currency), queue="covid19"
                     )
 
         super().save_related(request, form, formsets, change)
@@ -342,12 +386,11 @@ class TenderAdmin(admin.ModelAdmin):
 admin.site.register(Tender, TenderAdmin)
 
 
-@receiver(post_save, sender=Tender)
-def save_model(sender, instance, **kwargs):
-    if getattr(instance, "from_admin_site", False):
-        tender_id = instance.id
-        tender_country = instance.country
-        fix_contract_name_value(tender_id, tender_country)
+# @receiver(post_save, sender=Tender)
+# def save_model(sender, instance, **kwargs):
+#     if getattr(instance, "from_admin_site", False):
+#         tender_id = instance.id
+#         update_contract_attributes(tender_id)
 
 
 @admin.register(RedFlag)

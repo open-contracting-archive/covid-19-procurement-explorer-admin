@@ -16,8 +16,6 @@ class GoodsServices(models.Model):
     classification_code = models.CharField(
         verbose_name=_("Classification code"), max_length=100, null=True, blank=True
     )
-    no_of_bidders = models.BigIntegerField(verbose_name=_("Number of bidders"), null=True, blank=True)
-
     contract_title = models.TextField(verbose_name=_("Contract title"), null=True, blank=True)
     contract_desc = models.TextField(verbose_name=_("Contract description"), null=True, blank=True)
 

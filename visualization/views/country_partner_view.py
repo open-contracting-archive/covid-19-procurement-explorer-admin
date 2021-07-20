@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from content.models import CountryPartner
-from visualization.helpers.general import page_expire_period
+from helpers.general import page_expire_period
 
 
 class CountryPartnerView(APIView):

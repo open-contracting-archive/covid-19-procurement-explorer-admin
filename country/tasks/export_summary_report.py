@@ -41,6 +41,10 @@ def export_summary_report():
         "GDP per Capita",
         "Healthcare budget",
         "Percentage of GDP to healthcare budget",
+        "Total cases",
+        "Total active cases",
+        "Total deaths",
+        "$ per covid case",
         "Country Data Download",
     ]
 

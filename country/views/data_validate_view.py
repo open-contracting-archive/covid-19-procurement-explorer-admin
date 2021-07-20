@@ -2,20 +2,31 @@ from django.contrib import messages
 from django.http.response import HttpResponseRedirect
 from rest_framework.views import APIView
 
-from country.tasks.store_in_temp_table import store_in_temp_table
+from country.tasks.validate_and_store_contracts import validate_and_store_contracts
 
 
 class DataValidateView(APIView):
     def get(self, request):
-        instance_id = self.request.GET.get("data_import_id", None)
-        if instance_id is not None:
+        data_import_id = self.request.GET.get("data_import_id", None)
+        if data_import_id is not None:
             try:
-                store_in_temp_table.now(args=(instance_id,), queue="covid19")
-                messages.info(request, "Validation is in progress!! Please wait for a while")
+                result = validate_and_store_contracts.apply_async(args=(data_import_id,), queue="covid19")
+                if result:
+                    messages.info(
+                        request,
+                        "Validation is in progress!! Please see the details page for more information about it!",
+                    )
+                    return HttpResponseRedirect("/admin/content/dataimport")
+                else:
+                    messages.error(
+                        request, "Your import has failed. Please see the details page for more information about it!"
+                    )
                 return HttpResponseRedirect("/admin/content/dataimport")
-
-            except Exception:
-                messages.error(request, "Your import has failed!")
+            except Exception as e:
+                messages.error(
+                    request,
+                    f"Your import has failed.. Please see the details page for more information about it! + {e}",
+                )
                 return HttpResponseRedirect("/admin/content/dataimport")
         else:
             # messages.error(request, 'Your import failed because it only supports .xlsx and .xls file!')

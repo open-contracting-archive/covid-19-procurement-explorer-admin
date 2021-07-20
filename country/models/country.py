@@ -53,6 +53,9 @@ class Country(models.Model):
     covid_deaths_total = models.BigIntegerField(
         verbose_name=_("Total deaths by Covid-19"), null=True, blank=True, validators=[MinValueValidator(0)]
     )
+    covid_active_cases = models.BigIntegerField(
+        verbose_name=_("Active cases of Covid-19"), null=True, blank=True, validators=[MinValueValidator(0)]
+    )
     covid_data_last_updated = models.DateTimeField(null=True, blank=True)
 
     objects = CountryManager()

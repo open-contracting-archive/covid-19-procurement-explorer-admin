@@ -12,8 +12,8 @@ class CountryViewTest(TestCase):
         self.tender_list_api_url = "TenderView-list"
         self.overview_summary_list_api_url = "OverallStatSummaryView-list"
         self.country_choices_api_url = "country_detail_view"
-        self.data_edit_url = "data_edits"
-        self.data_imports_url = "data_imports"
+        self.data_edit_url = "data_edit"
+        self.data_import_url = "data_import"
         self.data_validate_url = "data_validate"
         self.data_delete_url = "data_delete"
 
@@ -63,12 +63,12 @@ class CountryViewTest(TestCase):
         self.assertEquals(response.status_code, status.HTTP_302_FOUND)
 
     def test_data_imports_GET(self):
-        url = "%s?country=1&data_import_id=1&validated=true" % reverse(self.data_imports_url)
+        url = "%s?country=1&data_import_id=1&validated=true" % reverse(self.data_import_url)
         response = self.client.get(url)
         self.assertEquals(response.status_code, status.HTTP_302_FOUND)
 
     def test_data_imports_without_validate_GET(self):
-        url = "%s?country=1&data_import_id=1" % reverse(self.data_imports_url)
+        url = "%s?country=1&data_import_id=1" % reverse(self.data_import_url)
         response = self.client.get(url)
         self.assertEquals(response.status_code, status.HTTP_302_FOUND)
 

@@ -6,7 +6,7 @@ from django.views.decorators.cache import cache_page
 from rest_framework.views import APIView
 
 from content.models import EventsPage
-from visualization.helpers.general import page_expire_period
+from helpers.general import page_expire_period
 
 
 class UpcomingEventView(APIView):

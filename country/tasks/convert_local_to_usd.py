@@ -22,11 +22,10 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
     ).first()
 
     if result:
-        print("Found conversion data in database")
         return round(source_value * result.conversion_rate, 2)
     else:
-        print("Fetching conversion data from fixer.io")
         access_key = settings.FIXER_IO_API_KEY
+
         try:
             r = requests.get(
                 f"https://data.fixer.io/api/{conversion_date}?access_key={access_key}&base={source_currency}"
@@ -53,9 +52,7 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
 
                     c = CurrencyConversionCache(
                         source_currency=source_currency,
-                        # source_value=source_value,
                         dst_currency=dst_currency,
-                        # dst_value=dst_value,
                         conversion_date=conversion_date,
                         conversion_rate=conversion_rate,
                     )
@@ -63,4 +60,4 @@ def convert_local_to_usd(conversion_date, source_currency, source_value, dst_cur
 
                     return dst_value
         except Timeout:
-            return None
+            return 0

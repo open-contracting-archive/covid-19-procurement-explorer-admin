@@ -8,15 +8,11 @@ app = Celery()
 @app.task(name="evaluate_contract_equity")
 def evaluate_contract_equity(country_code):
     country = Country.objects.get(country_code_alpha_2=country_code)
-    tenders = Tender.objects.filter(country=country)
+    contracts = Tender.objects.filter(country=country)
     equity_keywords = EquityKeywords.objects.filter(country=country)
 
-    for tender in tenders:
-        good_services = tender.goods_services.filter(country=country)
-
-        for good_service in good_services:
-            print(good_service.id)
-
+    for contract in contracts:
+        for good_service in contract.goods_services:
             for keyword in equity_keywords:
                 keyword_value = keyword.keyword
 
@@ -25,6 +21,5 @@ def evaluate_contract_equity(country_code):
                     or keyword_value in good_service.contract_desc.strip()
                 ):
                     category = keyword.equity_category.category_name
-                    print(category)
                     instance = EquityCategory.objects.get(category_name=category)
-                    tender.equity_category.add(instance)
+                    contract.equity_category.add(instance)

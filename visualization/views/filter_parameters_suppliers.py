@@ -4,7 +4,7 @@ from django.views.decorators.cache import cache_page
 from rest_framework.views import APIView
 
 from country.models import Tender
-from visualization.helpers.general import page_expire_period
+from helpers.general import page_expire_period
 from visualization.views.lib.general import add_filter_args
 
 

@@ -5,13 +5,14 @@ from country.tasks import summarize_buyer
 
 
 class Command(BaseCommand):
-    help = "Summarize country buyer's contract information"
+    help = "Summarize buyer's contract information"
 
     def add_arguments(self, parser):
         parser.add_argument("country_code", type=str, help="Country code")
 
     def handle(self, *args, **kwargs):
         country_code = kwargs["country_code"].upper()
+
         try:
             country = Country.objects.get(country_code_alpha_2=country_code)
         except Exception:

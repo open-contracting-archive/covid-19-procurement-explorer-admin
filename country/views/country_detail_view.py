@@ -10,8 +10,7 @@ from country.models import Country, Tender
 class CountryDetailView(APIView):
     def get(self, request, *args, **kwargs):
         slug = self.kwargs["slug"]
-        filter_args = {}
-        filter_args["country__slug"] = slug
+        filter_args = {"country__slug": slug}
 
         country = Country.objects.filter(slug=slug).first()
         country_detail = []
