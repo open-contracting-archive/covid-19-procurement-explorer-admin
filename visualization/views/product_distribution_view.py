@@ -12,13 +12,14 @@ class ProductDistributionView(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
         filter_args = {}
-        country = self.request.GET.get("country", None)
-        buyer = self.request.GET.get("buyer", None)
-        if country:
-            filter_args["country__country_code_alpha_2"] = country
-        if buyer:
-            filter_args["contract__buyer__buyer_id"] = buyer
-            if buyer == "notnull":
+        country_code = self.request.GET.get("country", None)
+        buyer_id = self.request.GET.get("buyer", None)
+        if country_code:
+            country_code = str(country_code).upper()
+            filter_args["country__country_code_alpha_2"] = country_code
+        if buyer_id:
+            filter_args["contract__buyer__buyer_id"] = buyer_id
+            if buyer_id == "notnull":
                 filter_args["contract__buyer__isnull"] = False
 
         result = []
@@ -37,8 +38,8 @@ class ProductDistributionView(APIView):
                 "product_id": goods["goods_services_category__id"],
                 "local_currency_code": "USD",
             }
-            if country:
-                instance = Country.objects.get(country_code_alpha_2=country)
+            if country_code:
+                instance = Country.objects.get(country_code_alpha_2=country_code)
                 data["local_currency_code"] = instance.currency
 
             data["tender_count"] = goods["tender"]

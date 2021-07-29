@@ -12,11 +12,12 @@ class ProductSummaryView(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
         filter_args = {}
-        country = self.request.GET.get("country", None)
+        country_code = self.request.GET.get("country", None)
         currency = "USD"
-        if country:
-            filter_args["country__country_code_alpha_2"] = country
-            instance = Country.objects.get(country_code_alpha_2=country)
+        if country_code:
+            country_code = str(country_code).upper()
+            filter_args["country__country_code_alpha_2"] = country_code
+            instance = Country.objects.get(country_code_alpha_2=country_code)
             currency = instance.currency
         result = []
         tenders_assigned = (

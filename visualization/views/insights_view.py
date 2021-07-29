@@ -48,7 +48,7 @@ class ViewPaginatorMixin(object):
 class InsightsView(ViewPaginatorMixin, APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
-        country = self.request.GET.get("country", None)
+        country_code = self.request.GET.get("country", None)
         insight_type = self.request.GET.get("type", None)
         year = self.request.GET.get("year", None)
         order = self.request.GET.get("order", None)
@@ -60,8 +60,9 @@ class InsightsView(ViewPaginatorMixin, APIView):
         filter_args = {}
         filter_insights_args = {}
 
-        if country:
-            filter_args["country__country_code_alpha_2"] = country
+        if country_code:
+            country_code = str(country_code).upper()
+            filter_args["country__country_code_alpha_2"] = country_code
 
         if insight_type:
             if insight_type in ["News", "Blog"]:

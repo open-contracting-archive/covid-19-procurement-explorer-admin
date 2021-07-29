@@ -11,6 +11,7 @@ class RedFlags:
         tender_instance = Tender.objects.get(id=contract_id)
         procurement_procedure = tender_instance.procurement_procedure
         no_of_bidders = tender_instance.no_of_bidders
+
         if procurement_procedure == "Direct" or no_of_bidders == 1:
             return True
         else:
@@ -21,9 +22,12 @@ class RedFlags:
             contract_value=Sum("contract_value_usd"),
             tender_value=Sum("tender_value_usd"),
         )
-        contract_value = tender_instance["contract_value"]
-        tender_value = tender_instance["tender_value"]
-        if tender_value and contract_value > tender_value:
+        contract_value = (
+            float(tender_instance["contract_value"]) if tender_instance["contract_value"] is not None else 0
+        )
+        tender_value = float(tender_instance["tender_value"]) if tender_instance["tender_value"] is not None else 0
+
+        if contract_value > tender_value:
             return True
         else:
             return False
@@ -35,10 +39,12 @@ class RedFlags:
         )
         contract_value = tender_instance["contract_value"]
         tender_value = tender_instance["tender_value"]
+
         try:
             percentage_increase = ((contract_value - tender_value) / tender_value) * 100
         except Exception:
             percentage_increase = 0
+
         if (
             percentage_increase > 20
         ):  # the difference between the expected purchase price and the final (contract) value exceeds 20 percent;

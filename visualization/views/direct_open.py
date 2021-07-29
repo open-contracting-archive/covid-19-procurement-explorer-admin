@@ -26,19 +26,19 @@ class DirectOpen(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
         country_code = self.request.GET.get("country", None)
-        buyer = self.request.GET.get("buyer")
-        supplier = self.request.GET.get("supplier")
+        buyer_id = self.request.GET.get("buyer")
+        supplier_id = self.request.GET.get("supplier")
         filter_args = {}
         country_currency = ""
 
         results = {}
 
-        if buyer:
-            filter_args = add_filter_args("buyer", buyer, filter_args)
+        if buyer_id:
+            filter_args = add_filter_args("buyer", buyer_id, filter_args)
             results = procurement_procedure_amount(**filter_args)
 
-        if supplier:
-            filter_args = add_filter_args("supplier", supplier, filter_args)
+        if supplier_id:
+            filter_args = add_filter_args("supplier", supplier_id, filter_args)
             results = procurement_procedure_amount(**filter_args)
 
         if country_code:
@@ -49,7 +49,7 @@ class DirectOpen(APIView):
             filter_args = add_filter_args("country__country_code_alpha_2", country_code, filter_args, append_only=True)
             results = procurement_procedure_amount(**filter_args)
 
-        if not country_code and not supplier and not buyer:
+        if not country_code and not supplier_id and not buyer_id:
             results = procurement_procedure_amount(**filter_args)
 
         response = []

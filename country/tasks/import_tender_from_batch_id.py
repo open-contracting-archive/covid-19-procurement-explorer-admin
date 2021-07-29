@@ -181,8 +181,6 @@ def import_tender_from_batch_id(batch_id, country, currency):
                     country=country_obj,
                     goods_services_category=goods_services_category_obj,
                     contract=tender_obj,
-                    supplier=supplier_obj,
-                    buyer=buyer_obj,
                     classification_code=classification_code,
                     no_of_bidders=no_of_bidders or None,
                     contract_title=contract_title,

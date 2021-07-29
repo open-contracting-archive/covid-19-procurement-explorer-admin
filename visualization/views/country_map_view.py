@@ -12,17 +12,17 @@ from visualization.helpers.general import page_expire_period
 class CountryMapView(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
-        country = self.request.GET.get("country", None)
+        country_code = self.request.GET.get("country", None)
 
         try:
-            country_instance = Country.objects.get(country_code_alpha_2=country)
+            country_instance = Country.objects.get(country_code_alpha_2=country_code)
 
-            if country is not None and country_instance is not None:
-                tender_instance = Tender.objects.filter(country__country_code_alpha_2=country).aggregate(
+            if country_code is not None and country_instance is not None:
+                tender_instance = Tender.objects.filter(country__country_code_alpha_2=country_code).aggregate(
                     total_usd=Sum("contract_value_usd"),
                     total_local=Sum("contract_value_local"),
                 )
-                count = Tender.objects.filter(country__country_code_alpha_2=country).count()
+                count = Tender.objects.filter(country__country_code_alpha_2=country_code).count()
                 final = {
                     "country_code": country_instance.country_code_alpha_2,
                     "country": country_instance.name,

@@ -13,15 +13,16 @@ class EquityIndicatorView(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
         filter_args = {}
-        country = self.request.GET.get("country", None)
-        buyer = self.request.GET.get("buyer")
-        if country:
-            filter_args["country__country_code_alpha_2"] = country
-        if buyer:
-            filter_args = add_filter_args("buyer", buyer, filter_args)
-        if country:
+        country_code = self.request.GET.get("country", None)
+        buyer_id = self.request.GET.get("buyer")
+        if country_code:
+            country_code = str(country_code).upper()
+            filter_args["country__country_code_alpha_2"] = country_code
+        if buyer_id:
+            filter_args = add_filter_args("buyer", buyer_id, filter_args)
+        if country_code:
             try:
-                country_instance = Country.objects.get(country_code_alpha_2=country)
+                country_instance = Country.objects.get(country_code_alpha_2=country_code)
                 filter_args["country"] = country_instance
                 tenders_assigned = (
                     Tender.objects.filter(**filter_args)

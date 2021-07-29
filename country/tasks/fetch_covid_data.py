@@ -29,7 +29,7 @@ def fetch_covid_data():
 
                         country.covid_cases_total = covid_cases_total
                         country.covid_deaths_total = covid_deaths_total
-                        country.covid_data_last_updated = datetime.now()
+                        country.covid_data_last_updated = datetime.datetime.now()
                         country.save()
             except Timeout:
                 continue

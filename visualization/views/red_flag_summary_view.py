@@ -13,9 +13,10 @@ class RedFlagSummaryView(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
         filter_args = {}
-        country = self.request.GET.get("country", None)
-        if country:
-            filter_args["country__country_code_alpha_2"] = country
+        country_code = self.request.GET.get("country", None)
+        if country_code:
+            country_code = str(country_code).upper()
+            filter_args["country__country_code_alpha_2"] = country_code
         filter_args["red_flag__isnull"] = False
         result = []
         equity_summary = (

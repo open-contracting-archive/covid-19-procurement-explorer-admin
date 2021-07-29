@@ -11,10 +11,10 @@ from visualization.helpers.general import page_expire_period
 class WorldMapView(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
-        product = self.request.GET.get("product", None)
+        product_id = self.request.GET.get("product", None)
         filter_args = {}
-        if product:
-            filter_args["goods_services__goods_services_category__id"] = product
+        if product_id:
+            filter_args["goods_services__goods_services_category__id"] = product_id
         country_instance = Country.objects.all().exclude(country_code_alpha_2="gl")
         result = []
         for country in country_instance:

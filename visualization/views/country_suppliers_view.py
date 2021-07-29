@@ -15,10 +15,11 @@ class CountrySuppliersView(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
         filter_args = {}
-        country = self.request.GET.get("country", None)
+        country_code = self.request.GET.get("country", None)
         count = int(self.request.GET.get("count", 5))
-        if country:
-            filter_args["country__country_code_alpha_2"] = country
+        if country_code:
+            country_code = str(country_code).upper()
+            filter_args["country__country_code_alpha_2"] = country_code
 
         usd_amountwise_sorted = (
             Tender.objects.filter(

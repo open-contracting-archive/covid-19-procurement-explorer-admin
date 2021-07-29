@@ -14,15 +14,16 @@ class ProductTimelineView(APIView):
     @method_decorator(cache_page(page_expire_period()))
     def get(self, request):
         filter_args = {}
-        country = self.request.GET.get("country", None)
-        buyer = self.request.GET.get("buyer")
-        supplier = self.request.GET.get("supplier")
-        if country:
-            filter_args["country__country_code_alpha_2"] = country
-        if buyer:
-            filter_args = add_filter_args("buyer", buyer, filter_args)
-        if supplier:
-            filter_args = add_filter_args("supplier", supplier, filter_args)
+        country_code = self.request.GET.get("country", None)
+        buyer_id = self.request.GET.get("buyer")
+        supplier_id = self.request.GET.get("supplier")
+        if country_code:
+            country_code = str(country_code).upper()
+            filter_args["country__country_code_alpha_2"] = country_code
+        if buyer_id:
+            filter_args = add_filter_args("buyer", buyer_id, filter_args)
+        if supplier_id:
+            filter_args = add_filter_args("supplier", supplier_id, filter_args)
         result = []
         try:
             tenders_assigned = (
