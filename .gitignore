@@ -50,3 +50,5 @@ deploy.sh
 
 #Pycharm
 *.idea/
+requirements_dev_m1.in
+requirements_dev_m1.txt

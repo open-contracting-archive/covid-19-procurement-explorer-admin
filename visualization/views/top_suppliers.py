@@ -5,7 +5,7 @@ from django.views.decorators.cache import cache_page
 from rest_framework.views import APIView
 
 from country.models import Supplier
-from visualization.helpers.general import page_expire_period
+from helpers.general import page_expire_period
 
 
 def top_supplier(order_by, **filter_args):

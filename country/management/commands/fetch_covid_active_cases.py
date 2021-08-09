@@ -13,8 +13,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         today = datetime.date.today()
-
         dates_in_period = set()
+
         for year in range(2020, today.year + 1):
             for month in range(1, 13):
                 day = calendar.monthrange(year, month)[1]
@@ -37,6 +37,25 @@ class Command(BaseCommand):
             country_dates = set(dates_with_data[country_code])
             dates_to_query = dates_in_period - country_dates
             minimum_date = min(country_dates)
+
+            url = f"https://covid-api.com/api/reports/total?iso={country_code}"
+            print(country_code)
+            response = requests.get(url)
+            data = response.json()["data"]
+
+            if not data:
+                self.stdout.write(f"Fetching {url}... NO DATA")
+                active_cases = 0
+                total_cases = 0
+                total_death = 0
+            else:
+                active_cases = data["active"]
+                total_cases = data["confirmed"]
+                total_death = data["deaths"]
+
+            Country.objects.filter(country_code=country_code).update(
+                covid_active_cases=active_cases, covid_deaths_total=total_death, covid_cases_total=total_cases
+            )
 
             for date in sorted(dates_to_query):
                 # Don't retry dates from the beginning of the pandemic.

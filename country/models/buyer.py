@@ -5,9 +5,9 @@ from country.models.country import Country
 
 
 class Buyer(models.Model):
-    buyer_id = models.CharField(verbose_name=_("Buyer ID"), max_length=50, null=True)
+    buyer_id = models.CharField(verbose_name=_("Buyer ID"), max_length=250, null=True)
     buyer_name = models.CharField(verbose_name=_("Buyer name"), max_length=250, null=True, blank=True, db_index=True)
-    buyer_address = models.CharField(verbose_name=_("Buyer address"), max_length=250, null=True, blank=True)
+    buyer_address = models.TextField(verbose_name=_("Buyer address"), null=True, blank=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="buyers", null=True)
     summary = models.JSONField(null=True)
 

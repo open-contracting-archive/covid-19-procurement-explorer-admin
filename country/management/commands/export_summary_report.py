@@ -9,4 +9,5 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.stdout.write("Exporting")
         export_summary_report.apply()
+
         return "Done"

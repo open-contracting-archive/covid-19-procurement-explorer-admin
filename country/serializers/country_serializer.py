@@ -22,7 +22,7 @@ class ChoiceField(serializers.ChoiceField):
         self.fail("invalid_choice", input=data)
 
 
-class CountrySerializer(serializers.HyperlinkedModelSerializer, SerializerExtensionsMixin):
+class CountrySerializer(serializers.ModelSerializer, SerializerExtensionsMixin):
     id = serializers.IntegerField(read_only=True)
     continent = ChoiceField(choices=Country.CONTINENT_CHOICES)
     amount_usd = serializers.SerializerMethodField()

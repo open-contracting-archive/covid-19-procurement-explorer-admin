@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from country.models import Buyer
-from visualization.helpers.general import page_expire_period
+from helpers.general import page_expire_period
 
 
 class BuyerProfileView(APIView):

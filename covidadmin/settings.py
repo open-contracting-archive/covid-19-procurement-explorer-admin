@@ -201,7 +201,7 @@ CELERY_BROKER_URL = env("CELERY_BROKER_URL")
 CELERY_TIMEZONE = env("CELERY_TIMEZONE")
 CELERY_TASK_ROUTES = {
     "country.tasks.fetch_covid_data": {"queue": "covid19", "exchange": "covid19", "routing_key": "covid19"},
-    "country.tasks.local_currency_to_usd": {"queue": "covid19", "exchange": "covid19", "routing_key": "covid19"},
+    "country.tasks.process_currency_conversion": {"queue": "covid19", "exchange": "covid19", "routing_key": "covid19"},
 }
 CELERY_BEAT_SCHEDULE = {
     "fetch_covid_data_job": {

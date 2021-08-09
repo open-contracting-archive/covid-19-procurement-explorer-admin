@@ -25,7 +25,7 @@ def summarize_country_contracts(country_code):
 
 def get_statistics(country):
     data = {}
-    report = (
+    contract_summary = (
         Tender.objects.filter(country__country_code_alpha_2=country.country_code_alpha_2)
         .values("id")
         .aggregate(
@@ -50,57 +50,91 @@ def get_statistics(country):
                 "contract_value_usd",
                 filter=Q(procurement_procedure="not_identified"),
             ),
-            no_of_buyers=Count("buyer_id", distinct=True),
-            no_of_suppliers=Count("supplier_id", distinct=True),
+            total_buyers=Count("buyer_id", distinct=True),
+            total_suppliers=Count("supplier_id", distinct=True),
             time_span_max=Max("contract_date"),
             time_span_min=Min("contract_date"),
-            quantity_red_flag=Count("red_flag"),
-            sum_red_flag=Sum("contract_value_usd", exclude=Q(red_flag=None)),
-            quantity_of_equity_contracts=Count("equity_category"),
-            total_value_of_equity_contracts=Sum("contract_value_usd", exclude=Q(equity_category=None)),
+        )
+    )
+    red_flag_summary = (
+        Tender.objects.filter(country__country_code_alpha_2=country.country_code_alpha_2)
+        .exclude(red_flag=None)
+        .values("id")
+        .aggregate(
+            total_red_flag_contracts=Count("red_flag"),
+            total_amount_red_flag_contracts=Sum("contract_value_usd"),
+        )
+    )
+    equity_summary = (
+        Tender.objects.filter(country__country_code_alpha_2=country.country_code_alpha_2)
+        .exclude(equity_category=None)
+        .values("id")
+        .aggregate(
+            total_equity_contracts=Count("equity_category"),
+            total_amount_equity_contracts=Sum("contract_value_usd"),
         )
     )
 
-    if report["time_span_max"] and report["time_span_min"] is not None:
-        timespan = report["time_span_max"] - report["time_span_min"]
+    if contract_summary["time_span_max"] and contract_summary["time_span_min"] is not None:
+        timespan = contract_summary["time_span_max"] - contract_summary["time_span_min"]
     else:
         timespan = ""
+
     data["country"] = country.name
-    data["total_contracts"] = report["total_contracts"]
-    data["total_amount_usd"] = round(report["total_usd"], 2) if report["total_usd"] is not None else 0
-    data["total_amount_local"] = round(report["total_local"], 2) if report["total_local"] is not None else 0
-    data["direct_contracts"] = report["direct_contracts"]
-    data["limited_contracts"] = report["limited_contracts"]
-    data["open_contracts"] = report["open_contracts"]
-    data["selective_contracts"] = report["selective_contracts"]
-    data["not_identified_method_contracts"] = report["not_identified_method_contracts"]
-    data["direct_contracts_amount"] = round(report["direct_amount"], 2) if report["direct_amount"] is not None else 0
-    data["limited_contracts_amount"] = (
-        round(report["limited_amount"], 2) if report["limited_amount"] is not None else 0
+    data["total_contracts"] = contract_summary["total_contracts"]
+    data["total_amount_usd"] = (
+        round(contract_summary["total_usd"], 2) if contract_summary["total_usd"] is not None else 0
     )
-    data["open_contracts_amount"] = round(report["open_amount"], 2) if report["open_amount"] is not None else 0
+    data["total_amount_local"] = (
+        round(contract_summary["total_local"], 2) if contract_summary["total_local"] is not None else 0
+    )
+    data["direct_contracts"] = contract_summary["direct_contracts"]
+    data["limited_contracts"] = contract_summary["limited_contracts"]
+    data["open_contracts"] = contract_summary["open_contracts"]
+    data["selective_contracts"] = contract_summary["selective_contracts"]
+    data["not_identified_method_contracts"] = contract_summary["not_identified_method_contracts"]
+    data["direct_contracts_amount"] = (
+        round(contract_summary["direct_amount"], 2) if contract_summary["direct_amount"] is not None else 0
+    )
+    data["limited_contracts_amount"] = (
+        round(contract_summary["limited_amount"], 2) if contract_summary["limited_amount"] is not None else 0
+    )
+    data["open_contracts_amount"] = (
+        round(contract_summary["open_amount"], 2) if contract_summary["open_amount"] is not None else 0
+    )
     data["selective_contracts_amount"] = (
-        round(report["selective_amount"], 2) if report["selective_amount"] is not None else 0
+        round(contract_summary["selective_amount"], 2) if contract_summary["selective_amount"] is not None else 0
     )
     data["not_identified_contracts_amount"] = (
-        round(report["not_identified_contracts_amount"], 2)
-        if report["not_identified_contracts_amount"] is not None
+        round(contract_summary["not_identified_contracts_amount"], 2)
+        if contract_summary["not_identified_contracts_amount"] is not None
         else 0
     )
-    data["no_of_buyers"] = report["no_of_buyers"]
-    data["no_of_suppliers"] = report["no_of_suppliers"]
-    data["quantity_of_red_flags"] = report["quantity_red_flag"]
-    data["value_of_red_flag_contracts"] = round(report["sum_red_flag"], 2) if report["sum_red_flag"] is not None else 0
-    data["quantity_of_equity_contracts"] = report["quantity_of_equity_contracts"]
-    data["total_value_of_equity_contracts"] = (
-        round(report["total_value_of_equity_contracts"], 2)
-        if report["total_value_of_equity_contracts"] is not None
+    data["total_buyers"] = contract_summary["total_buyers"]
+    data["total_suppliers"] = contract_summary["total_suppliers"]
+
+    data["total_red_flag_contracts"] = red_flag_summary["total_red_flag_contracts"]
+    data["total_amount_red_flag_contracts"] = (
+        round(red_flag_summary["total_amount_red_flag_contracts"], 2)
+        if red_flag_summary["total_amount_red_flag_contracts"] is not None
+        else 0
+    )
+    data["total_equity_contracts"] = equity_summary["total_equity_contracts"]
+    data["total_amount_equity_contracts"] = (
+        round(equity_summary["total_amount_equity_contracts"], 2)
+        if equity_summary["total_amount_equity_contracts"] is not None
         else 0
     )
     data["time_span"] = str(timespan)[:-9]
     data["gdp_per_capita"] = country.gdp
     data["healthcare_budget"] = country.healthcare_budget
     data["percentage_of_gdp_to_healthcare_budget"] = country.healthcare_gdp_pc
+    data["total_covid_cases"] = country.covid_cases_total
+    data["total_active_cases"] = country.covid_active_cases
+    data["total_death_cases"] = country.covid_deaths_total
+    data["spending_per_covid_case"] = (
+        float(data["total_amount_usd"] / data["total_covid_cases"]) if data["total_covid_cases"] != 0 else 0
+    )
     data["country_data_download"] = (
         "https://" + socket.gethostbyname(socket.gethostname()) + "/media/export/" + country.name + "_summary.xlsx"
     )

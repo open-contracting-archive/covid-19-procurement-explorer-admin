@@ -7,30 +7,23 @@ app = Celery()
 
 
 @app.task(name="process_currency_conversion")
-def process_currency_conversion(
-    tender_value_local, award_value_local, contract_value_local, tender_date, currency, id
-):
-    tender_value_usd = (
-        convert_local_to_usd(source_value=tender_value_local, conversion_date=tender_date, source_currency=currency)
-        if tender_value_local
-        else None
-    )
-    award_value_usd = (
-        convert_local_to_usd(source_value=award_value_local, conversion_date=tender_date, source_currency=currency)
-        if award_value_local
-        else None
-    )
-    contract_value_usd = (
-        convert_local_to_usd(source_value=contract_value_local, conversion_date=tender_date, source_currency=currency)
-        if contract_value_local
-        else None
-    )
-    print(f"started processing... {id}: {tender_value_usd}, {award_value_usd}, {contract_value_usd}")
-    if tender_value_usd or award_value_usd or contract_value_usd:
-        tender = GoodsServices.objects.get(id=id)
-        tender.tender_value_usd = tender_value_usd
-        tender.award_value_usd = award_value_usd
-        tender.contract_value_usd = contract_value_usd
-        tender.save()
-        print("Converted goodsservices id:" + str(tender.id))
-    print(f"end of {id}")
+def process_currency_conversion(goods_services_id, conversion_date, source_currency):
+    goods_services_object = GoodsServices.objects.filter(id=goods_services_id).first()
+
+    if goods_services_object:
+        if source_currency != "USD":
+            goods_services_object.tender_value_usd = convert_local_to_usd(
+                conversion_date, source_currency, goods_services_object.tender_value_local
+            )
+            goods_services_object.award_value_usd = convert_local_to_usd(
+                conversion_date, source_currency, goods_services_object.award_value_local
+            )
+            goods_services_object.contract_value_usd = convert_local_to_usd(
+                conversion_date, source_currency, goods_services_object.contract_value_local
+            )
+        else:
+            goods_services_object.tender_value_usd = goods_services_object.tender_value_local
+            goods_services_object.award_value_usd = goods_services_object.award_value_local
+            goods_services_object.contract_value_usd = goods_services_object.contract_value_local
+
+        goods_services_object.save()

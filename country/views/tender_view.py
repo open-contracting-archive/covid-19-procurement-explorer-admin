@@ -25,15 +25,15 @@ class TenderView(viewsets.ModelViewSet):
         "country",
         "contract_date",
     )
-    filterset_fields = {
+    filter_set_fields = {
         "country__country_code_alpha_2": ["exact"],
     }
     extensions_auto_optimize = True
 
     def get_queryset(self):
-        country = self.request.GET.get("country", None)
-        buyer = self.request.GET.get("buyer", None)
-        supplier = self.request.GET.get("supplier", None)
+        country_code = self.request.GET.get("country", None)
+        buyer_id = self.request.GET.get("buyer", None)
+        supplier_id = self.request.GET.get("supplier", None)
         product_id = self.request.GET.get("product", None)
         status = self.request.GET.get("status", None)
         procurement_procedure = self.request.GET.get("procurement_procedure", None)
@@ -42,18 +42,22 @@ class TenderView(viewsets.ModelViewSet):
         date_to = self.request.GET.get("date_to", None)
         contract_value_usd = self.request.GET.get("contract_value_usd", None)
         value_comparison = self.request.GET.get("value_comparison", None)
-        equity_id = self.request.GET.get("equity_id", None)
+        red_flag_id = self.request.GET.get("red_flag", None)
+        equity_id = self.request.GET.get("equity", None)
         filter_args = {}
         exclude_args = {}
         annotate_args = {}
+
         if equity_id:
-            filter_args["equity_category__id"] = equity_id
-        if country:
-            filter_args["country__country_code_alpha_2"] = country
-        if buyer:
-            filter_args = add_filter_args("buyer", buyer, filter_args)
-        if supplier:
-            filter_args = add_filter_args("supplier", supplier, filter_args)
+            filter_args = add_filter_args("equity_category", equity_id, filter_args)
+        if red_flag_id:
+            filter_args["red_flag__id"] = red_flag_id
+        if country_code:
+            filter_args["country__country_code_alpha_2"] = country_code.upper()
+        if buyer_id:
+            filter_args = add_filter_args("buyer", buyer_id, filter_args)
+        if supplier_id:
+            filter_args = add_filter_args("supplier", supplier_id, filter_args)
         if product_id:
             filter_args["goods_services__goods_services_category"] = product_id
         if title:

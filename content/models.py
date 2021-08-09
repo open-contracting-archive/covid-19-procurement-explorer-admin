@@ -239,19 +239,21 @@ class Tag(TaggitTag):
         proxy = True
 
 
+def default_validation_json():  # This is a callable
+    return {"errors": [], "status": "not_started", "row_count": 0, "started_on": "", "completed_on": ""}
+
+
 class DataImport(Page):
     parent_page_types = ["content.Contents"]
 
-    subpage_types = []
-
     description = models.TextField(verbose_name=_("Description"), null=False, max_length=500000)
-
     import_file = models.FileField(null=True, blank=False, upload_to="documents", validators=[validate_file_extension])
-
     country = models.ForeignKey(Country, on_delete=models.PROTECT, blank=False, null=False)
     validated = models.BooleanField(null=False, blank=True, default=False)
     no_of_rows = models.CharField(verbose_name=_("No of rows"), null=True, max_length=10, default=0)
     imported = models.BooleanField(null=False, blank=True, default=False)
+    validation = models.JSONField(default=default_validation_json)
+    import_details = models.JSONField(default=default_validation_json)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -266,13 +268,13 @@ class DataImport(Page):
         APIField("import_file"),
         APIField("country"),
     ]
+    subpage_types = []
     settings_panels = []
     promote_panels = []
     preview_modes = []
 
     def clean(self):
         super().clean()
-        self.slug = ""
 
     class Meta:
         verbose_name = "Data Import"

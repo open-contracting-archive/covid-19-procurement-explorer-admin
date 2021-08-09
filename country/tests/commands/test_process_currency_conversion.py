@@ -52,7 +52,6 @@ def setUpModule():
         goods_services_category=category,
         contract=tender,
         classification_code="code",
-        no_of_bidders=112,
         contract_title="title",
         contract_desc="desc",
         quantity_units=1233,

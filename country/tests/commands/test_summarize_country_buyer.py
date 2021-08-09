@@ -1,15 +1,18 @@
 from django.core.management import CommandError, call_command
 from django.test import TransactionTestCase
 
-from country.models import Buyer, Country, Supplier, Tender
+from country.models import Buyer, Country, GoodsServices, GoodsServicesCategory, Supplier, Tender
 
-command_name = "import_tender_from_id"
+command_name = "summarize_country_buyer"
 
 
 def setUpModule():
     Country.objects.all().delete()
     country = Country.objects.create(name="Mexico", country_code="MEX", country_code_alpha_2="MX", currency="MXN")
-
+    category = GoodsServicesCategory.objects.create(
+        category_name="name",
+        category_desc="desc",
+    )
     supplier = Supplier.objects.create(
         supplier_id="1",
         supplier_name="sample supplier",
@@ -22,7 +25,7 @@ def setUpModule():
         buyer_address="kathmandu",
     )
 
-    Tender.objects.create(
+    tender = Tender.objects.create(
         country=country,
         supplier=supplier,
         buyer=buyer,
@@ -44,15 +47,28 @@ def setUpModule():
         award_value_usd=1.0,
     )
 
+    GoodsServices.objects.create(
+        country=country,
+        goods_services_category=category,
+        contract=tender,
+        classification_code="code",
+        contract_title="title",
+        contract_desc="desc",
+        quantity_units=1233,
+        ppu_including_vat=1234.0,
+        tender_value_local=1234.0,
+        tender_value_usd=None,
+        award_value_local=1234.0,
+        award_value_usd=None,
+        contract_value_local=1234.0,
+        contract_value_usd=None,
+    )
 
-class TenderImportCommand(TransactionTestCase):
-    def test_command_without_country_batch(self):
+
+class SummarizeCountryBuyerTest(TransactionTestCase):
+    def test_command(self):
         with self.assertRaises(CommandError):
             call_command(command_name)
 
-    def test_command_with_wrong_country_batch(self):
-        with self.assertRaises(AttributeError):
-            call_command(command_name, "no_country", 1)
-
-    def test_command_with_country_batch(self):
-        self.assertEquals(call_command(command_name, "Mexico", 1), "Done")
+    def test_command_with_country(self):
+        self.assertEquals(call_command(command_name, "MX"), None)
