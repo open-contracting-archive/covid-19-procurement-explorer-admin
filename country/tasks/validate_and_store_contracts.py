@@ -73,12 +73,19 @@ def validate_and_store_contracts(data_import_id):
         import_batch.save()
         i = 0
 
-        while i <= row_count:
+        while i < row_count:
+            if i:
+                row_number = i + 2
+            else:
+                row_number = i + 1
+
             try:
                 if is_valid_contract(i, ws):
+                    contract_date = validate_contract_date(ws["Contract date (yyyy-mm-dd)"][i])
+
                     raw_data = TempDataImportTable(
                         contract_id=ws["Contract ID"][i],
-                        contract_date=ws["Contract date (yyyy-mm-dd)"][i].date(),
+                        contract_date=contract_date,
                         procurement_procedure=sanitize_procurement_procedure(ws["Procurement procedure code"][i]),
                         procurement_process=ws["Procurement procedure code"][i],
                         goods_services=ws["Goods/Services"][i],
@@ -110,10 +117,9 @@ def validate_and_store_contracts(data_import_id):
                 error_mapping = {"'str' object has no attribute 'date'": "Date not provided or invalid"}
 
                 if str(e) in error_mapping:
-                    errors.append(f"Row {i + 1} : " + error_mapping[str(e)])
+                    errors.append(f"Row {row_number} : " + error_mapping[str(e)])
                 else:
-                    if i <= row_count:  # todo: remove this
-                        errors.append(f"Row {i + 1} : " + str(e))
+                    errors.append(f"Row {row_number} : " + str(e))
 
             i += 1
     except Exception as e:
@@ -126,6 +132,16 @@ def validate_and_store_contracts(data_import_id):
     data_import.save()
 
     return True
+
+
+def validate_contract_date(date_string):
+    if not date_string:
+        return Exception("Invalid Date")
+
+    if type(date_string) == str:
+        return datetime.datetime.strptime(date_string, "%Y-%m-%d").date()
+
+    return date_string.date()
 
 
 def get_valid_columns():

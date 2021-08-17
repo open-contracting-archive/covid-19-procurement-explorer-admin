@@ -1,11 +1,19 @@
-# from django.db.models.signals import post_save
-# from django.dispatch import receiver
+import os
 
-# from content.models import DataImport
-# from country.tasks import store_in_temp_table
+from django.conf import settings
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
-# # @receiver(post_save, sender=DataImport)
-# # def validation_and_temp_table_store(sender,created ,instance, *args, **kwargs):
-# #     if created:
-# #         print("Data validation and temp table storage task started!")
-# #         store_in_temp_table.apply_async(args=(a.id,), queue='covid19')
+from content.models import DataImport
+from country.tasks import delete_dataset
+from covidadmin.constants import queues
+
+
+@receiver(post_delete, sender=DataImport)
+def delete_import_batch(sender, instance, *args, **kwargs):
+    delete_dataset.apply(args=(instance.page_ptr_id,), queue=queues.default)
+
+    # Delete dataset file
+    filename = instance.import_file.name
+    file_path = settings.MEDIA_ROOT + "/" + str(filename)
+    os.remove(file_path)

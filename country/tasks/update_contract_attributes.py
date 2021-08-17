@@ -5,6 +5,7 @@ from country.models import Tender
 app = Celery()
 
 
+# Update contract attributes like title and amount values
 @app.task(name="update_contract_attributes")
 def update_contract_attributes(contract_ids):
     if type(contract_ids) is not list:

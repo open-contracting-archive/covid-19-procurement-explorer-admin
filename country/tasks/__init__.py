@@ -1,3 +1,4 @@
+from .clear_cache_table import clear_cache_table
 from .clear_red_flag import clear_red_flag
 from .convert_local_to_usd import convert_local_to_usd
 from .country_contract_excel import country_contract_excel
