@@ -164,6 +164,8 @@ importlib-resources==5.1.2
     # via
     #   pre-commit
     #   virtualenv
+inflect==5.3.0
+    # via -r requirements.txt
 ipdb==0.13.4
     # via -r requirements_dev.in
 ipython-genutils==0.2.0
@@ -212,7 +214,7 @@ pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-pillow==8.2.0
+pillow==8.3.2
     # via
     #   -r requirements.txt
     #   wagtail
@@ -279,7 +281,7 @@ soupsieve==2.0.1
     # via
     #   -r requirements.txt
     #   beautifulsoup4
-sqlparse==0.4.1
+sqlparse==0.4.2
     # via
     #   -r requirements.txt
     #   django
