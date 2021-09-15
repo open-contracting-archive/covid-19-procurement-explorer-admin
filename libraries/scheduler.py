@@ -2,15 +2,18 @@ import datetime
 
 from celery import Celery
 
-from country.tasks.country_contract_excel import country_contract_excel
-from country.tasks.delete_unused_buyers import delete_unused_buyers
-from country.tasks.delete_unused_suppliers import delete_unused_suppliers
-from country.tasks.evaluate_contract_equity import evaluate_contract_equity
-from country.tasks.evaluate_contract_red_flag import evaluate_contract_red_flag
-from country.tasks.evaluate_country_buyer import evaluate_country_buyer
-from country.tasks.evaluate_country_supplier import evaluate_country_supplier
-from country.tasks.export_summary_report import export_summary_report
-from country.tasks.summarize_country_contracts import summarize_country_contracts
+from country.tasks import (
+    clear_cache_table,
+    country_contract_excel,
+    delete_unused_buyers,
+    delete_unused_suppliers,
+    evaluate_contract_equity,
+    evaluate_contract_red_flag,
+    evaluate_country_buyer,
+    evaluate_country_supplier,
+    export_summary_report,
+    summarize_country_contracts,
+)
 
 
 class ScheduleRunner:
@@ -30,6 +33,7 @@ class ScheduleRunner:
             "delete_unused_buyers": delete_unused_buyers,
             "evaluate_contract_red_flag": evaluate_contract_red_flag,
             "evaluate_contract_equity": evaluate_contract_equity,
+            "clear_cache_table": clear_cache_table,
         }
         self.datetime_now = datetime.datetime.now()
 

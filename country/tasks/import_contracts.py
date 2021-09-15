@@ -16,7 +16,6 @@ from country.models import (
     Tender,
 )
 from country.tasks.process_currency_conversion import process_currency_conversion
-from country.tasks.update_contract_attributes import update_contract_attributes
 from helpers.general import close_string_mapping
 from libraries.scheduler import ScheduleRunner
 
@@ -80,9 +79,6 @@ def import_contracts(import_batch_id, country_code):
                 errors.append(f"Contract ID({contract_id}) : " + str(e))
         else:
             errors.append("Contract with no ID found")
-
-    # Update contract attributes like title and amount values
-    update_contract_attributes.apply_async(args=(imported_contract_ids,), queue="covid19")
 
     # Update Data Import progress ...
     # ... set status to Completed
@@ -286,4 +282,11 @@ def run_post_process_tasks(country):
         task_name="export_summary_report",
         interval_name="every_hour",
         interval=4,
+    )
+
+    # Clear cache table
+    instance.task_scheduler(
+        task_name="clear_cache_table",
+        interval_name="round_minute",
+        interval=5,
     )

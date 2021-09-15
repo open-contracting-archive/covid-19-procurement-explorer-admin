@@ -386,13 +386,6 @@ class TenderAdmin(admin.ModelAdmin):
 admin.site.register(Tender, TenderAdmin)
 
 
-# @receiver(post_save, sender=Tender)
-# def save_model(sender, instance, **kwargs):
-#     if getattr(instance, "from_admin_site", False):
-#         tender_id = instance.id
-#         update_contract_attributes(tender_id)
-
-
 @admin.register(RedFlag)
 class RedFlagAdmin(admin.ModelAdmin):
     list_display = ("title", "implemented")
