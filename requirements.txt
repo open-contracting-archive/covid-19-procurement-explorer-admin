@@ -55,7 +55,7 @@ django-taggit==1.4.0
     #   wagtail
 django-treebeard==4.3.1
     # via wagtail
-django==3.2.4
+django==3.2.8
     # via
     #   -r requirements.in
     #   django-cors-headers
