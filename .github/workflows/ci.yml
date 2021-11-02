@@ -29,17 +29,17 @@ jobs:
           - 5672/tcp
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v1
+      - uses: actions/setup-python@v2
         with:
           python-version: 3.6
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements_dev.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-      # Check requirements.txt contains production requirements.
       - run: pip install -r requirements.txt
+      # Check requirements.txt contains production requirements.
       - run: ./manage.py --help
       - run: pip install -r requirements_dev.txt
       - name: Run checks and tests
