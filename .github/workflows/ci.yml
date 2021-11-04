@@ -1,7 +1,5 @@
 name: CI
 on: [push, pull_request]
-env:
-  BASEDIR: https://raw.githubusercontent.com/open-contracting/standard-maintenance-scripts/main
 jobs:
   build:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
@@ -43,7 +41,6 @@ jobs:
       - run: ./manage.py --help
       - run: pip install -r requirements_dev.txt
       - name: Run checks and tests
-        if: always()
         run: |
           ./manage.py migrate
           ./manage.py makemigrations --check --dry-run
